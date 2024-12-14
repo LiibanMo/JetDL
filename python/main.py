@@ -1,5 +1,13 @@
 from tensor import Tensor
 
-tensorA = Tensor([[[1,3], [4,5], [0,0]], [[1,1], [1,1], [0,0]]])
+tensorA = Tensor([[1,2], 
+                  [3,4], 
+                  [5,6]])
 
-print(tensorA.shape)
+tensorB = Tensor([[1,1],
+                  [1,1],
+                  [1,1]])
+
+tensorC = tensorA - tensorB
+
+print("Successful")
