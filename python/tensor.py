@@ -99,7 +99,10 @@ class Tensor:
 
     def __add__(self, operand):
         if isinstance(operand, (int, float)):
-            Tensor._C.scalar_add_tensor.argtypes = [ctypes.POINTER(C_Tensor), ctypes.c_double]
+            Tensor._C.scalar_add_tensor.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.c_double,
+            ]
             Tensor._C.scalar_add_tensor.restype = ctypes.POINTER(C_Tensor)
 
             c_result_tensor = Tensor._C.scalar_add_tensor(self.tensor, operand)
@@ -113,7 +116,9 @@ class Tensor:
                 result_tensor.size *= dim
 
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
@@ -140,7 +145,9 @@ class Tensor:
                 result_tensor.size *= dim
 
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
@@ -148,7 +155,7 @@ class Tensor:
         if isinstance(operand, (int, float)):
             Tensor._C.scalar_sub_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
-                ctypes.c_double
+                ctypes.c_double,
             ]
             Tensor._C.scalar_sub_tensor.restype = ctypes.POINTER(C_Tensor)
 
@@ -161,12 +168,14 @@ class Tensor:
             result_tensor.size = 1
             for dim in result_tensor.shape:
                 result_tensor.size *= dim
-            
+
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
-        
+
         elif isinstance(operand, Tensor):
             Tensor._C.subtract_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
@@ -185,7 +194,9 @@ class Tensor:
                 result_tensor.size *= dim
 
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
@@ -193,7 +204,7 @@ class Tensor:
         if isinstance(operand, (int, float)):
             Tensor._C.scalar_mul_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
-                ctypes.c_double
+                ctypes.c_double,
             ]
             Tensor._C.scalar_mul_tensor.restype = ctypes.POINTER(C_Tensor)
 
@@ -208,10 +219,12 @@ class Tensor:
                 result_tensor.size *= dim
 
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
-        
+
         elif isinstance(operand, Tensor):
             Tensor._C.hadamard_mul_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
@@ -230,7 +243,9 @@ class Tensor:
                 result_tensor.size *= dim
 
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
@@ -251,9 +266,11 @@ class Tensor:
             result_tensor.size = 1
             for dim in result_tensor.shape:
                 result_tensor.size *= dim
-            
+
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
@@ -273,9 +290,11 @@ class Tensor:
             result_tensor.ndim = self.ndim
             for dim in result_tensor.shape:
                 result_tensor.size *= dim
-            
+
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
@@ -294,13 +313,15 @@ class Tensor:
             result_tensor.ndim = self.ndim
             for dim in result_tensor.shape:
                 result_tensor.size *= dim
-            
+
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
-    def __retrieve_data(self, c_data_ptr, size_of_data:int):
+    def __retrieve_data(self, c_data_ptr, size_of_data: int):
         result_data = []
         for idx in range(size_of_data):
             result_data.append(c_data_ptr[idx])
