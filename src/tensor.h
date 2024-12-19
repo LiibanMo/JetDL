@@ -2,7 +2,7 @@
 #define TENSOR_H
 
 typedef struct {
-    float* data;
+    double* data;
     int* shape;
     int* strides;
     int ndim;
@@ -10,10 +10,17 @@ typedef struct {
 } Tensor;
 
 extern "C" {
-    Tensor* create_tensor(float* data, int* shape, int ndim);
-    float get_item(Tensor* tensor, int* indices);
-    Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB);
-    Tensor* subtract_tensor(Tensor* tensorA, Tensor* tensorB);
+    Tensor* create_tensor(double* data, int* shape, int ndim);
+    double get_item(Tensor* tensor, int* indices);
+    Tensor* add_tensor(Tensor* tensor, Tensor* tensorB);
+    Tensor* scalar_add_tensor(Tensor* tensorA, double operand);
+    Tensor* sub_tensor(Tensor* tensorA, Tensor* tensorB);
+    Tensor* scalar_sub_tensor(Tensor* tensorA, double operand);
+    Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB);
+    Tensor* matmul_tensor(Tensor* tensorA, Tensor* tensorB);
+    Tensor* batch_matmul_tensor(Tensor* tensorA, Tensor* tensorB);
+    Tensor* scalar_mul_tensor(Tensor* tensorA, double operand);
+    Tensor* tensor_div_scalar(Tensor* tensor, double divisor);
 }
 
 #endif
