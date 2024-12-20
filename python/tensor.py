@@ -251,13 +251,13 @@ class Tensor:
 
     def __truediv__(self, operand):
         if isinstance(operand, (int, float)):
-            Tensor._C.tensor_div_scalar.argtypes = [
+            Tensor._C.scalar_div_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.c_double,
             ]
-            Tensor._C.tensor_div_scalar.restype = ctypes.POINTER(C_Tensor)
+            Tensor._C.scalar_div_tensor.restype = ctypes.POINTER(C_Tensor)
 
-            c_result_tensor = Tensor._C.tensor_div_scalar(self.tensor, operand)
+            c_result_tensor = Tensor._C.scalar_div_tensor(self.tensor, operand)
 
             result_tensor = Tensor()
             result_tensor.tensor = c_result_tensor

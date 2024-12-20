@@ -281,7 +281,7 @@ Tensor* scalar_mul_tensor(Tensor* tensorA, double operand) {
     return create_tensor(result_data, shape, ndim);
 }
 
-Tensor* tensor_div_scalar(Tensor* tensor, double divisor) {
+Tensor* scalar_div_tensor(Tensor* tensor, double divisor) {
     if (divisor == 0) {
         fprintf(stderr, "Cannot divide by 0.\n");
         return NULL;
@@ -304,7 +304,7 @@ Tensor* tensor_div_scalar(Tensor* tensor, double divisor) {
         return NULL;
     }
 
-    tensor_div_scalar_cpu(tensor, divisor, result_data);
+    scalar_div_tensor_cpu(tensor, divisor, result_data);
 
     return create_tensor(result_data, shape, ndim);
 }

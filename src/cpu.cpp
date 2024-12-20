@@ -73,7 +73,7 @@ void scalar_mul_tensor_cpu(Tensor* tensorA, double operand, double* result_data)
     }
 }
 
-void tensor_div_scalar_cpu(Tensor* tensorA, double divisor, double* result_data) {
+void scalar_div_tensor_cpu(Tensor* tensorA, double divisor, double* result_data) {
     for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] / divisor;
     }

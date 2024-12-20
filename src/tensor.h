@@ -20,7 +20,7 @@ extern "C" {
     Tensor* matmul_tensor(Tensor* tensorA, Tensor* tensorB);
     Tensor* batch_matmul_tensor(Tensor* tensorA, Tensor* tensorB);
     Tensor* scalar_mul_tensor(Tensor* tensorA, double operand);
-    Tensor* tensor_div_scalar(Tensor* tensor, double divisor);
+    Tensor* scalar_div_tensor(Tensor* tensor, double divisor);
 }
 
 #endif
