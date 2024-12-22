@@ -32,7 +32,7 @@ jobs:
 
       # Run tests
       - name: Run tests
-        run: pytest --disable-warnings --maxfail=1
+        run: pytest
 
       # Upload test results (optional, for richer reports)
       - name: Upload test results
