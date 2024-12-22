@@ -30,6 +30,26 @@ void hadamard_mul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_da
     }
 }
 
+void inner_product_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+    result_data[0] = 1;
+    for (int idx = 0; idx < tensorA->size; idx++) {
+        result_data[0] *= tensorA->data[idx] * tensorB->data[idx];
+    }
+}
+
+void matmul_tensor_vector_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+    const int M = tensorA->shape[0];
+    const int N = tensorA->shape[1];
+
+    for (int row_idx = 0; row_idx < M; row_idx++) {
+        int sum = 0;
+        for (int sum_idx = 0; sum_idx < N; sum_idx++) {
+            sum += tensorA->data[N * row_idx + sum_idx] * tensorB->data[sum_idx];
+        }
+        result_data[row_idx] = sum;
+    }
+}
+
 void matmul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
     // (M, N) * (N, P) = (M, P)
     const int M = tensorA->shape[0];

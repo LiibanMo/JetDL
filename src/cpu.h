@@ -8,6 +8,8 @@ void scalar_add_tensor_cpu(Tensor* tensorA, double operand, double* result_data)
 void subtract_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 void scalar_sub_tensor_cpu(Tensor* tensorA, double operand, double* result_data);
 void hadamard_mul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
+void inner_product_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
+void matmul_tensor_vector_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 void matmul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 void batch_matmul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 void scalar_mul_tensor_cpu(Tensor* tensorA, double operand, double* result_data);

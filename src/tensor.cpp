@@ -41,18 +41,8 @@ double get_item(Tensor* tensor, int* indices) {
 }
 
 Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB) {
-    if (tensorA->ndim != tensorB->ndim) {
-        fprintf(stderr, "Inconsistent number of dimensions for tensor-tensor addition.\n");
-        return NULL;
-    }
     const int ndim = tensorA->ndim;
 
-    for (int idx = 0; idx < ndim; idx++) {
-        if (tensorA->shape[idx] != tensorB->shape[idx]) {
-            fprintf(stderr, "Inconsistent dimensions in shape for tensor-tensor addition.\n");
-            return NULL;
-        }
-    }
     int* shape = (int*)malloc(ndim * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -96,18 +86,8 @@ Tensor* scalar_add_tensor(Tensor* tensor, double operand) {
 }
 
 Tensor* sub_tensor(Tensor* tensorA, Tensor* tensorB) {
-    if (tensorA->ndim != tensorB->ndim) {
-        fprintf(stderr, "Inconsistent number of dimensions for tensor-tensor subtraction.\n");
-        return NULL;
-    }
     const int ndim = tensorA->ndim;
 
-    for (int idx = 0; idx < ndim; idx++) {
-        if (tensorA->shape[idx] != tensorB->shape[idx]) {
-            fprintf(stderr, "Inconsistent dimensions in shape for tensor-tensor subtraction.\n");
-            return NULL;
-        }
-    }
     int* shape = (int*)malloc(ndim * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -151,18 +131,8 @@ Tensor* scalar_sub_tensor(Tensor* tensorA, double operand) {
 }
 
 Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB) {
-    if (tensorA->ndim != tensorB->ndim) {
-        fprintf(stderr, "Inconsistent number of dimensions for tensor-tensor hadamard multiplication.\n");
-        return NULL;
-    }
     const int ndim = tensorA->ndim;
 
-    for (int idx = 0; idx < ndim; idx++) {
-        if (tensorA->shape[idx] != tensorB->shape[idx]) {
-            fprintf(stderr, "Inconsistent dimensions in shape for tensor-tensor hadamard multiplication.\n");
-            return NULL;
-        }
-    }
     int* shape = (int*)malloc(ndim * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -183,11 +153,51 @@ Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB) {
     return create_tensor(result_data, shape, ndim);
 }
 
-Tensor* matmul_tensor(Tensor* tensorA, Tensor* tensorB) {
-    if (tensorA->ndim != tensorB->ndim) {
-        fprintf(stderr, "Inconsistent number of dimensions between tensor matmul operands.\n");
+Tensor* inner_product_tensor(Tensor* tensorA, Tensor* tensorB) {
+    const int ndim = 1;
+
+    int* shape = (int*)malloc(1);
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
+    shape[0] = 1;
+
+    double* result_data = (double*)malloc(1);
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+    
+    inner_product_cpu(tensorA, tensorB, result_data);
+
+    return create_tensor(result_data, shape, ndim);
+}
+
+Tensor* matmul_tensor_vector(Tensor* tensorA, Tensor* tensorB) {
+    const int ndim = tensorA->ndim;
+
+    const int M = tensorA->shape[0];
+    const int N = tensorA->shape[1];
+    int* shape = (int*)malloc(ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+    shape[0] = M;
+
+    double* result_data = (double*)malloc(M * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    matmul_tensor_vector_cpu(tensorA, tensorB, result_data);
+
+    return create_tensor(result_data, shape, ndim);
+}
+
+Tensor* matmul_tensor(Tensor* tensorA, Tensor* tensorB) {
     const int ndim = tensorA->ndim;
 
     int* shape = (int*)malloc(ndim * sizeof(int));
@@ -195,16 +205,8 @@ Tensor* matmul_tensor(Tensor* tensorA, Tensor* tensorB) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    // (M, N) * (N, P) = (M, P)
-    if (tensorA->shape[1] != tensorB->shape[0]) {
-        fprintf(stderr, "Inconsistent dimensions for matmul.\n");
-        return NULL;
-    }
     
-    int size = 1;
-    for (int idx = 0; idx < ndim; idx++) {
-        size *= shape[idx];
-    }
+    const int size = tensorA->shape[1] * tensorB->shape[0];
 
     double* result_data = (double*)malloc(size * sizeof(double));
     if (!result_data) {
@@ -218,10 +220,6 @@ Tensor* matmul_tensor(Tensor* tensorA, Tensor* tensorB) {
 }
 
 Tensor* batch_matmul_tensor(Tensor* tensorA, Tensor* tensorB) {
-    if (tensorA->ndim != tensorB->ndim) {
-        fprintf(stderr, "Inconsistent number of dimensions between batch tensor matmul operands.\n");
-        return NULL;
-    }
     const int ndim = tensorA->ndim;
 
     int* shape = (int*)malloc(ndim * sizeof(int));
@@ -229,15 +227,7 @@ Tensor* batch_matmul_tensor(Tensor* tensorA, Tensor* tensorB) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    // (B, M, N) * (B, N, P) = (B, M, P)
-    if (tensorA->shape[0] != tensorB->shape[0]) {
-        fprintf(stderr, "Inconsistent batch dimensions between batch tensor matmul operands.\n");
-        return NULL;
-    }
-    if (tensorA->shape[2] != tensorB->shape[1]) {
-        fprintf(stderr, "Inconsistent dimensions for matrix multiplication in batch tensor matmul.\n");
-        return NULL;
-    }
+    
     shape[0] = tensorA->shape[0];
     shape[1] = tensorA->shape[1];
     shape[2] = tensorB->shape[2];
@@ -282,11 +272,6 @@ Tensor* scalar_mul_tensor(Tensor* tensorA, double operand) {
 }
 
 Tensor* scalar_div_tensor(Tensor* tensor, double divisor) {
-    if (divisor == 0) {
-        fprintf(stderr, "Cannot divide by 0.\n");
-        return NULL;
-    }
-
     const int ndim = tensor->ndim;
 
     int* shape = (int*)malloc(ndim * sizeof(int));
@@ -307,4 +292,32 @@ Tensor* scalar_div_tensor(Tensor* tensor, double divisor) {
     scalar_div_tensor_cpu(tensor, divisor, result_data);
 
     return create_tensor(result_data, shape, ndim);
+}
+
+void free_tensor(Tensor* tensor) {
+    if (tensor) {
+        free(tensor);
+        tensor = NULL;
+    } 
+}
+
+void free_data(Tensor* tensor) {
+    if (tensor->data) {
+        free(tensor->data);
+        tensor->data = NULL;
+    }
+}
+
+void free_shape(Tensor* tensor) {
+    if (tensor->shape) {
+        free(tensor->shape);
+        tensor->shape = NULL;
+    }
+}
+
+void free_strides(Tensor* tensor) {
+    if (tensor->strides) {
+        free(tensor->strides);
+        tensor->strides = NULL;
+    }
 }
