@@ -3,6 +3,7 @@ import os
 from typing import Optional
 from weakref import finalize
 
+
 class C_Tensor(ctypes.Structure):
     _fields_ = [
         ("data", ctypes.POINTER(ctypes.c_double)),
@@ -19,10 +20,10 @@ class Tensor:
     _C = ctypes.CDLL(lib_path)
 
     _C.create_tensor.argtypes = [
-                ctypes.POINTER(ctypes.c_double),
-                ctypes.POINTER(ctypes.c_int),
-                ctypes.c_int,
-            ]
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_int),
+        ctypes.c_int,
+    ]
     _C.create_tensor.restype = ctypes.POINTER(C_Tensor)
 
     _C.free_tensor.argtypes = [ctypes.POINTER(C_Tensor)]
@@ -67,7 +68,7 @@ class Tensor:
             Tensor._C.free_shape(self.shape)
         elif hasattr(self, "strides"):
             Tensor._C.free_strides(self.strides)
-            
+
     def flatten(self, data):
         def recursively_flattening(data):
             if not isinstance(data[0], list):
@@ -121,7 +122,6 @@ class Tensor:
 
         item = Tensor._C.get_item(self.tensor, indices)
         return item
-        
 
     def __add__(self, operand):
         if isinstance(operand, (int, float)):
@@ -150,10 +150,14 @@ class Tensor:
 
         elif isinstance(operand, Tensor):
             if self.ndim != operand.ndim:
-                raise ValueError(f"Inconsistent number of dimensions for tensor-tensor addition. Got {self.ndim} and {operand.ndim}.")
-            
+                raise ValueError(
+                    f"Inconsistent number of dimensions for tensor-tensor addition. Got {self.ndim} and {operand.ndim}."
+                )
+
             if self.shape != operand.shape:
-                raise ValueError(f"Inconsistent dimensions in shape for tensor-tensor addition. Got {self.shape} and {operand.shape}.")
+                raise ValueError(
+                    f"Inconsistent dimensions in shape for tensor-tensor addition. Got {self.shape} and {operand.shape}."
+                )
 
             Tensor._C.add_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
@@ -202,17 +206,21 @@ class Tensor:
             )
 
             return result_tensor
-        
+
         elif isinstance(operand, Tensor):
             if self.ndim != operand.ndim:
-                raise ValueError(f"Inconsistent number of dimensions for tensor-tensor subtraction. Got {self.ndim} and {operand.ndim}.")
-            
+                raise ValueError(
+                    f"Inconsistent number of dimensions for tensor-tensor subtraction. Got {self.ndim} and {operand.ndim}."
+                )
+
             if self.shape != operand.shape:
-                raise ValueError(f"Inconsistent dimensions in shape for tensor-tensor subtraction. Got {self.shape} and {operand.shape}.")
-            
+                raise ValueError(
+                    f"Inconsistent dimensions in shape for tensor-tensor subtraction. Got {self.shape} and {operand.shape}."
+                )
+
             Tensor._C.sub_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
-                ctypes.POINTER(C_Tensor)
+                ctypes.POINTER(C_Tensor),
             ]
             Tensor._C.sub_tensor.restype = ctypes.POINTER(C_Tensor)
 
@@ -227,7 +235,9 @@ class Tensor:
                 result_tensor.size *= dim
 
             c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
 
             return result_tensor
 
@@ -258,11 +268,15 @@ class Tensor:
 
         elif isinstance(operand, Tensor):
             if self.ndim != operand.ndim:
-                raise ValueError(f"Inconsistent number of dimensions for tensor-tensor hadamard multiplication. Got {self.ndim} and {operand.ndim}.")
-            
+                raise ValueError(
+                    f"Inconsistent number of dimensions for tensor-tensor hadamard multiplication. Got {self.ndim} and {operand.ndim}."
+                )
+
             if self.shape != operand.shape:
-                raise ValueError(f"Inconsistent dimensions in shape for tensor-tensor hadamard multiplication. Got {self.shape} and {operand.shape}.")
-            
+                raise ValueError(
+                    f"Inconsistent dimensions in shape for tensor-tensor hadamard multiplication. Got {self.shape} and {operand.shape}."
+                )
+
             Tensor._C.hadamard_mul_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.POINTER(C_Tensor),
@@ -314,16 +328,20 @@ class Tensor:
     def __matmul__(self, operand):
         if self.ndim == 1:
             if self.shape != operand.shape:
-                raise ValueError(f"Incompatible shapes for inner product. Got {self.shape} and {operand.shape}.")
-            
+                raise ValueError(
+                    f"Incompatible shapes for inner product. Got {self.shape} and {operand.shape}."
+                )
+
             if isinstance(operand, Tensor) and operand.ndim == 1:
                 Tensor._C.inner_product_tensor.argtypes = [
                     ctypes.POINTER(C_Tensor),
-                    ctypes.POINTER(C_Tensor)
+                    ctypes.POINTER(C_Tensor),
                 ]
                 Tensor._C.inner_product_tensor.restype = ctypes.POINTER(C_Tensor)
 
-                c_result_tensor = Tensor._C.inner_product_tensor(self.tensor, operand.tensor)
+                c_result_tensor = Tensor._C.inner_product_tensor(
+                    self.tensor, operand.tensor
+                )
 
                 result_tensor = Tensor()
                 result_tensor.tensor = c_result_tensor
@@ -332,23 +350,31 @@ class Tensor:
                 result_tensor.size = 1
 
                 c_result_data_ptr = c_result_tensor.contents.data
-                result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+                result_tensor.data = self.__retrieve_data(
+                    c_result_data_ptr, result_tensor.size
+                )
 
                 return result_tensor
-            
+
             else:
-                raise ValueError(f"Tensors of different shapes cannot multiply. Got {self.shape} and {operand.shape}")
+                raise ValueError(
+                    f"Tensors of different shapes cannot multiply. Got {self.shape} and {operand.shape}"
+                )
         elif self.ndim == 2:
             if isinstance(operand, Tensor) and operand.ndim == 1:
                 if self.shape[1] != operand.shape[0]:
-                        raise ValueError(f"Inconsistent dimensions for matmul. Got {self.shape} and {operand.shape}.")
+                    raise ValueError(
+                        f"Inconsistent dimensions for matmul. Got {self.shape} and {operand.shape}."
+                    )
                 Tensor._C.matmul_tensor_vector.argtypes = [
                     ctypes.POINTER(C_Tensor),
-                    ctypes.POINTER(C_Tensor)
+                    ctypes.POINTER(C_Tensor),
                 ]
                 Tensor._C.matmul_tensor_vector.restype = ctypes.POINTER(C_Tensor)
 
-                c_result_tensor = Tensor._C.matmul_tensor_vector(self.tensor, operand.tensor)
+                c_result_tensor = Tensor._C.matmul_tensor_vector(
+                    self.tensor, operand.tensor
+                )
 
                 result_tensor = Tensor()
                 result_tensor.tensor = c_result_tensor
@@ -357,14 +383,18 @@ class Tensor:
                 result_tensor.size = self.shape[0]
 
                 c_result_data_ptr = c_result_tensor.contents.data
-                result_tensor.data = self.__retrieve_data(c_result_data_ptr, result_tensor.size)
+                result_tensor.data = self.__retrieve_data(
+                    c_result_data_ptr, result_tensor.size
+                )
 
                 return result_tensor
 
             elif isinstance(operand, Tensor) and operand.ndim == 2:
                 if self.shape[1] != operand.shape[0]:
-                    raise ValueError(f"Inconsistent dimensions for matmul. Got {self.shape} and {operand.shape}.")
-            
+                    raise ValueError(
+                        f"Inconsistent dimensions for matmul. Got {self.shape} and {operand.shape}."
+                    )
+
                 Tensor._C.matmul_tensor.argtypes = [
                     ctypes.POINTER(C_Tensor),
                     ctypes.POINTER(C_Tensor),
@@ -390,14 +420,20 @@ class Tensor:
 
         elif self.ndim == 3:
             if operand.ndim != self.ndim:
-                raise ValueError(f"Inconsistent number of dimensions between batch tensor matmul operands. Got {self.ndim} and {operand.ndim}.")
+                raise ValueError(
+                    f"Inconsistent number of dimensions between batch tensor matmul operands. Got {self.ndim} and {operand.ndim}."
+                )
 
             if operand.shape[0] != self.shape[0]:
-                raise ValueError(f"Inconsistent batch dimensions between batch tensor matmul operands. Got {self.shape} and {operand.shape}.")
-            
+                raise ValueError(
+                    f"Inconsistent batch dimensions between batch tensor matmul operands. Got {self.shape} and {operand.shape}."
+                )
+
             if operand.shape[1] != self.shape[2]:
-                raise ValueError(f"Inconsistent dimensions for matrix multiplication in batch tensor matmul. Got {self.shape} and {operand.shape}.")
-            
+                raise ValueError(
+                    f"Inconsistent dimensions for matrix multiplication in batch tensor matmul. Got {self.shape} and {operand.shape}."
+                )
+
             Tensor._C.batch_matmul_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.POINTER(C_Tensor),
