@@ -1,7 +1,6 @@
 import ctypes
 import os
 from typing import Optional
-from weakref import finalize
 
 
 class C_Tensor(ctypes.Structure):
