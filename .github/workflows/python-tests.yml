@@ -1,42 +1,36 @@
-name: Run Pytests
+name: Run Tensor Tests
 
 on:
   push:
     branches:
-      - main  # Run tests on pushes to the main branch
+      - main
   pull_request:
     branches:
-      - main  # Run tests for pull requests targeting the main branch
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
-      - name: Run Tensor Tests
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11 # Specify the Python version to use
+          python-version: 3.10
+      - name: Build libtensor.so
+        run: clang++ -std=c++20 -shared -o libtensor.so -fPIC src/*.cpp
 
-      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest torch numpy
+          pip install pytest
+          pip install -r requirements.txt || echo "No requirements file found"
 
-      # Run tests
-      - name: Run tests
-        run: pytest
+      - name: Debug Python Environment
+        run: pip list
 
-      # Upload test results (optional, for richer reports)
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: .pytest_cache/
+      - name: Run pytest
+        run: pytest --disable-warnings
