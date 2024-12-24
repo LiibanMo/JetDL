@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from python import Tensor
+from tensorlite import Tensor
 
 from .utils import compare_tensors
 

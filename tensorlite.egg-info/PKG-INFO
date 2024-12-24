@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: tensorlite
+Version: 0.1.0
+Summary: A lightweight tensor library with a Python wrapper for C/C++.
+Home-page: https://github.com/LiibanMo/TensorLite
+Author: Liiban Mohamud
+Author-email: liibanmohamud12@gmail.com
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: C++
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: torch
+Requires-Dist: numpy
+Requires-Dist: pytest

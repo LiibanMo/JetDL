@@ -1,6 +1,6 @@
 import torch
 
-from python import Tensor
+from tensorlite import Tensor
 
 
 def compare_tensors(tensor1: torch.tensor, tensor2: torch.tensor, epsilon=1e-5) -> bool:
