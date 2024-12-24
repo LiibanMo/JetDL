@@ -30,5 +30,5 @@ jobs:
           pip install .
           pip install pytest==8.3.4 torch==2.5.1 numpy==2.2.1
 
-      - name: Run pytest
+      - name: Run tests
         run: pytest --disable-warnings
