@@ -68,7 +68,7 @@ void matmul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
 }
 
 void batch_matmul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
-    // (B, M, N) * (B, N, P) = (B, M, P)
+    // (B, M, N) @ (B, N, P) = (B, M, P)
     const int B = tensorA->shape[0];
     const int M = tensorA->shape[1];
     const int N = tensorA->shape[2];
