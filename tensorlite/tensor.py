@@ -298,6 +298,219 @@ class Tensor:
             )
 
             return result_tensor
+        
+    def __matmul__(self, operand):
+        if not isinstance(operand, Tensor):
+            raise TypeError(f"Operand is not of type Tensor. Got {type(operand)}.")
+        
+        if self.ndim == 1 and operand.ndim == 1:
+            Tensor._C.vector_matmul_vector.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.vector_matmul_vector.restype = ctypes.POINTER(C_Tensor)
+
+            c_result_tensor = Tensor._C.vector_matmul_vector(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [1]
+            result_tensor.ndim = 1
+            result_tensor.size = 1
+
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+
+        elif self.ndim == 1 and operand.ndim == 2:
+            Tensor._C.vector_matmul_matrix.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.vector_matmul_matrix.restype = ctypes.POINTER(C_Tensor)
+
+            c_result_tensor = Tensor._C.vector_matmul_matrix(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [operand.shape[1]]
+            result_tensor.ndim = 1
+            result_tensor.size = operand.shape[1]
+
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+        
+        elif self.ndim == 1 and operand.ndim == 3:
+            Tensor._C.vector_matmul_batched_tensor.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.vector_matmul_batched_tensor.restype = ctypes.POINTER(C_Tensor)
+            
+            c_result_tensor = Tensor._C.vector_matmul_batched_tensor(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [operand.shape[0], operand.shape[2]]
+            result_tensor.ndim = 2
+            result_tensor.size = 1
+            for idx in range(result_tensor.ndim):
+                result_tensor.size *= result_tensor.shape[idx]
+
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+        
+        elif self.ndim == 2 and operand.ndim == 1:
+            Tensor._C.matrix_matmul_vector.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.matrix_matmul_vector.restype = ctypes.POINTER(C_Tensor)
+
+            c_result_tensor = Tensor._C.matrix_matmul_vector(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [self.shape[0]]
+            result_tensor.ndim = 1
+            result_tensor.size = self.shape[0]
+
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+        
+        elif self.ndim == 2 and operand.ndim == 2:
+            Tensor._C.matrix_matmul_matrix.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.matrix_matmul_matrix.restype = ctypes.POINTER(C_Tensor)
+            c_result_tensor = Tensor._C.matrix_matmul_matrix(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [self.shape[0], operand.shape[1]]
+            result_tensor.ndim = 2
+            result_tensor.size = 1
+            for idx in range(result_tensor.ndim):
+                result_tensor.size *= result_tensor.shape[idx]
+
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+        
+        elif self.ndim == 2 and operand.ndim == 3:
+            Tensor._C.matrix_matmul_batched_tensor.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.matrix_matmul_batched_tensor.restype = ctypes.POINTER(C_Tensor)
+            
+            c_result_tensor = Tensor._C.matrix_matmul_batched_tensor(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [operand.shape[0], self.shape[0], operand.shape[2]]
+            result_tensor.ndim = 3
+            result_tensor.size = 1
+            for idx in range(result_tensor.ndim):
+                result_tensor.size *= result_tensor.shape[idx]
+            
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+        
+        elif self.ndim == 3 and operand.ndim == 1:
+            Tensor._C.batched_tensor_matmul_vector.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.batched_tensor_matmul_vector.restype = ctypes.POINTER(C_Tensor)
+            
+            c_result_tensor = Tensor._C.batched_tensor_matmul_vector(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [self.shape[0], self.shape[1]]
+            result_tensor.ndim = 2
+            result_tensor.size = 1
+            for idx in range(result_tensor.ndim):
+                result_tensor.size *= result_tensor.shape[idx]
+            
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+        
+        elif self.ndim == 3 and operand.ndim == 2:
+            Tensor._C.batched_tensor_matmul_matrix.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.batched_tensor_matmul_matrix.restype = ctypes.POINTER(C_Tensor)
+            
+            c_result_tensor = Tensor._C.batched_tensor_matmul_matrix(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [self.shape[0], self.shape[1], operand.shape[1]]
+            result_tensor.ndim = 3
+            result_tensor.size = 1
+            for idx in range(result_tensor.ndim):
+                result_tensor.size *= result_tensor.shape[idx]
+                
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
+        
+        elif self.ndim == 3 and operand.ndim == 3:
+            Tensor._C.batched_tensor_matmul_batched_tensor.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.batched_tensor_matmul_batched_tensor.restype = ctypes.POINTER(C_Tensor)
+            
+            c_result_tensor = Tensor._C.batched_tensor_matmul_batched_tensor(self.tensor, operand.tensor)
+
+            result_tensor = Tensor()
+            result_tensor.tensor = c_result_tensor
+            result_tensor.shape = [self.shape[0], self.shape[1], operand.shape[2]]
+            result_tensor.ndim = 3
+            result_tensor.size = 1
+            for idx in range(result_tensor.ndim):
+                result_tensor.size *= result_tensor.shape[idx]
+
+            c_result_data_ptr = c_result_tensor.contents.data
+            result_tensor.data = self.__retrieve_data(
+                c_result_data_ptr, result_tensor.size
+            )
+
+            return result_tensor
 
     def __truediv__(self, operand):
         if isinstance(operand, (int, float)):
@@ -314,137 +527,6 @@ class Tensor:
             result_tensor.shape = self.shape.copy()
             result_tensor.ndim = self.ndim
             result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
-
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
-
-    def __matmul__(self, operand):
-        if self.ndim == 1:
-            if self.shape != operand.shape:
-                raise ValueError(
-                    f"Incompatible shapes for inner product. Got {self.shape} and {operand.shape}."
-                )
-
-            if isinstance(operand, Tensor) and operand.ndim == 1:
-                Tensor._C.inner_product_tensor.argtypes = [
-                    ctypes.POINTER(C_Tensor),
-                    ctypes.POINTER(C_Tensor),
-                ]
-                Tensor._C.inner_product_tensor.restype = ctypes.POINTER(C_Tensor)
-
-                c_result_tensor = Tensor._C.inner_product_tensor(
-                    self.tensor, operand.tensor
-                )
-
-                result_tensor = Tensor()
-                result_tensor.tensor = c_result_tensor
-                result_tensor.shape = 1
-                result_tensor.ndim = 1
-                result_tensor.size = 1
-
-                c_result_data_ptr = c_result_tensor.contents.data
-                result_tensor.data = self.__retrieve_data(
-                    c_result_data_ptr, result_tensor.size
-                )
-
-                return result_tensor
-
-            else:
-                raise ValueError(
-                    f"Tensors of different shapes cannot multiply. Got {self.shape} and {operand.shape}"
-                )
-        elif self.ndim == 2:
-            if isinstance(operand, Tensor) and operand.ndim == 1:
-                if self.shape[1] != operand.shape[0]:
-                    raise ValueError(
-                        f"Inconsistent dimensions for matmul. Got {self.shape} and {operand.shape}."
-                    )
-                Tensor._C.matmul_tensor_vector.argtypes = [
-                    ctypes.POINTER(C_Tensor),
-                    ctypes.POINTER(C_Tensor),
-                ]
-                Tensor._C.matmul_tensor_vector.restype = ctypes.POINTER(C_Tensor)
-
-                c_result_tensor = Tensor._C.matmul_tensor_vector(
-                    self.tensor, operand.tensor
-                )
-
-                result_tensor = Tensor()
-                result_tensor.tensor = c_result_tensor
-                result_tensor.shape = [self.shape[0]]
-                result_tensor.ndim = 1
-                result_tensor.size = self.shape[0]
-
-                c_result_data_ptr = c_result_tensor.contents.data
-                result_tensor.data = self.__retrieve_data(
-                    c_result_data_ptr, result_tensor.size
-                )
-
-                return result_tensor
-
-            elif isinstance(operand, Tensor) and operand.ndim == 2:
-                if self.shape[1] != operand.shape[0]:
-                    raise ValueError(
-                        f"Inconsistent dimensions for matmul. Got {self.shape} and {operand.shape}."
-                    )
-
-                Tensor._C.matmul_tensor.argtypes = [
-                    ctypes.POINTER(C_Tensor),
-                    ctypes.POINTER(C_Tensor),
-                ]
-                Tensor._C.matmul_tensor.restype = ctypes.POINTER(C_Tensor)
-
-                c_result_tensor = Tensor._C.matmul_tensor(self.tensor, operand.tensor)
-
-                result_tensor = Tensor()
-                result_tensor.tensor = c_result_tensor
-                result_tensor.shape = [self.shape[0], operand.shape[1]]
-                result_tensor.ndim = self.ndim
-                result_tensor.size = 1
-                for dim in result_tensor.shape:
-                    result_tensor.size *= dim
-
-                c_result_data_ptr = c_result_tensor.contents.data
-                result_tensor.data = self.__retrieve_data(
-                    c_result_data_ptr, result_tensor.size
-                )
-
-                return result_tensor
-
-        elif self.ndim == 3:
-            if operand.ndim != self.ndim:
-                raise ValueError(
-                    f"Inconsistent number of dimensions between batch tensor matmul operands. Got {self.ndim} and {operand.ndim}."
-                )
-
-            if operand.shape[0] != self.shape[0]:
-                raise ValueError(
-                    f"Inconsistent batch dimensions between batch tensor matmul operands. Got {self.shape} and {operand.shape}."
-                )
-
-            if operand.shape[1] != self.shape[2]:
-                raise ValueError(
-                    f"Inconsistent dimensions for matrix multiplication in batch tensor matmul. Got {self.shape} and {operand.shape}."
-                )
-
-            Tensor._C.batch_matmul_tensor.argtypes = [
-                ctypes.POINTER(C_Tensor),
-                ctypes.POINTER(C_Tensor),
-            ]
-            Tensor._C.batch_matmul_tensor.restype = ctypes.POINTER(C_Tensor)
-
-            c_result_tensor = Tensor._C.batch_matmul_tensor(self.tensor, operand.tensor)
-
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = [self.shape[0], self.shape[1], operand.shape[2]]
-            result_tensor.ndim = self.ndim
             for dim in result_tensor.shape:
                 result_tensor.size *= dim
 
