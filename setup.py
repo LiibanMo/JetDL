@@ -1,15 +1,17 @@
-from setuptools import setup, Extension, find_packages
-from setuptools.command.build_ext import build_ext
-import subprocess
-import os
 import glob
+import os
 import shutil
+import subprocess
+
+from setuptools import Extension, find_packages, setup
+from setuptools.command.build_ext import build_ext
 
 
 class BuildSharedLibrary(build_ext):
     """
     Custom command to build the shared library using clang++.
     """
+
     def run(self):
         source_dir = "src"
         output_dir = "tensorlite"
@@ -36,6 +38,7 @@ class BuildSharedLibrary(build_ext):
 
         self.announce(f"Moving {shared_library} to {output_dir}...", level=3)
         shutil.move(shared_library, os.path.join(output_dir, shared_library))
+
 
 setup(
     name="tensorlite",
