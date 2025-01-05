@@ -63,13 +63,12 @@ void matmul_prepended_1d_a_cpu(Tensor* tensorA, Tensor* tensorB, double* result_
 
     for (int col_idx = 0; col_idx < P; col_idx++) {
         double sum = 0;
-        for (int sum_idx; sum_idx < N; sum_idx++) {
+        for (int sum_idx = 0; sum_idx < N; sum_idx++) {
             int strideA = sum_idx;
             int strideB = tensorB->strides[0]*sum_idx + col_idx;
             sum += tensorA->data[strideA] * tensorB->data[strideB];
         }
-        int stride_result_data = col_idx;
-        result_data[stride_result_data] = sum;
+        result_data[col_idx] = sum;
     }
 }
 
@@ -114,11 +113,12 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_dat
             for (int col_idx = 0; col_idx < P; col_idx++) {
                 double sum = 0;
                 for (int sum_idx = 0; sum_idx < N; sum_idx++) {
-                    int strideA = tensorA->strides[tensorA->ndim-3]*batch_idx + tensorA->strides[tensorA->ndim-2]*row_idx + sum_idx;
-                    int strideB = tensorB->strides[tensorB->ndim-3]*batch_idx + tensorB->strides[tensorB->ndim-2]*sum_idx + col_idx;
+                    int strideA = tensorA->strides[tensorA->ndim-3]*batch_idx + tensorA->strides[tensorA->ndim-2]*row_idx + tensorA->strides[tensorA->ndim-1]*sum_idx;
+                    int strideB = tensorB->strides[tensorB->ndim-3]*batch_idx + tensorB->strides[tensorB->ndim-2]*sum_idx + tensorB->strides[tensorB->ndim-1]*col_idx;
                     sum += tensorA->data[strideA] * tensorB->data[strideB];
                 }
-                result_data[M*P*batch_idx + P*row_idx + col_idx] = sum;
+                int stride_result_data = M*P*batch_idx + P*row_idx + col_idx;
+                result_data[stride_result_data] = sum;
             }
         }
     }

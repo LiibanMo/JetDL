@@ -3,7 +3,7 @@ import os
 import shutil
 import subprocess
 
-from setuptools import Extension, find_packages, setup
+from setuptools import setup
 from setuptools.command.build_ext import build_ext
 
 
@@ -16,14 +16,14 @@ class BuildSharedLibrary(build_ext):
         source_dir = "src"
         output_dir = "tensorlite"
         shared_library = "libtensor.so"
-        # Ensures the output directory exists
+        # Ensures the tensorlite directory exists
         os.makedirs(output_dir, exist_ok=True)
 
         cpp_files = glob.glob("src/*.cpp")
         if not cpp_files:
             raise FileNotFoundError(f"No .cpp files found in '{source_dir}' directory.")
 
-        # Builds the shared library using clang++
+        # Builds the shared library, libtensor.so, using clang++
         subprocess.check_call(
             [
                 "clang++",

@@ -3,10 +3,12 @@ import torch
 
 from tensorlite import Tensor
 
-from .utils import compare_tensors
+from .utils import compare_tensors, matmul_data, matmul_ids
+
+
+# ---------------------------------------------------------------------------------------------------------
 
 # Test getting item
-
 
 @pytest.mark.parametrize(
     "data, idx",
@@ -169,25 +171,10 @@ def test_tensor_mul_tensor(data1: list, data2: list):
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)
 
 
-# Testing matmul
+# Testing matmul ------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "data1, data2",
-    [
-        ([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]),  # (3) @ (3)
-        (
-            [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
-            [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
-        ),  # (2, 3) @ (3, 2)
-        (
-            [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]],
-            [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
-        ),  # (1, 2, 3) @ (3, 2)
-        ([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [7.0, 8.0, 9.0]),  # (2, 3) @ (3)
-    ],
-    ids = ["1D @ 1D", "2D @ 2D", "3D @ 2D", "2D @ 1D"]
-)
+@pytest.mark.parametrize("data1, data2", matmul_data, ids = matmul_ids)
 def test_matmul_tensor(data1: list, data2: list) -> None:
     tensor1 = Tensor(data1)
     tensor2 = Tensor(data2)
@@ -201,7 +188,7 @@ def test_matmul_tensor(data1: list, data2: list) -> None:
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)
 
 
-# Testing division
+# Testing division -----------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(

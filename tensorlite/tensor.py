@@ -53,6 +53,11 @@ class Tensor:
             for idx in range(self.ndim):
                 self.strides.append(c_strides_ptr[idx])
 
+    def __del__(self):
+        if hasattr(self, "tensor"):
+            Tensor._C.free_tensor(self.tensor)
+            self.tensor = None
+
     def flatten(self, data):
         def recursively_flattening(data):
             if not isinstance(data[0], list):
