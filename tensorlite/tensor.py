@@ -319,31 +319,14 @@ class Tensor:
 
             return result_tensor
 
-        elif self.ndim == 1 and operand.ndim == 2:
-            Tensor._C.matmul_prepended_1d_a.argtypes = [
+        elif self.ndim == 1 and operand.ndim == 2 or self.ndim == 2 and operand.ndim == 1:
+            Tensor._C.matmul_broadcasted_1D.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.POINTER(C_Tensor),
             ]
-            Tensor._C.matmul_prepended_1d_a.restype = ctypes.POINTER(C_Tensor)
-
-            c_result_tensor = Tensor._C.matmul_prepended_1d_a(
-                self.tensor, operand.tensor
-            )
-
-            result_tensor = self.__C_to_Python_create_tensor(c_result_tensor)
-
-            return result_tensor
-
-        elif self.ndim == 2 and operand.ndim == 1:
-            Tensor._C.matmul_appended_1d_b.argtypes = [
-                ctypes.POINTER(C_Tensor),
-                ctypes.POINTER(C_Tensor),
-            ]
-            Tensor._C.matmul_appended_1d_b.restype = ctypes.POINTER(C_Tensor)
-
-            c_result_tensor = Tensor._C.matmul_appended_1d_b(
-                self.tensor, operand.tensor
-            )
+            Tensor._C.matmul_broadcasted_1D.restype = ctypes.POINTER(C_Tensor)
+            
+            c_result_tensor = Tensor._C.matmul_broadcasted_1D(self.tensor, operand.tensor)
 
             result_tensor = self.__C_to_Python_create_tensor(c_result_tensor)
 

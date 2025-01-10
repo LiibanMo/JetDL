@@ -235,8 +235,10 @@ Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
             } else {
                 view_tensorB->shape[idx] = tensorB->shape[idx - (view_tensorB->ndim - tensorB->ndim)];
                 view_tensorB->strides[idx] = tensorB->strides[idx - (view_tensorB->ndim - tensorB->ndim)];
+                std::cout << "idx = " << idx << "\n";
             }
         }
+
         if (tensorB->ndim == 1) {
             view_tensorB->strides[view_tensorB->ndim-2] = 1;
             view_tensorB->strides[view_tensorB->ndim-1] = 0;
@@ -256,8 +258,8 @@ Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
             return NULL;
         }
 
-        char broadcasted_matrix[] = "B";
-        matmul_broadcasted_cpu(tensorA, view_tensorB, result_data, broadcasted_matrix);
+        char broadcasted[] = "B";
+        matmul_broadcasted_cpu(tensorA, view_tensorB, result_data, broadcasted);
 
         free_tensor(view_tensorB);
 
@@ -333,8 +335,8 @@ Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
             return NULL;
         }
 
-        char broadcasted_matrix[] = "A";
-        matmul_broadcasted_cpu(view_tensorA, tensorB, result_data, broadcasted_matrix);
+        char broadcasted[] = "A";
+        matmul_broadcasted_cpu(view_tensorA, tensorB, result_data, broadcasted);
 
         free_tensor(view_tensorA);
 
@@ -375,48 +377,117 @@ Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
 }
 
 // Case 3: tensorA->ndim == 1 and tensorB->ndim == 2
-Tensor* matmul_prepended_1d_a(Tensor* tensorA, Tensor* tensorB) {
-    const int ndim = 1;
+Tensor* matmul_broadcasted_1D(Tensor* tensorA, Tensor* tensorB) {
+    if (tensorA->ndim > tensorB->ndim) {
+        // Creating 2D view of tensorB
 
-    int* shape = (int*)malloc(sizeof(int));
-    if (!shape) {
-        fprintf(stderr, "Memory allocation failed.\n");
+        Tensor* view_tensorB = (Tensor*)malloc(sizeof(Tensor));
+        if (!view_tensorB) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+
+        view_tensorB->data = tensorB->data;
+        view_tensorB->ndim = 2;
+        
+        view_tensorB->shape = (int*)malloc(view_tensorB->ndim * sizeof(int));
+        if (!view_tensorB->shape) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+        view_tensorB->shape[0] = 1;
+        view_tensorB->shape[1] = tensorB->shape[0];
+
+        view_tensorB->strides = (int*)malloc(view_tensorB->ndim * sizeof(int));
+        if (!view_tensorB->strides) {
+            fprintf(stderr, "Memory allocatiom failed.\n");
+            return NULL;
+        }
+        view_tensorB->strides[0] = 1;
+        view_tensorB->strides[1] = 0;
+
+        // Obtaining result tensor
+
+        const int ndim = 1;
+
+        int* shape = (int*)malloc(ndim * sizeof(int));
+        if (!shape) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+        shape[0] = tensorA->shape[0];
+
+        double* result_data = (double*)malloc(shape[0] * sizeof(double));
+        if (!result_data) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+
+        char broadcasted[] = "B";
+
+        matmul_broadcasted_1D_cpu(tensorA, view_tensorB, result_data, broadcasted);
+
+        free_tensor(view_tensorB);
+
+        return create_tensor(result_data, shape, ndim);
+        
+    } else if (tensorA->ndim < tensorB->ndim) {
+        // creating 2D view of tensorA
+
+        Tensor* view_tensorA = (Tensor*)malloc(sizeof(Tensor));
+        if (!view_tensorA) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+
+        view_tensorA->data = tensorA->data;
+        view_tensorA->ndim = 2;
+
+        view_tensorA->shape = (int*)malloc(view_tensorA->ndim * sizeof(int));
+        if (!view_tensorA->shape) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+        view_tensorA->shape[0] = 1;
+        view_tensorA->shape[1] = tensorA->shape[0];
+
+        view_tensorA->strides = (int*)malloc(view_tensorA->ndim * sizeof(int));
+        if (!view_tensorA->strides) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+        view_tensorA->strides[0] = 0;
+        view_tensorA->strides[1] = 1;
+
+        // Obtaining result tensor
+
+        const int ndim = 1;
+
+        int* shape = (int*)malloc(ndim * sizeof(int));
+        if (!shape) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+        shape[0] = tensorB->shape[1];
+
+        double* result_data = (double*)malloc(shape[0] * sizeof(double));
+        if (!result_data) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            return NULL;
+        }
+
+        char broadcasted[] = "A";
+
+        matmul_broadcasted_1D_cpu(view_tensorA, tensorB, result_data, broadcasted);
+
+        free_tensor(view_tensorA);
+
+        return create_tensor(result_data, shape, ndim);
+
+    } else {
+        fprintf(stderr, "Wrong implementation of matmul used.\n");
         return NULL;
     }
-    shape[0] = tensorB->shape[1];
-    
-    double* result_data = (double*)malloc(shape[0] * sizeof(double));
-    if (!result_data) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
-
-    matmul_prepended_1d_a_cpu(tensorA, tensorB, result_data);
-
-    return create_tensor(result_data, shape, ndim);
-}
-
-// Case 4: tensorA->ndim == 2 and tensorB->ndim == 1
-Tensor* matmul_appended_1d_b(Tensor* tensorA, Tensor* tensorB) {
-    const int ndim = 1;
-
-    int* shape = (int*)malloc(sizeof(int));
-    if (!shape) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
-    shape[0] = tensorA->shape[0];
-
-    double* result_data = (double*)malloc(shape[0] * sizeof(double));
-    if (!result_data) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        free(shape);
-        return NULL;
-    }
-
-    matmul_appended_1d_b_cpu(tensorA, tensorB, result_data);
-
-    return create_tensor(result_data, shape, ndim);
 }
 
 // Case 5: tensorA->ndim == tensorA->ndim == 1

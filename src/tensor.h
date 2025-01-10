@@ -25,8 +25,7 @@ extern "C" {
     // __matmul__
     Tensor* matmul_2d_2d(Tensor* tensorA, Tensor* tensorB);
     Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB);
-    Tensor* matmul_prepended_1d_a(Tensor* tensorA, Tensor* tensorB);
-    Tensor* matmul_appended_1d_b(Tensor* tensorA, Tensor* tensorB);
+    Tensor* matmul_broadcasted_1D(Tensor* tensorA, Tensor* tensorB);
     Tensor* vector_dot_product(Tensor* tensorA, Tensor* tensorB);
     // __div__
     Tensor* scalar_div_tensor(Tensor* tensor, double divisor);

@@ -57,49 +57,42 @@ void matmul_2d_2d_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
     }
 }
 
-void matmul_prepended_1d_a_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
-    const int N = tensorB->shape[0];
-    const int P = tensorB->shape[1];
+void matmul_broadcasted_1D_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, char broadcasted[]) {
+    // (N) @ (N, M) = (M) OR (M, N) @ (N) = (M)
 
-    for (int col_idx = 0; col_idx < P; col_idx++) {
+    int M, N;
+    if (strcmp(broadcasted, "A") == 0) {
+        N = tensorB->shape[0];
+        M = tensorB->shape[1];
+    } else if (strcmp(broadcasted, "B") == 0) {
+        M = tensorA->shape[0];
+        N = tensorA->shape[1];
+    }
+
+    for (int vec_idx = 0; vec_idx < M; vec_idx++) {
         double sum = 0;
         for (int sum_idx = 0; sum_idx < N; sum_idx++) {
-            int strideA = sum_idx;
-            int strideB = tensorB->strides[0]*sum_idx + col_idx;
+            int strideA = tensorA->strides[0]*vec_idx + tensorA->strides[1]*sum_idx;
+            int strideB = tensorB->strides[0]*sum_idx + tensorB->strides[1]*vec_idx;
             sum += tensorA->data[strideA] * tensorB->data[strideB];
         }
-        result_data[col_idx] = sum;
+        result_data[vec_idx] = sum;
     }
 }
 
-void matmul_appended_1d_b_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
-    // (M, N) @ (N) = (M)
-    const int M = tensorA->shape[0];
-    const int N = tensorA->shape[1];
 
-    for (int row_idx = 0; row_idx < M; row_idx++) {
-        double sum = 0;
-        for (int sum_idx = 0; sum_idx < N; sum_idx++) {
-            int strideA = tensorA->strides[0] * row_idx + sum_idx;
-            int strideB = sum_idx;
-            sum += tensorA->data[strideA] * tensorB->data[strideB];
-        }
-        int stride_result_data = row_idx;
-        result_data[stride_result_data] = sum;
-    }
-}
-
-void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, char broadcasted_matrix[]){
+void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, char broadcasted[]){
+    // (B, M, N) @ (B, N, P) = (B, M, P)
     const int M = tensorA->shape[tensorA->ndim-2];
     const int N = tensorA->shape[tensorA->ndim-1];
     const int P = tensorB->shape[tensorB->ndim-1];
 
     int total_num_matrices = 1;
-    if (strcmp(broadcasted_matrix, "A") == 0) {
+    if (strcmp(broadcasted, "A") == 0) {
         for (int idx = 0; idx < tensorB->ndim-2; idx++) {
             total_num_matrices *= tensorB->shape[idx];
         }
-    } else if (strcmp(broadcasted_matrix, "B") == 0) {
+    } else if (strcmp(broadcasted, "B") == 0) {
         for (int idx = 0; idx < tensorA->ndim-2; idx++) {
             total_num_matrices *= tensorA->shape[idx];
         }
@@ -117,8 +110,8 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_dat
                     int strideB = tensorB->strides[tensorB->ndim-3]*batch_idx + tensorB->strides[tensorB->ndim-2]*sum_idx + tensorB->strides[tensorB->ndim-1]*col_idx;
                     sum += tensorA->data[strideA] * tensorB->data[strideB];
                 }
-                int stride_result_data = M*P*batch_idx + P*row_idx + col_idx;
-                result_data[stride_result_data] = sum;
+                int idx_result = M*P*batch_idx + P*row_idx + col_idx;
+                result_data[idx_result] = sum;
             }
         }
     }
