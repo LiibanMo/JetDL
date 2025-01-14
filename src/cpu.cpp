@@ -76,6 +76,7 @@ void matmul_broadcasted_1D_cpu(Tensor* tensorA, Tensor* tensorB, double* result_
             int strideB = tensorB->strides[0]*sum_idx + tensorB->strides[1]*vec_idx;
             sum += tensorA->data[strideA] * tensorB->data[strideB];
         }
+        std::cout << "sum = " << sum << "\n";
         result_data[vec_idx] = sum;
     }
 }
@@ -128,5 +129,11 @@ void vector_dot_product_cpu(Tensor* tensorA, Tensor* tensorB, double* result_dat
 void scalar_div_tensor_cpu(Tensor* tensorA, double divisor, double* result_data) {
     for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] / divisor;
+    }
+}
+
+void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
+    for (int idx = 0; idx < tensor->size; idx++) {
+        result_data[idx] = tensor->data[idx];
     }
 }

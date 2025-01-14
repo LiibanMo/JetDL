@@ -14,4 +14,5 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_dat
 void matmul_broadcasted_1D_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, char broadcasted[]);
 void vector_dot_product_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 void scalar_div_tensor_cpu(Tensor* tensorA, double divisor, double* result_data);
+void assign_tensor_data_cpu(Tensor* tensor, double* result_data);
 #endif

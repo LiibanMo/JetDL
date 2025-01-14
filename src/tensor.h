@@ -13,6 +13,8 @@ extern "C" {
     Tensor* create_tensor(double* data, int* shape, int ndim);
     // __getitem__
     double get_item(Tensor* tensor, int* indices);
+    // reshape
+    Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim);
     // __add__
     Tensor* add_tensor(Tensor* tensor, Tensor* tensorB);
     Tensor* scalar_add_tensor(Tensor* tensorA, double operand);

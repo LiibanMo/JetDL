@@ -3,7 +3,7 @@ import torch
 
 from tensorlite import Tensor
 
-from .utils import compare_tensors, matmul_data, matmul_ids
+from .test_utils import compare_tensors, matmul_data, matmul_ids
 
 
 # ---------------------------------------------------------------------------------------------------------
