@@ -234,7 +234,7 @@ Tensor* matmul_2d_2d(Tensor* tensorA, Tensor* tensorB) {
 
 // Case 2 of matmul: Either argument is of dimension N > 2.
 Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
-    if (tensorA->ndim > tensorB->ndim) {
+    if (tensorA->ndim >= tensorB->ndim) {
         // Creating view of tensorB
 
         Tensor* view_tensorB = (Tensor*)malloc(sizeof(Tensor));

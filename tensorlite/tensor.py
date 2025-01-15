@@ -1,7 +1,6 @@
 import ctypes
 import os
 from typing import Optional, Self
-from utils import _calculate_strides
 
 class C_Tensor(ctypes.Structure):
     _fields_ = [
@@ -345,18 +344,46 @@ class Tensor:
 
             return result_tensor
 
-        elif self.ndim == 1 and operand.ndim == 2 or self.ndim == 2 and operand.ndim == 1:
-            Tensor._C.matmul_broadcasted_1D.argtypes = [
+        elif self.ndim == 1 and operand.ndim == 2:
+            new_shape = [1] + self.shape.copy()
+
+            broadcasted_tensor = self.reshape(new_shape)
+
+            Tensor._C.matmul_2d_2d.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.POINTER(C_Tensor),
             ]
-            Tensor._C.matmul_broadcasted_1D.restype = ctypes.POINTER(C_Tensor)
-            
-            c_result_tensor = Tensor._C.matmul_broadcasted_1D(self.tensor, operand.tensor)
+            Tensor._C.matmul_2d_2d.restype = ctypes.POINTER(C_Tensor)
+
+            c_result_tensor = Tensor._C.matmul_2d_2d(broadcasted_tensor.tensor, operand.tensor)
 
             result_tensor = self._C_to_Python_create_tensor(c_result_tensor)
 
-            return result_tensor
+            result_shape = result_tensor.shape.copy()
+            result_shape.pop(0)
+
+            return result_tensor.reshape(result_shape)
+
+        
+        elif self.ndim == 2 and operand.ndim == 1:
+            new_shape = operand.shape.copy() + [1]
+
+            broadcasted_tensor = operand.reshape(new_shape)
+
+            Tensor._C.matmul_2d_2d.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.matmul_2d_2d.restype = ctypes.POINTER(C_Tensor)
+
+            c_result_tensor = Tensor._C.matmul_2d_2d(self.tensor, broadcasted_tensor.tensor)
+
+            result_tensor = self._C_to_Python_create_tensor(c_result_tensor)
+
+            result_shape = result_tensor.shape.copy()
+            result_shape.pop(1)
+
+            return result_tensor.reshape(result_shape)
         
         elif self.ndim > 2 or operand.ndim > 2:
             Tensor._C.matmul_broadcasted.argtypes = [
@@ -365,11 +392,35 @@ class Tensor:
             ]
             Tensor._C.matmul_broadcasted.restype = ctypes.POINTER(C_Tensor)
 
+            if self.ndim == 1:
+                new_shape = [1] + self.shape.copy()
+                broadcasted_tensor = self.reshape(new_shape)
+
+                c_result_tensor = Tensor._C.matmul_broadcasted(broadcasted_tensor.tensor, operand.tensor)
+                result_tensor =  self._C_to_Python_create_tensor(c_result_tensor)
+
+                result_shape = result_tensor.shape.copy()
+                idx_to_squeeze = result_tensor.ndim - 2
+                result_shape.pop(idx_to_squeeze)
+
+                return result_tensor.reshape(result_shape)
+            
+            if operand.ndim == 1:
+                new_shape = operand.shape.copy() + [1]
+                broadcasted_tensor = operand.reshape(new_shape)
+
+                c_result_tensor = Tensor._C.matmul_broadcasted(self.tensor, broadcasted_tensor.tensor)
+                result_tensor = self._C_to_Python_create_tensor(c_result_tensor)
+
+                result_shape = result_tensor.shape.copy()
+                idx_to_squeeze = result_tensor.ndim - 1
+                result_shape.pop(idx_to_squeeze)
+
+                return result_tensor.reshape(result_shape)
+
             c_result_tensor = Tensor._C.matmul_broadcasted(self.tensor, operand.tensor)
 
-            result_tensor = self._C_to_Python_create_tensor(c_result_tensor)
-
-            return result_tensor
+            return self._C_to_Python_create_tensor(c_result_tensor)      
 
         else:
             raise ValueError(
