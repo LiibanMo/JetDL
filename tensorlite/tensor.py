@@ -1,6 +1,6 @@
 import ctypes
 import os
-from typing import Optional, Self
+from typing import Optional
 
 class C_Tensor(ctypes.Structure):
     _fields_ = [
@@ -147,20 +147,7 @@ class Tensor:
 
             c_result_tensor = Tensor._C.scalar_add_tensor(self.tensor, operand)
 
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = self.shape.copy()
-            result_tensor.ndim = self.ndim
-            result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
-
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
+            return self._C_to_Python_create_tensor(c_result_tensor)
 
         elif isinstance(operand, Tensor):
             if self.ndim != operand.ndim:
@@ -181,20 +168,10 @@ class Tensor:
 
             c_result_tensor = Tensor._C.add_tensor(self.tensor, operand.tensor)
 
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = self.shape.copy()
-            result_tensor.ndim = self.ndim
-            result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
+            return self._C_to_Python_create_tensor(c_result_tensor)       
 
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
+        else:
+            raise TypeError(f"Wrong data type for tensor addition. Operand datatype = {type(operand)}.")     
 
     def __sub__(self, operand):
         if isinstance(operand, (int, float)):
@@ -206,20 +183,7 @@ class Tensor:
 
             c_result_tensor = Tensor._C.scalar_sub_tensor(self.tensor, operand)
 
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = self.shape.copy()
-            result_tensor.ndimm = self.ndim
-            result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
-
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
+            return self._C_to_Python_create_tensor(c_result_tensor)
 
         elif isinstance(operand, Tensor):
             if self.ndim != operand.ndim:
@@ -240,20 +204,10 @@ class Tensor:
 
             c_result_tensor = Tensor._C.sub_tensor(self.tensor, operand.tensor)
 
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = self.shape.copy()
-            result_tensor.ndim = self.ndim
-            result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
+            return self._C_to_Python_create_tensor(c_result_tensor)
 
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
+        else:
+            raise TypeError(f"Wrong data type for tensor subtraction. Operand datatype = {type(operand)}.") 
 
     def __mul__(self, operand):
         if isinstance(operand, (int, float)):
@@ -265,20 +219,7 @@ class Tensor:
 
             c_result_tensor = Tensor._C.scalar_mul_tensor(self.tensor, operand)
 
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = self.shape.copy()
-            result_tensor.ndim = self.ndim
-            result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
-
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
+            return self._C_to_Python_create_tensor(c_result_tensor)
 
         elif isinstance(operand, Tensor):
             if self.ndim != operand.ndim:
@@ -299,26 +240,19 @@ class Tensor:
 
             c_result_tensor = Tensor._C.hadamard_mul_tensor(self.tensor, operand.tensor)
 
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = self.shape.copy()
-            result_tensor.ndim = self.ndim
-            result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
-
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
+            return self._C_to_Python_create_tensor(c_result_tensor)
+        
+        else:
+            raise TypeError(f"Wrong data type for element-wise multiplication. Operand datatype = {type(operand)}.") 
 
     def __matmul__(self, operand):
         if not isinstance(operand, Tensor):
             raise TypeError(f"Operand must be of type Tensor. Got {type(operand)}.")
 
         if self.ndim == 1 and operand.ndim == 1:
+            if self.shape != operand.shape:
+                raise RuntimeError(f"Tensors with shape {self.shape} and {operand.shape} cannot be matrix multiplied.")
+            
             Tensor._C.vector_dot_product.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.POINTER(C_Tensor),
@@ -332,6 +266,9 @@ class Tensor:
             return result_tensor
         
         elif self.ndim == 2 and operand.ndim == 2:
+            if self.shape[1] != operand.shape[0]:
+                raise RuntimeError(f"Tensors with shape {self.shape} and {operand.shape} cannot be matrix multiplied.")
+            
             Tensor._C.matmul_2d_2d.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.POINTER(C_Tensor),
@@ -345,6 +282,9 @@ class Tensor:
             return result_tensor
 
         elif self.ndim == 1 and operand.ndim == 2:
+            if self.shape[0] != operand.shape[0]:
+                raise RuntimeError(f"Tensors with shape {self.shape} and {operand.shape} cannot be matrix multiplied.")
+            
             new_shape = [1] + self.shape.copy()
 
             broadcasted_tensor = self.reshape(new_shape)
@@ -366,6 +306,9 @@ class Tensor:
 
         
         elif self.ndim == 2 and operand.ndim == 1:
+            if self.shape[1] != operand.shape[0]:
+                raise RuntimeError(f"Tensors with shape {self.shape} and {operand.shape} cannot be matrix multiplied.")
+            
             new_shape = operand.shape.copy() + [1]
 
             broadcasted_tensor = operand.reshape(new_shape)
@@ -386,6 +329,22 @@ class Tensor:
             return result_tensor.reshape(result_shape)
         
         elif self.ndim > 2 or operand.ndim > 2:
+            if self.ndim == 1: 
+                if self.shape[0] != operand.shape[-2]:
+                    raise RuntimeError(f"Tensors with shape {self.shape} and {operand.shape} cannot be matrix multiplied.")
+           
+            if operand.ndim == 1: 
+                if self.shape[-1] != operand.shape[0]:
+                    raise RuntimeError(f"Batch tensor with matrix shape {[self.shape[-2], self.shape[-1]]} and tensor with shape {operand.shape} cannot be matrix multiplied.")
+            
+            if self.ndim >= 2 and operand.ndim >= 2:
+                if self.shape[-1] != operand.shape[-2]:
+                    raise RuntimeError(f"Batch tensors with matrix shapees {[self.shape[-2], self.shape[-1]]} and {[operand.shape[-2], operand.shape[-1]]} cannot be matrix multiplied.")
+            
+            if self.ndim > 2 and operand.ndim > 2:
+                if self.shape[:-3] != operand.shape[:-3]:
+                    raise RuntimeError(f"Batch dimensions {self.shape[:-3]} and {operand.shape[:-3]} do not match.")
+                
             Tensor._C.matmul_broadcasted.argtypes = [
                 ctypes.POINTER(C_Tensor),
                 ctypes.POINTER(C_Tensor),
@@ -405,7 +364,7 @@ class Tensor:
 
                 return result_tensor.reshape(result_shape)
             
-            if operand.ndim == 1:
+            elif operand.ndim == 1:
                 new_shape = operand.shape.copy() + [1]
                 broadcasted_tensor = operand.reshape(new_shape)
 
@@ -437,55 +396,10 @@ class Tensor:
 
             c_result_tensor = Tensor._C.scalar_div_tensor(self.tensor, operand)
 
-            result_tensor = Tensor()
-            result_tensor.tensor = c_result_tensor
-            result_tensor.shape = self.shape.copy()
-            result_tensor.ndim = self.ndim
-            result_tensor.size = 1
-            for dim in result_tensor.shape:
-                result_tensor.size *= dim
-
-            c_result_data_ptr = c_result_tensor.contents.data
-            result_tensor.data = self.__retrieve_data(
-                c_result_data_ptr, result_tensor.size
-            )
-
-            return result_tensor
-
-    def __C_to_Python_create_tensor(c_result_tensor):
-        result_tensor = Tensor()
-        result_tensor.tensor = c_result_tensor
-        result_tensor.ndim = int(c_result_tensor.contents.ndim)
-        result_tensor.size = int(c_result_tensor.contents.size)
-
-        c_result_data_ptr = c_result_tensor.contents.data
-        result_tensor.data = []
-        for idx in range(result_tensor.size):
-            result_tensor.data.append(c_result_data_ptr[idx])
-
-        c_result_shape_ptr = c_result_tensor.contents.shape
-        result_tensor.shape = []
-
-        c_result_strides_ptr = c_result_tensor.contents.strides
-        result_tensor.strides = []
-
-        for idx in range(result_tensor.ndim):
-            result_tensor.shape.append(c_result_shape_ptr[idx])
-            result_tensor.strides.append(c_result_strides_ptr[idx])
-
-        return result_tensor
-
-    def __retrieve_data(self, c_data_ptr, size_of_data: int):
-        result_data = []
-        for idx in range(size_of_data):
-            result_data.append(c_data_ptr[idx])
-        return result_data
-
-    def __retrive_shape(self, c_shape_ptr, size_of_data: int):
-        shape = []
-        for idx in range(size_of_data):
-            shape.append(c_shape_ptr[idx])
-        return shape
+            return self._C_to_Python_create_tensor(c_result_tensor)
+        
+        else:
+            raise TypeError(f"Wrong data type for element-wise division. Operand datatype = {type(operand)}.") 
     
     def _C_to_Python_create_tensor(self, c_result_tensor) -> "Tensor":
         result_tensor = Tensor()
