@@ -5,10 +5,10 @@ from tensorlite import Tensor
 
 from .test_utils import compare_tensors, matmul_data, matmul_ids
 
-
 # ---------------------------------------------------------------------------------------------------------
 
 # Test getting item
+
 
 @pytest.mark.parametrize(
     "data, idx",
@@ -174,7 +174,7 @@ def test_tensor_mul_tensor(data1: list, data2: list):
 # Testing matmul ------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("data1, data2", matmul_data, ids = matmul_ids)
+@pytest.mark.parametrize("data1, data2", matmul_data, ids=matmul_ids)
 def test_matmul_tensor(data1: list, data2: list) -> None:
     tensor1 = Tensor(data1)
     tensor2 = Tensor(data2)

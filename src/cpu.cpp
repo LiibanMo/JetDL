@@ -14,6 +14,53 @@ void scalar_add_tensor_cpu(Tensor* tensorA, double operand, double* result_data)
     }
 }
 
+void add_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+    const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
+
+    int* stridesA = (int*)malloc(ndim * sizeof(int));
+    if (!stridesA) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int* stridesB = (int*)malloc(ndim * sizeof(int));
+    if (!stridesB) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int strideA = 1, strideB = 1;
+    for (int idx = ndim-1; idx >= 0; idx--) {
+        int idxA = tensorA->ndim - ndim + idx;
+        int idxB = tensorB->ndim - ndim + idx;
+
+        int dimA = (idxA >= 0) ? tensorA->shape[idxA] : 1;
+        int dimB = (idxB >= 0) ? tensorB->shape[idxB] : 1;
+
+        stridesA[idx] = (dimA == broadcasted_shape[idx]) ? strideA : 0;
+        stridesB[idx] = (dimB == broadcasted_shape[idx]) ? strideB : 0;
+
+        strideA *= (dimA == broadcasted_shape[idx]) ? dimA : 1;
+        strideB *= (dimB == broadcasted_shape[idx]) ? dimB : 1;
+    }
+
+    for (int i = 0; i < broadcasted_size; i++) {
+        int idx_result = i;
+        int idxA = 0;
+        int idxB = 0;
+        for (int j = ndim-1; j >= 0; j--) {
+            int pos = idx_result % broadcasted_shape[j];
+            idx_result /= broadcasted_shape[j];
+            idxA += stridesA[j] * pos;
+            idxB += stridesB[j] * pos; 
+        }
+        result_data[i] = tensorA->data[idxA] + tensorB->data[idxB];
+    }
+
+    free(stridesA);
+    free(stridesB);
+}
+
 void subtract_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
     for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] - tensorB->data[idx]; 
@@ -26,6 +73,53 @@ void scalar_sub_tensor_cpu(Tensor* tensorA, double operand, double* result_data)
     }
 }
 
+void sub_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+    const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
+
+    int* stridesA = (int*)malloc(ndim * sizeof(int));
+    if (!stridesA) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int* stridesB = (int*)malloc(ndim * sizeof(int));
+    if (!stridesB) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int strideA = 1, strideB = 1;
+    for (int idx = ndim-1; idx >= 0; idx--) {
+        int idxA = tensorA->ndim - ndim + idx;
+        int idxB = tensorB->ndim - ndim + idx;
+
+        int dimA = (idxA >= 0) ? tensorA->shape[idxA] : 1;
+        int dimB = (idxB >= 0) ? tensorB->shape[idxB] : 1;
+
+        stridesA[idx] = (dimA == broadcasted_shape[idx]) ? strideA : 0;
+        stridesB[idx] = (dimB == broadcasted_shape[idx]) ? strideB : 0;
+
+        strideA *= (dimA == broadcasted_shape[idx]) ? dimA : 1;
+        strideB *= (dimB == broadcasted_shape[idx]) ? dimB : 1;
+    } 
+
+    for (int i = 0; i < broadcasted_size; i++) {
+        int idx_result = i;
+        int idxA = 0;
+        int idxB = 0;
+        for (int j = ndim-1; j >= 0; j--) {
+            int pos = idx_result % broadcasted_shape[j];
+            idx_result /= broadcasted_shape[j];
+            idxA += stridesA[j] * pos;
+            idxB += stridesB[j] * pos;  
+        }
+        result_data[i] = tensorA->data[idxA] - tensorB->data[idxB];
+    }
+
+    free(stridesA);
+    free(stridesB);
+}   
+
 void scalar_mul_tensor_cpu(Tensor* tensorA, double operand, double* result_data) {
     for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] * operand;
@@ -36,6 +130,53 @@ void hadamard_mul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_da
     for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] * tensorB->data[idx];
     }
+}
+
+void mul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+    const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
+
+    int* stridesA = (int*)malloc(ndim * sizeof(int));
+    if (!stridesA) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int* stridesB = (int*)malloc(ndim * sizeof(int));
+    if (!stridesB) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int strideA = 1, strideB = 1;
+    for (int idx = ndim-1; idx >= 0; idx--) {
+        int idxA = tensorA->ndim - ndim + idx;
+        int idxB = tensorB->ndim - ndim + idx;
+
+        int dimA = (idxA >= 0) ? tensorA->shape[idxA] : 1;
+        int dimB = (idxB >= 0) ? tensorB->shape[idxB] : 1;
+
+        stridesA[idx] = (dimA == broadcasted_shape[idx]) ? strideA : 0;
+        stridesB[idx] = (dimB == broadcasted_shape[idx]) ? strideB : 0;
+
+        strideA *= (dimA == broadcasted_shape[idx]) ? dimA : 1;
+        strideB *= (dimB == broadcasted_shape[idx]) ? dimB : 1;
+    }
+
+    for (int i = 0; i < broadcasted_size; i++) {
+        int idx_result = i;
+        int idxA = 0;
+        int idxB = 0;
+        for (int j = ndim-1; j >= 0; j--) {
+            int pos = idx_result % broadcasted_shape[j];
+            idx_result /= broadcasted_shape[j];
+            idxA += stridesA[j] * pos;
+            idxB += stridesB[j] * pos;
+        }
+        result_data[i] = tensorA->data[idxA] * tensorB->data[idxB];
+    }
+
+    free(stridesA);
+    free(stridesB);
 }
 
 void vector_dot_product_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
@@ -66,7 +207,6 @@ void matmul_2d_2d_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
 }
 
 void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, char broadcasted[]){
-    // (B, M, N) @ (B, N, P) = (B, M, P)
     const int M = tensorA->shape[tensorA->ndim-2];
     const int N = tensorA->shape[tensorA->ndim-1];
     const int P = tensorB->shape[tensorB->ndim-1];
@@ -101,10 +241,63 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_dat
     }
 }
 
+void div_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+    for (int idx = 0; idx < tensorA->ndim; idx++) {
+        result_data[idx] = tensorA->data[idx] / tensorB->data[idx];
+    }
+}
+
 void scalar_div_tensor_cpu(Tensor* tensorA, double divisor, double* result_data) {
     for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] / divisor;
     }
+}
+
+void div_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+    const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
+
+    int* stridesA = (int*)malloc(ndim * sizeof(int));
+    if (!stridesA) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int* stridesB = (int*)malloc(ndim * sizeof(int));
+    if (!stridesB) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int strideA = 1, strideB = 1;
+    for (int idx = ndim-1; idx >= 0; idx--) {
+        int idxA = tensorA->ndim - ndim + idx;
+        int idxB = tensorB->ndim - ndim + idx;
+
+        int dimA = (idxA >= 0) ? tensorA->shape[idxA] : 1;
+        int dimB = (idxB >= 0) ? tensorB->shape[idxB] : 1;
+
+        stridesA[idx] = (dimA == broadcasted_shape[idx]) ? strideA : 0;
+        stridesB[idx] = (dimB == broadcasted_shape[idx]) ? strideB : 0;
+
+        strideA *= (dimA == broadcasted_shape[idx]) ? dimA : 1;
+        strideB *= (dimB == broadcasted_shape[idx]) ? dimB : 1;
+    }
+
+    for (int i = 0; i < broadcasted_size; i++) {
+        int idx_result = i;
+        int idxA = 0;
+        int idxB = 0;
+        for (int j = ndim-1; j >= 0; j--) {
+            int pos = idx_result % broadcasted_shape[j];
+            idx_result /= broadcasted_shape[j];
+            idxA += stridesA[j] * pos;
+            idxB += stridesB[j] * pos;  
+        }
+        result_data[i] = tensorA->data[idxA] / tensorB->data[idxB];
+    }
+
+    free(stridesA);
+    free(stridesB);
 }
 
 void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
