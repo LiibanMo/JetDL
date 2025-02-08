@@ -5,12 +5,58 @@ from tensorlite import Tensor
 # Function(s) ------------------------------------------------------------------------
 
 
-def compare_tensors(tensor1: torch.tensor, tensor2: torch.tensor, epsilon=1e-5) -> bool:
+def compare_tensors(tensor1, tensor2, epsilon=1e-5) -> bool:
     diff = torch.abs(tensor1 - tensor2)
     return torch.all(diff < epsilon)
 
 
 # Data  & IDs ------------------------------------------------------------------------
+
+# addition ---------------------------------------------------------------------------
+
+add_broadcasting_data = [
+    # Same shape
+    ([1, 2, 3], [4, 5, 6]),  # (3,) + (3,)
+
+    # 2D + 1D broadcasting
+    ([[1, 2, 3], [4, 5, 6]], [1, 2, 3]),  # (2,3) + (3,)
+    ([1, 2, 3], [[1], [2], [3]]),  # (3,) + (3,1)
+
+    # Higher dimensions
+    ([[[1, 2, 3]], [[4, 5, 6]]], [1, 2, 3]),  # (2,1,3) + (3,)
+    ([[[1]], [[2]]], [1, 2, 3]),  # (2,1,1) + (3,)
+]
+
+add_broadcasting_ids = [
+    "1D + 1D",
+    "2D + 1D",
+    "1D + 2D",
+    "3D + 1D: Normal Case",
+    "3D + 1D: Special Case",
+]
+
+# subtraction ------------------------------------------------------------------------
+
+sub_broadcasting_data = [
+    # Same shape
+    ([1, 2, 3], [4, 5, 6]),  # (3,) + (3,)
+
+    # 2D - 1D broadcasting
+    ([[1, 2, 3], [4, 5, 6]], [1, 2, 3]),  # (2,3) + (3,)
+    ([1, 2, 3], [[1], [2], [3]]),  # (3,) + (3,1)
+
+    # Higher dimensions
+    ([[[1, 2, 3]], [[4, 5, 6]]], [1, 2, 3]),  # (2,1,3) + (3,)
+    ([[[1]], [[2]]], [1, 2, 3]),  # (2,1,1) + (3,)
+]
+
+sub_broadcasting_ids = [
+    "1D - 1D",
+    "2D - 1D",
+    "1D - 2D",
+    "3D - 1D: Normal Case",
+    "3D - 1D: Special Case",
+]
 
 # matmul -----------------------------------------------------------------------------
 

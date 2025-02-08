@@ -210,10 +210,10 @@ Tensor* sub_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         int idxA = tensorA->ndim - ndim + idx;
         int idxB = tensorB->ndim - ndim + idx;
 
-        int dimA = (idxA >= 0) ? tensorA->shape[idx] : 1;
-        int dimB = (idxB >= 0) ? tensorB->shape[idx] : 1;
+        int dimA = (idxA >= 0) ? tensorA->shape[idxA] : 1;
+        int dimB = (idxB >= 0) ? tensorB->shape[idxB] : 1;
 
-        broadcasted_shape[idx] = (dimA > dimB) ? dimA : dimB;
+        broadcasted_shape[idx] = (dimA > dimB) ? dimA : dimB; 
     }
 
     int broadcasted_size = 1;
@@ -565,8 +565,8 @@ Tensor* div_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         int idxA = tensorA->ndim - ndim + idx;
         int idxB = tensorB->ndim - ndim + idx;
 
-        int dimA = (idxA >= 0) ? tensorA->shape[idx] : 1;
-        int dimB = (idxB >= 0) ? tensorB->shape[idx] : 1;
+        int dimA = (idxA >= 0) ? tensorA->shape[idxA] : 1;
+        int dimB = (idxB >= 0) ? tensorB->shape[idxB] : 1;
 
         broadcasted_shape[idx] = (dimA > dimB) ? dimA : dimB;
     }

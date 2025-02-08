@@ -3,12 +3,14 @@ import torch
 
 from tensorlite import Tensor
 
-from .test_utils import compare_tensors, matmul_data, matmul_ids
+from .test_utils import (
+    compare_tensors, 
+    add_broadcasting_data, add_broadcasting_ids,
+    sub_broadcasting_data, sub_broadcasting_ids,
+    matmul_data, matmul_ids,
+    )
 
 # ---------------------------------------------------------------------------------------------------------
-
-# Test getting item
-
 
 @pytest.mark.parametrize(
     "data, idx",
@@ -29,7 +31,6 @@ def test_retrieving_item(data, idx):
 
 
 # Testing Addition
-
 
 @pytest.mark.parametrize(
     "data, scalar",
@@ -76,8 +77,21 @@ def test_tensor_add_tensor(data1: list, data2: list):
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)
 
 
-# Testing Subtraction
+@pytest.mark.parametrize("data1, data2", add_broadcasting_data, ids=add_broadcasting_ids)
+def test_tensor_add_broadcasting(data1, data2) -> None:
+    tensor1 = Tensor(data1)
+    tensor2 = Tensor(data2)
+    result_tensor = tensor1 + tensor2
+    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
 
+    torch_tensor1 = torch.tensor(data1)
+    torch_tensor2 = torch.tensor(data2)
+    torch_expected_tensor = torch_tensor1 + torch_tensor2
+   
+    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+
+
+# Testing Subtraction
 
 @pytest.mark.parametrize(
     "data, scalar",
@@ -127,6 +141,18 @@ def test_tensor_sub_tensor(data1: list, data2: list):
 
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)
 
+@pytest.mark.parametrize("data1, data2", sub_broadcasting_data, ids=sub_broadcasting_ids)
+def test_tensor_sub_broadcasting(data1, data2) -> None:
+    tensor1 = Tensor(data1)
+    tensor2 = Tensor(data2)
+    result_tensor = tensor1 - tensor2
+    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
+
+    torch_tensor1 = torch.tensor(data1)
+    torch_tensor2 = torch.tensor(data2)
+    torch_expected_tensor = torch_tensor1 - torch_tensor2
+   
+    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
 
 # Testing element-wise muliplication
 
