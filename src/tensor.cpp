@@ -518,6 +518,10 @@ Tensor* div_tensor(Tensor* tensorA, Tensor* tensorB) {
         return NULL;
     }
 
+    for (int idx = 0; idx < ndim; idx++) {
+        shape[idx] = tensorA->shape[idx];
+    }
+
     double* result_data = (double*)malloc(tensorA->size * sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");

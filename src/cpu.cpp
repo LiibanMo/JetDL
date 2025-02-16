@@ -242,7 +242,7 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_dat
 }
 
 void div_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
-    for (int idx = 0; idx < tensorA->ndim; idx++) {
+    for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] / tensorB->data[idx];
     }
 }
