@@ -29,8 +29,34 @@ class Tensor:
     _C.free_tensor.restype = None
 
     def __init__(self, data: Optional[list] = None):
+        def __flatten(data: list) -> list:
+            def recursively_flattening(data):
+                if not isinstance(data[0], list):
+                    return data
+                flattened_data = []
+                for element in data:
+                    if isinstance(element[0], list):
+                        flattened_data += recursively_flattening(element)
+                    elif isinstance(element[0], (int, float)):
+                        flattened_data += element
+                return flattened_data
+
+            def recursively_get_shape(data: list):
+                shape = []
+                if isinstance(data, list):
+                    for sub_list in data:
+                        inner_shape = recursively_get_shape(sub_list)
+                    shape.append(len(data))
+                    shape.extend(inner_shape)
+                return shape
+
+            flattened_data = recursively_flattening(data)
+            shape = recursively_get_shape(data)
+
+            return flattened_data, shape
+        
         if data is not None:
-            data, shape = self.__flatten(data)
+            data, shape = __flatten(data)
 
             self._c_data = (len(data) * ctypes.c_double)(*data)
             self._c_shape = (len(shape) * ctypes.c_int)(*shape)
@@ -50,6 +76,7 @@ class Tensor:
 
             self.strides = []
             c_strides_ptr = self.tensor.contents.strides
+
             for idx in range(self.ndim):
                 self.strides.append(c_strides_ptr[idx])
 
@@ -58,59 +85,34 @@ class Tensor:
             Tensor._C.free_tensor(self.tensor)
             self.tensor = None
 
-    def reshape(self, new_shape: list) -> "Tensor":
-        if new_shape == self.shape:
-            return self
+    def __str__(self) -> str:
+        def print_my_tensor(tensor:Tensor, depth:int, index:list) -> str:
+            if depth == tensor.ndim - 1:
+                result = ""
+                for i in range(tensor.shape[depth]):
+                    index[depth] = i
+                    if i < tensor.shape[depth] - 1:
+                        result += str(tensor[index]) + ", "
+                    else:
+                        result += str(tensor[index])
+                return result.strip()
+            else:
+                result = ""
+                for i in range(tensor.shape[depth]):
+                    index[depth] = i
+                    result += " " * 8 + "["
+                    result = result.strip()
+                    result += print_my_tensor(tensor, depth+1, index) + "],"
+                    if i < tensor.shape[depth] - 1:
+                        result += "\n" + " " * depth
+                return result.strip(",")
 
-        new_size = 1
-        for dim in new_shape:
-            new_size *= dim
-        if new_size != self.size:
-            raise ValueError(
-                f"Reshaped tensor must be the same size as the current tensor. Got new size = {new_size}. Expected size = {self.size}."
-            )
+        result = "tensor(["
+        index = [0] * self.ndim
+        result += print_my_tensor(self, 0, index) + "])"
 
-        Tensor._C.reshape_tensor.argtypes = [
-            ctypes.POINTER(C_Tensor),
-            ctypes.POINTER(ctypes.c_int),
-            ctypes.c_int,
-        ]
-        Tensor._C.reshape_tensor.restype = ctypes.POINTER(C_Tensor)
+        return result
 
-        _c_shape = (len(new_shape) * ctypes.c_int)(*new_shape)
-        _c_ndim = ctypes.c_int(len(new_shape))
-
-        _c_view_tensor = Tensor._C.reshape_tensor(self.tensor, _c_shape, _c_ndim)
-
-        view_tensor = self._C_to_Python_create_tensor(_c_view_tensor)
-
-        return view_tensor
-
-    def __flatten(self, data: list) -> list:
-        def recursively_flattening(data):
-            if not isinstance(data[0], list):
-                return data
-            flattened_data = []
-            for element in data:
-                if isinstance(element[0], list):
-                    flattened_data += recursively_flattening(element)
-                elif isinstance(element[0], (int, float)):
-                    flattened_data += element
-            return flattened_data
-
-        def recursively_get_shape(data: list):
-            shape = []
-            if isinstance(data, list):
-                for sub_list in data:
-                    inner_shape = recursively_get_shape(sub_list)
-                shape.append(len(data))
-                shape.extend(inner_shape)
-            return shape
-
-        flattened_data = recursively_flattening(data)
-        shape = recursively_get_shape(data)
-
-        return flattened_data, shape
 
     def __getitem__(self, indices):
         Tensor._C.get_item.argtypes = [
@@ -119,10 +121,10 @@ class Tensor:
         ]
         Tensor._C.get_item.restype = ctypes.c_double
 
-        if isinstance(indices, (int, float)) and self.ndim == 1:
+        if isinstance(indices, (int, float)):
             indices = (indices,)
 
-        elif isinstance(indices, tuple):
+        if isinstance(indices, tuple):
             if len(indices) != self.ndim:
                 raise IndexError(
                     f"Incorrect number of indices inputted for tensor of shape {self.shape}"
@@ -505,7 +507,77 @@ class Tensor:
 
                 return self._C_to_Python_create_tensor(c_result_tensor)
 
+    def reshape(self, new_shape: list) -> "Tensor":
+        if new_shape == self.shape:
+            return self
 
+        new_size = 1
+        for dim in new_shape:
+            new_size *= dim
+        if new_size != self.size:
+            raise ValueError(
+                f"Reshaped tensor must be the same size as the current tensor. Got new size = {new_size}. Expected size = {self.size}."
+            )
+
+        Tensor._C.reshape_tensor.argtypes = [
+            ctypes.POINTER(C_Tensor),
+            ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
+        ]
+        Tensor._C.reshape_tensor.restype = ctypes.POINTER(C_Tensor)
+
+        _c_shape = (len(new_shape) * ctypes.c_int)(*new_shape)
+        _c_ndim = ctypes.c_int(len(new_shape))
+
+        _c_view_tensor = Tensor._C.reshape_tensor(self.tensor, _c_shape, _c_ndim)
+
+        view_tensor = self._C_to_Python_create_tensor(_c_view_tensor)
+
+        return view_tensor
+    
+    def flatten(self):
+        Tensor._C.flatten_tensor.argtypes = [
+            ctypes.POINTER(C_Tensor),
+        ]
+        Tensor._C.flatten_tensor.restype = ctypes.POINTER(C_Tensor)
+        
+        c_result_tensor = Tensor._C.flatten_tensor(self.tensor)
+
+        return self._C_to_Python_create_tensor(c_result_tensor)
+
+    @property
+    def T(self) -> "Tensor":
+        Tensor._C.transpose_tensor.argtypes = [
+            ctypes.POINTER(C_Tensor),
+        ]
+        Tensor._C.transpose_tensor.restype = ctypes.POINTER(C_Tensor)
+        
+        c_result_tensor = Tensor._C.transpose_tensor(self.tensor)
+
+        result_tensor = self._C_to_Python_create_tensor(c_result_tensor)
+
+        result_tensor.data = result_tensor.flatten().data
+
+        return result_tensor
+
+    @property
+    def mT(self) -> "Tensor":
+        if self.ndim >= 2:
+            Tensor._C.matrix_transpose_tensor.argtypes = [
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.matrix_transpose_tensor.restype = ctypes.POINTER(C_Tensor)
+
+            c_result_tensor = Tensor._C.matrix_transpose_tensor(self.tensor)
+
+            result_tensor = self._C_to_Python_create_tensor(c_result_tensor)
+
+            result_tensor.data = result_tensor.flatten().data
+
+            return result_tensor
+        else:
+            raise RuntimeError(f"tensor.mT is only supported on matrices or batches of matrices. Got 1D tensor.")
+        
     def _C_to_Python_create_tensor(self, c_result_tensor) -> "Tensor":
         result_tensor = Tensor()
         result_tensor.tensor = c_result_tensor

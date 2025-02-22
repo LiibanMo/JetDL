@@ -18,5 +18,7 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_dat
 void div_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 void scalar_div_tensor_cpu(Tensor* tensorA, double divisor, double* result_data);
 void div_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size);
+void flatten_cpu(Tensor* tensor, double* result_data);
 void assign_tensor_data_cpu(Tensor* tensor, double* result_data);
+
 #endif

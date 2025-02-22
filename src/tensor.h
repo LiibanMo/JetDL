@@ -12,7 +12,6 @@ typedef struct {
 extern "C" {
     Tensor* create_tensor(double* data, int* shape, int ndim);
     double get_item(Tensor* tensor, int* indices);
-    Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim);
     Tensor* add_tensor(Tensor* tensor, Tensor* tensorB);
     Tensor* scalar_add_tensor(Tensor* tensorA, double operand);
     Tensor* add_broadcasted(Tensor* tensorA, Tensor* tensorB);
@@ -28,6 +27,11 @@ extern "C" {
     Tensor* div_tensor(Tensor* tensorA, Tensor* tensorB);
     Tensor* scalar_div_tensor(Tensor* tensor, double divisor);
     Tensor* div_broadcasted(Tensor* tensorA, Tensor* tensorB);
+    Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim);
+    Tensor* flatten_tensor(Tensor* tensor);
+    Tensor* transpose_tensor(Tensor* tensor);
+    Tensor* matrix_transpose_tensor(Tensor* tensor);
+
     void free_tensor(Tensor* tensor_ptr);
 }
 #endif

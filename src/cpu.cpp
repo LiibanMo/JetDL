@@ -300,6 +300,19 @@ void div_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, 
     free(stridesB);
 }
 
+void flatten_cpu(Tensor* tensor, double* result_data) {
+    for (int i = 0; i < tensor->size; i++) {
+        int flat_idx = i;
+        int idx = 0;
+        for (int j = tensor->ndim-1; j >= 0; j--) {
+            int pos = flat_idx % tensor->shape[j];
+            flat_idx /= tensor->shape[j];
+            idx += tensor->strides[j] * pos;
+        }
+        result_data[i] = tensor->data[idx];
+    }
+}
+
 void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
     for (int idx = 0; idx < tensor->size; idx++) {
         result_data[idx] = tensor->data[idx];

@@ -8,6 +8,7 @@ from .test_utils import (
     without_broadcasting_data, without_broadcasting_ids,
     broadcasting_data, add_broadcasting_ids, sub_broadcasting_ids, mul_broadcasting_ids, div_broadcasting_ids,
     matmul_data, matmul_ids,
+    shapes_for_T_mT, shapes_for_T_ids, shapes_for_mT_ids,
     )
 
 # ---------------------------------------------------------------------------------------------------------
@@ -170,9 +171,7 @@ def test_tensor_mul_broadcasting(data1, data2) -> None:
    
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)
 
-
-# Testing matmul ------------------------------------------------------------------------------
-
+# Testing matmul 
 
 @pytest.mark.parametrize("data1, data2", matmul_data, ids=matmul_ids)
 def test_matmul_tensor(data1: list, data2: list) -> None:
@@ -187,9 +186,7 @@ def test_matmul_tensor(data1: list, data2: list) -> None:
 
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)
 
-
-# Testing division -----------------------------------------------------------------------------
-
+# Testing division 
 
 @pytest.mark.parametrize("data1, data2", without_broadcasting_data, ids=without_broadcasting_ids)
 def test_tensor_div_tensor(data1: list, data2: list):
@@ -235,4 +232,33 @@ def test_tensor_sub_broadcasting(data1, data2) -> None:
     torch_tensor2 = torch.tensor(data2)
     torch_expected_tensor = torch_tensor1 / torch_tensor2
    
+    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+
+
+# Testing .T
+
+@pytest.mark.parametrize("shape", shapes_for_T_mT, ids=shapes_for_T_ids)
+def test_tensor_T(shape: list):
+    data = torch.arange(24).reshape(shape).tolist()
+
+    tensor_T = Tensor(data).T
+    torch_result_tensor = torch.tensor(tensor_T.data).reshape(tensor_T.shape)
+
+    torch_tensor = torch.tensor(data)
+    T_dims = torch.arange(torch_tensor.ndim-1, -1, -1).tolist()
+    torch_expected_tensor = torch_tensor.permute(T_dims)
+
+    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+
+# Testing .mT
+
+@pytest.mark.parametrize("shape", shapes_for_T_mT, ids=shapes_for_mT_ids)
+def test_tensor_mT(shape:list):
+    data = torch.arange(24).reshape(shape).tolist()
+
+    tensor_mT = Tensor(data).mT
+    torch_result_tensor = torch.tensor(tensor_mT.data).reshape(tensor_mT.shape)
+
+    torch_expected_tensor = torch.tensor(data).mT
+
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)

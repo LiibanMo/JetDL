@@ -42,34 +42,10 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
 
 double get_item(Tensor* tensor, int* indices) {
     int index = 0;
-    for (int i = 0; i < tensor->ndim; i++) {
-        index += tensor->strides[i] * indices[i];
+    for (int idx = 0; idx < tensor->ndim; idx++) {
+        index += tensor->strides[idx] * indices[idx];
     }
     return tensor->data[index];
-}
-
-Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim) {
-    const int ndim = new_ndim;
-
-    int* shape = (int*)malloc(ndim * sizeof(int));
-    if (!shape) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
-    for (int idx = 0; idx < ndim; idx++) {
-        shape[idx] = new_shape[idx];
-    }
-
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
-    if (!result_data) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
-
-    assign_tensor_data_cpu(tensor, result_data);
-
-    return create_tensor(result_data, shape, ndim);
-
 }
 
 Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB) {
@@ -589,6 +565,111 @@ Tensor* div_broadcasted(Tensor* tensorA, Tensor* tensorB) {
     div_broadcasted_cpu(tensorA, tensorB, result_data, broadcasted_shape, broadcasted_size);
 
     return create_tensor(result_data, broadcasted_shape, ndim);
+}
+
+Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim) {
+    const int ndim = new_ndim;
+
+    int* shape = (int*)malloc(ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+    for (int idx = 0; idx < ndim; idx++) {
+        shape[idx] = new_shape[idx];
+    }
+
+    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    assign_tensor_data_cpu(tensor, result_data);
+
+    return create_tensor(result_data, shape, ndim);
+
+}
+
+Tensor* flatten_tensor(Tensor* tensor) {
+    const int ndim = 1;
+
+    int* shape = (int*)malloc(sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    shape[0] = tensor->size;
+
+    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    flatten_cpu(tensor, result_data);
+
+    return create_tensor(result_data, shape, ndim);
+}
+
+Tensor* transpose_tensor(Tensor* tensor) {
+    int* shape = (int*)malloc(tensor->ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    for (int idx = 0; idx < tensor->ndim; idx++) {
+        shape[idx] = tensor->shape[tensor->ndim-1-idx];
+    }
+
+    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    assign_tensor_data_cpu(tensor, result_data);
+
+    Tensor* result_tensor =  create_tensor(result_data, shape, tensor->ndim);
+
+    for (int idx = 0; idx < tensor->ndim; idx++) {
+        result_tensor->strides[idx] = tensor->strides[tensor->ndim-1-idx];
+    }
+
+    return result_tensor;
+}
+
+Tensor* matrix_transpose_tensor(Tensor* tensor) {
+    int* shape = (int*)malloc(tensor->ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    if (tensor->ndim > 2) {
+        for (int idx = 0; idx < tensor->ndim-2; idx++) {
+            shape[idx] = tensor->shape[idx];
+        }
+    }
+    shape[tensor->ndim-2] = tensor->shape[tensor->ndim-1];
+    shape[tensor->ndim-1] = tensor->shape[tensor->ndim-2];
+
+    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    assign_tensor_data_cpu(tensor, result_data);
+
+    Tensor* result_tensor = create_tensor(result_data, shape, tensor->ndim);
+
+    result_tensor->strides[tensor->ndim-1] = result_tensor->shape[tensor->ndim-2];
+    result_tensor->strides[tensor->ndim-2] = 1;
+
+    return result_tensor;
 }
 
 void free_tensor(Tensor* tensor_ptr) {
