@@ -41,7 +41,7 @@ broadcasting_data = [
 ]
 
 
-# IDs --------------------------------------------------------------------------------
+# Broadcasting IDs 
 
 without_broadcasting_ids = [
     "1D: (3,)",
@@ -54,7 +54,7 @@ without_broadcasting_ids = [
     "4D: (2,1,2,2)",
 ]
 
-# addition ---------------------------------------------------------------------------
+# addition 
 
 add_broadcasting_ids = [
     "2D + 1D",
@@ -63,7 +63,7 @@ add_broadcasting_ids = [
     "3D + 1D: Special Case",
 ]
 
-# subtraction ------------------------------------------------------------------------
+# subtraction 
 
 sub_broadcasting_ids = [
     "2D - 1D",
@@ -72,7 +72,7 @@ sub_broadcasting_ids = [
     "3D - 1D: Special Case",
 ]
 
-# multiplication ---------------------------------------------------------------------
+# multiplication 
 
 mul_broadcasting_ids = [
     "2D * 1D",
@@ -81,7 +81,7 @@ mul_broadcasting_ids = [
     "3D * 1D: Special Case",
 ]
 
-# division ---------------------------------------------------------------------------
+# division 
 
 div_broadcasting_ids = [
     "2D / 1D",
@@ -90,7 +90,7 @@ div_broadcasting_ids = [
     "3D / 1D: Special Case",
 ]
 
-# matmul -----------------------------------------------------------------------------
+# matmul 
 
 matmul_data = [
     # 1D @ 1D
@@ -143,7 +143,7 @@ matmul_ids = [
     "3D @ 3D: Edge Case",
 ]
 
-# T & mT -------------------------------------------------------------------------------
+# T & mT 
 
 # tensor.size = 24
 shapes_for_T_mT = [
@@ -189,4 +189,34 @@ shapes_for_mT_ids = [
     "mT: (8, 3)",
     "mT: (12, 2)",
     "mT: (24, 1)",
+]
+
+
+# reduction operations (i.e. sum(), mean(), max(), etc.)
+
+reduction_operations_data = [
+    ([1,2,3,4], None),
+    ([1,2,3,4], 0),
+
+    ([ [1, 2], [3, 4] ], None),    
+    ([ [1, 2], [3, 4] ], 0),       
+    ([ [1, 2], [3, 4] ], 1),       
+
+    ([ [ [1, 2], [3, 4] ], [ [5, 6], [7, 8] ] ], None),  
+    ([ [ [1, 2], [3, 4] ], [ [5, 6], [7, 8] ] ], 0),     
+    ([ [ [1, 2], [3, 4] ], [ [5, 6], [7, 8] ] ], 1),     
+    ([ [ [1, 2], [3, 4] ], [ [5, 6], [7, 8] ] ], 2),        
+]
+
+
+sum_ids = [
+    "1D: sum(axis=None)",
+    "1D: sum(axis=0)",
+    "2D: sum(axis=None)",
+    "2D: sum(axis=0)",
+    "2D: sum(axis=1)",
+    "3D: sum(axis=None)",
+    "3D: sum(axis=0)",
+    "3D: sum(axis=1)",
+    "3D: sum(axis=2)",
 ]

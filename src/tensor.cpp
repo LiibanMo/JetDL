@@ -594,7 +594,7 @@ Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim) {
 Tensor* flatten_tensor(Tensor* tensor) {
     const int ndim = 1;
 
-    int* shape = (int*)malloc(sizeof(int));
+    int* shape = (int*)malloc(ndim * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
@@ -670,6 +670,55 @@ Tensor* matrix_transpose_tensor(Tensor* tensor) {
     result_tensor->strides[tensor->ndim-2] = 1;
 
     return result_tensor;
+}
+
+Tensor* sum_tensor(Tensor* tensor) {
+    const int ndim = 1;
+
+    int* shape = (int*)malloc(ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+    
+    shape[0] = 1;
+
+    double* result_data = (double*)malloc(1 * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+ 
+    sum_cpu(tensor, result_data);
+
+    return create_tensor(result_data, shape, ndim);
+}
+
+Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
+    const int ndim = tensor->ndim - 1;
+
+    int* shape = (int*)malloc(ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    for (int idx = 0; idx < tensor->ndim; idx++) {
+        int idx_shape = (idx <= axis) ? idx : idx - 1;
+        shape[idx_shape] = tensor->shape[idx];
+    }
+
+    const int size = tensor->size / tensor->shape[axis];
+
+    double* result_data = (double*)malloc(size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    sum_axis_cpu(tensor, result_data, axis);
+
+    return create_tensor(result_data, shape, ndim);
 }
 
 void free_tensor(Tensor* tensor_ptr) {

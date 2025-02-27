@@ -1,3 +1,4 @@
+from typing import Optional
 import pytest
 import torch
 
@@ -9,6 +10,7 @@ from .test_utils import (
     broadcasting_data, add_broadcasting_ids, sub_broadcasting_ids, mul_broadcasting_ids, div_broadcasting_ids,
     matmul_data, matmul_ids,
     shapes_for_T_mT, shapes_for_T_ids, shapes_for_mT_ids,
+    reduction_operations_data, sum_ids,
     )
 
 # ---------------------------------------------------------------------------------------------------------
@@ -260,5 +262,16 @@ def test_tensor_mT(shape:list):
     torch_result_tensor = torch.tensor(tensor_mT.data).reshape(tensor_mT.shape)
 
     torch_expected_tensor = torch.tensor(data).mT
+
+    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+
+# Testing sum()
+
+@pytest.mark.parametrize("data, axis", reduction_operations_data, ids=sum_ids)
+def test_tensor_sum(data:list, axis:Optional[int]):
+    result_tensor = Tensor(data).sum(axis=axis)
+    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
+
+    torch_expected_tensor = torch.tensor(data).sum(axis=axis)
 
     assert compare_tensors(torch_result_tensor, torch_expected_tensor)

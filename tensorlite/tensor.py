@@ -578,6 +578,27 @@ class Tensor:
         else:
             raise RuntimeError(f"tensor.mT is only supported on matrices or batches of matrices. Got 1D tensor.")
         
+
+    def sum(self, axis=None) -> "Tensor":
+        if axis is None:
+            Tensor._C.sum_tensor.argtypes = [
+                ctypes.POINTER(C_Tensor),
+            ]
+            Tensor._C.sum_tensor.restype = ctypes.POINTER(C_Tensor)
+            
+            c_result_tensor = Tensor._C.sum_tensor(self.tensor)
+
+        else:
+            Tensor._C.sum_axis_tensor.argtypes = [
+                ctypes.POINTER(C_Tensor),
+                ctypes.c_int,
+            ]
+            Tensor._C.sum_axis_tensor.restype = ctypes.POINTER(C_Tensor)
+
+            c_result_tensor = Tensor._C.sum_axis_tensor(self.tensor, axis)
+
+        return self._C_to_Python_create_tensor(c_result_tensor)
+
     def _C_to_Python_create_tensor(self, c_result_tensor) -> "Tensor":
         result_tensor = Tensor()
         result_tensor.tensor = c_result_tensor
