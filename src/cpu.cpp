@@ -2,6 +2,13 @@
 #include "string.h"
 #include "tensor.h"
 
+
+void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
+    for (int idx = 0; idx < tensor->size; idx++) {
+        result_data[idx] = tensor->data[idx];
+    }
+}
+
 void add_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
     for (int idx = 0; idx < tensorA->size; idx++) {
         result_data[idx] = tensorA->data[idx] + tensorB->data[idx];
@@ -196,8 +203,8 @@ void matmul_2d_2d_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
         for (int col_idx = 0; col_idx < P; col_idx++) {
             double sum = 0;
             for (int sum_idx = 0; sum_idx < N; sum_idx++) {
-                int idxA = tensorA->strides[0]*row_idx + sum_idx;
-                int idxB = tensorB->strides[0]*sum_idx + col_idx;
+                int idxA = tensorA->strides[tensorA->ndim-2]*row_idx + tensorA->strides[tensorA->ndim-1]*sum_idx;
+                int idxB = tensorB->strides[tensorB->ndim-2]*sum_idx + tensorB->strides[tensorB->ndim-1]*col_idx;
                 sum += tensorA->data[idxA] * tensorB->data[idxB]; 
             }
             int idx_result_data = P*row_idx + col_idx;
@@ -320,38 +327,51 @@ void sum_cpu(Tensor* tensor, double* result_data) {
 }
 
 void sum_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
-    int stride = 1;
-    for (int idx = axis; idx < tensor->ndim; idx++) {
-        stride *= tensor->shape[idx];
-    }
-
     int size = tensor->size / tensor->shape[axis];
 
     int outer_size = 1;
     for (int idx = 0; idx < axis; idx++) {
         outer_size *= tensor->shape[idx];
     }
-    std::cout << "outer_size = " << outer_size << "\n";
 
     int inner_size = size / outer_size;
-    std::cout << "inner_size = " << inner_size << "\n";
 
     for (int i = 0; i < outer_size; i++) {
         for (int j = 0; j < inner_size; j++) {
             double sum = 0;
             for (int k = 0; k < tensor->shape[axis]; k++) {
-                std::cout << "idx = " << inner_size * k + j + size * i << "\n";
                 sum += tensor->data[inner_size * k + j + tensor->shape[axis] * inner_size * i];
             }
-            std::cout << "sum = " << sum << "\n";
         result_data[j + inner_size * i] = sum;   
         }
     }
-    
 }
 
-void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
+void mean_cpu(Tensor* tensor, double* result_data) {
     for (int idx = 0; idx < tensor->size; idx++) {
-        result_data[idx] = tensor->data[idx];
+        result_data[0] += tensor->data[idx];
+    }
+    result_data[0] /= tensor->size;
+}
+
+void mean_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
+    int size = tensor->size / tensor->shape[axis];
+
+    int outer_size = 1;
+    for (int idx = 0; idx < axis; idx++) {
+        outer_size *= tensor->shape[idx];
+    }
+
+    int inner_size = size / outer_size;
+
+    for (int i = 0; i < outer_size; i++) {
+        for (int j = 0; j < inner_size; j++) {
+            double sum = 0;
+            for (int k = 0; k < tensor->shape[axis]; k++) {
+                sum += tensor->data[inner_size * k + j + tensor->shape[axis] * inner_size * j];
+            }
+            sum /= tensor->shape[axis];
+            result_data[j + inner_size * i] = sum;
+        }
     }
 }

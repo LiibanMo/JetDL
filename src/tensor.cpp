@@ -10,7 +10,6 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
         return NULL;
     }
 
-    tensor->data = data;
     tensor->ndim = ndim;
 
     tensor->shape = (int*)malloc(tensor->ndim * sizeof(int));
@@ -18,9 +17,7 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    for (int idx = 0; idx < tensor->ndim; idx++) {
-        tensor->shape[idx] = shape[idx];
-    }
+    memcpy(tensor->shape, shape, tensor->ndim * sizeof(int));
 
     tensor->strides = (int*)malloc(ndim * sizeof(int));
     if (!tensor->strides) {
@@ -36,6 +33,13 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
     for (int idx = 0; idx < ndim; idx++) {
         tensor->size *= tensor->shape[idx];
     }
+
+    tensor->data = (double*)malloc(tensor->size * sizeof(double));
+    if (!tensor->data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+    memcpy(tensor->data, data, tensor->size * sizeof(double));
 
     return tensor;
 }
@@ -717,6 +721,55 @@ Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
     }
 
     sum_axis_cpu(tensor, result_data, axis);
+
+    return create_tensor(result_data, shape, ndim);
+}
+
+Tensor* mean_tensor(Tensor* tensor) {
+    const int ndim = 1;
+
+    int* shape = (int*)malloc(ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    shape[0] = 1;
+
+    double* result_data = (double*)malloc(1 * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return NULL;
+    }
+
+    mean_cpu(tensor, result_data);
+
+    return create_tensor(result_data, shape, ndim);
+}
+
+Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
+    const int ndim = tensor->ndim - 1;
+
+    int* shape = (int*)malloc(ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    for (int idx = 0; idx < tensor->ndim; idx++) {
+        int idx_shape = (idx <= axis) ? idx : idx - 1;
+        shape[idx_shape] = tensor->shape[idx];
+    }
+
+    const int size = tensor->size / tensor->shape[axis];
+
+    double* result_data = (double*)malloc(size * sizeof(int));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return NULL;
+    }
+
+    mean_axis_cpu(tensor, result_data, axis);
 
     return create_tensor(result_data, shape, ndim);
 }

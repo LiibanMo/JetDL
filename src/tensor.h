@@ -33,6 +33,8 @@ extern "C" {
     Tensor* matrix_transpose_tensor(Tensor* tensor);
     Tensor* sum_tensor(Tensor* tensor);
     Tensor* sum_axis_tensor(Tensor* tensor, const int axis);
+    Tensor* mean_tensor(Tensor* tensor);
+    Tensor* mean_axis_tensor(Tensor* tensor, const int axis);
     void free_tensor(Tensor* tensor_ptr);
 }
 #endif
