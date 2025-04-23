@@ -62,8 +62,6 @@ setup(
     cmdclass={"build_ext": BuildSharedLibrary},
     python_requires=">=3.7",
     install_requires=[
-        "torch",
-        "numpy",
         "pytest",
     ],
     zip_safe=False,

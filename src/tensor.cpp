@@ -677,17 +677,17 @@ Tensor* matrix_transpose_tensor(Tensor* tensor) {
 }
 
 Tensor* sum_tensor(Tensor* tensor) {
-    const int ndim = 1;
+    const int ndim = 0;
 
-    int* shape = (int*)malloc(ndim * sizeof(int));
+    int* shape = (int*)malloc(sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
     
-    shape[0] = 1;
+    shape[0] = 0;
 
-    double* result_data = (double*)malloc(1 * sizeof(double));
+    double* result_data = (double*)malloc(sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
@@ -726,17 +726,17 @@ Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
 }
 
 Tensor* mean_tensor(Tensor* tensor) {
-    const int ndim = 1;
+    const int ndim = 0;
 
-    int* shape = (int*)malloc(ndim * sizeof(int));
+    int* shape = (int*)malloc(sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
 
-    shape[0] = 1;
+    shape[0] = 0;
 
-    double* result_data = (double*)malloc(1 * sizeof(double));
+    double* result_data = (double*)malloc(sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
@@ -772,6 +772,18 @@ Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
     mean_axis_cpu(tensor, result_data, axis);
 
     return create_tensor(result_data, shape, ndim);
+}
+
+Tensor* pow_tensor(Tensor* tensor, double exponent) {
+    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    pow_cpu(tensor, exponent, result_data);
+
+    return create_tensor(result_data, tensor->shape, tensor->ndim);
 }
 
 void free_tensor(Tensor* tensor_ptr) {

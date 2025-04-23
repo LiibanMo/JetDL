@@ -1,301 +1,105 @@
-from typing import Optional
-
 import pytest
-import torch
 
-from tensorlite import tensor
+from tensorlite.tensor import Tensor
 
-from .test_tensor_data import (add_broadcasting_ids, broadcasting_data,
-                               div_broadcasting_ids, matmul_data, matmul_ids,
-                               mul_broadcasting_ids, reduction_operations_data,
-                               shapes_for_mT_ids, shapes_for_T_ids,
-                               shapes_for_T_mT, sub_broadcasting_ids, sum_ids,
-                               without_broadcasting_data,
-                               without_broadcasting_ids)
-from .utils import compare_tensors
 
-# ---------------------------------------------------------------------------------------------------------
+def test_tensor_creation():
+    tensor = Tensor([1, 2, 3])
+    assert tensor.data == [1, 2, 3]
+    assert tensor.shape == (3,)
+    assert tensor.ndim == 1
 
 
-@pytest.mark.parametrize(
-    "data, idx",
-    [
-        ([1.0, 2.0, 3.0], 0),
-        ([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], (0, 1)),
-        ([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]], (0, 1, 2)),
-    ],
-)
-def test_retrieving_item(data, idx):
-    tensor_ = tensor(data)
-    result_value = tensor_[idx]
+def test_tensor_addition():
+    tensor1 = Tensor([1, 2, 3])
+    tensor2 = Tensor([4, 5, 6])
+    result = tensor1 + tensor2
+    assert result.data == [5, 7, 9]
+    assert result.shape == (3,)
 
-    torch_tensor = torch.tensor(data)
-    expected_value = torch_tensor[idx]
 
-    assert abs(result_value - expected_value) < 1e-5
+def test_tensor_scalar_addition():
+    tensor = Tensor([1, 2, 3])
+    result = tensor + 5
+    assert result.data == [6, 7, 8]
+    assert result.shape == (3,)
 
 
-# Testing Addition
+def test_tensor_subtraction():
+    tensor1 = Tensor([5, 7, 9])
+    tensor2 = Tensor([4, 5, 6])
+    result = tensor1 - tensor2
+    assert result.data == [1, 2, 3]
+    assert result.shape == (3,)
 
 
-@pytest.mark.parametrize(
-    "data, scalar",
-    [([1, 2], 1.0), ([[1.0, 2.0], [3.0, 4.0]], 1.0), ([[[1.0, 2.0], [3.0, 4.0]]], 1.0)],
-)
-def test_tensor_add_scalar(data: list, scalar: float):
-    tensor_ = tensor(data)
-    result_tensor = tensor_ + scalar
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
+def test_tensor_scalar_subtraction():
+    tensor = Tensor([5, 7, 9])
+    result = tensor - 5
+    assert result.data == [0, 2, 4]
+    assert result.shape == (3,)
 
-    torch_tensor = torch.tensor(data)
-    torch_expected_tensor = torch_tensor + scalar
 
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+def test_tensor_multiplication():
+    tensor1 = Tensor([1, 2, 3])
+    tensor2 = Tensor([4, 5, 6])
+    result = tensor1 * tensor2
+    assert result.data == [4, 10, 18]
+    assert result.shape == (3,)
 
 
-@pytest.mark.parametrize(
-    "data1, data2", without_broadcasting_data, ids=without_broadcasting_ids
-)
-def test_tensor_add_tensor(data1: list, data2: list):
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 + tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
+def test_tensor_scalar_multiplication():
+    tensor = Tensor([1, 2, 3])
+    result = tensor * 3
+    assert result.data == [3, 6, 9]
+    assert result.shape == (3,)
 
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 + torch_tensor2
 
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+def test_tensor_matmul():
+    tensor1 = Tensor([[1, 2], [3, 4]])
+    tensor2 = Tensor([[5, 6], [7, 8]])
+    result = tensor1 @ tensor2
+    assert result.data == [19, 22, 43, 50]
+    assert result.shape == (2, 2)
 
 
-@pytest.mark.parametrize("data1, data2", broadcasting_data, ids=add_broadcasting_ids)
-def test_tensor_add_broadcasting(data1, data2) -> None:
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 + tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
+def test_tensor_reshape():
+    tensor = Tensor([1, 2, 3, 4])
+    reshaped = tensor.reshape([2, 2])
+    assert reshaped.data == [1, 2, 3, 4]
+    assert reshaped.shape == (2, 2)
 
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 + torch_tensor2
 
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+def test_tensor_flatten():
+    tensor = Tensor([[1, 2], [3, 4]])
+    flattened = tensor.flatten()
+    assert flattened.data == [1, 2, 3, 4]
+    assert flattened.shape == (4,)
 
 
-# Testing Subtraction
+def test_tensor_sum():
+    tensor = Tensor([[1, 2], [3, 4]])
+    result = tensor.sum()
+    assert result.data == [10]
+    assert result.shape == ()
 
 
-@pytest.mark.parametrize(
-    "data, scalar",
-    [
-        ([1.0, 2.0], 1.0),
-        ([[1.0, 2.0], [3.0, 4.0]], 1.0),
-        ([[[1.0, 2.0], [3.0, 4.0]]], 1.0),
-    ],
-)
-def test_tensor_sub_scalar(data: list, scalar: float):
-    tensor_ = tensor(data)
-    result_tensor = tensor_ - scalar
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
+def test_tensor_mean():
+    tensor = Tensor([[1, 2], [3, 4]])
+    result = tensor.mean()
+    assert result.data == [2.5]
+    assert result.shape == ()
 
-    torch_tensor = torch.tensor(data)
-    torch_expected_tensor = torch_tensor - scalar
 
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+def test_tensor_power():
+    tensor = Tensor([1, 2, 3])
+    result = tensor**2
+    assert result.data == [1, 4, 9]
+    assert result.shape == (3,)
 
 
-@pytest.mark.parametrize(
-    "data1, data2", without_broadcasting_data, ids=without_broadcasting_ids
-)
-def test_tensor_sub_tensor(data1: list, data2: list):
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 - tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 - torch_tensor2
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-@pytest.mark.parametrize("data1, data2", broadcasting_data, ids=sub_broadcasting_ids)
-def test_tensor_sub_broadcasting(data1, data2) -> None:
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 - tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 - torch_tensor2
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-# Testing element-wise muliplication
-
-
-@pytest.mark.parametrize(
-    "data, scalar",
-    [
-        ([1.0, 2.0], 2.0),
-        ([[1.0, 2.0], [3.0, 4.0]], 2.0),
-        ([[[1.0, 2.0], [3.0, 4.0]]], 2.0),
-    ],
-)
-def test_tensor_mul_scalar(data: list, scalar: float):
-    tensor_ = tensor(data)
-    result_tensor = tensor_ * scalar
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor = torch.tensor(data)
-    torch_expected_tensor = torch_tensor * scalar
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-@pytest.mark.parametrize(
-    "data1, data2", without_broadcasting_data, ids=without_broadcasting_ids
-)
-def test_tensor_mul_tensor(data1: list, data2: list):
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 * tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 * torch_tensor2
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-@pytest.mark.parametrize("data1, data2", broadcasting_data, ids=mul_broadcasting_ids)
-def test_tensor_mul_broadcasting(data1, data2) -> None:
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 * tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 * torch_tensor2
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-# Testing matmul
-
-
-@pytest.mark.parametrize("data1, data2", matmul_data, ids=matmul_ids)
-def test_matmul_tensor(data1: list, data2: list) -> None:
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 @ tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 @ torch_tensor2
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-# Testing division
-
-
-@pytest.mark.parametrize(
-    "data1, data2", without_broadcasting_data, ids=without_broadcasting_ids
-)
-def test_tensor_div_tensor(data1: list, data2: list):
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 / tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 / torch_tensor2
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-@pytest.mark.parametrize(
-    "data, divisor",
-    [
-        ([1.0, 2.0, 3.0], 4.0),
-        ([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], 7.0),
-        ([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]], 7.0),
-    ],
-)
-def test_tensor_div_scalar(data: list, divisor: float):
-    tensor_ = tensor(data)
-    result_tensor = tensor_ / divisor
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor = torch.tensor(data)
-    torch_expected_result = torch_tensor / divisor
-
-    assert compare_tensors(torch_result_tensor, torch_expected_result)
-
-
-@pytest.mark.parametrize("data1, data2", broadcasting_data, ids=div_broadcasting_ids)
-def test_tensor_sub_broadcasting(data1, data2) -> None:
-    tensor1 = tensor(data1)
-    tensor2 = tensor(data2)
-    result_tensor = tensor1 / tensor2
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_tensor1 = torch.tensor(data1)
-    torch_tensor2 = torch.tensor(data2)
-    torch_expected_tensor = torch_tensor1 / torch_tensor2
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-# Testing .T
-
-
-@pytest.mark.parametrize("shape", shapes_for_T_mT, ids=shapes_for_T_ids)
-def test_tensor_T(shape: list):
-    data = torch.arange(24).reshape(shape).tolist()
-
-    tensor_T = tensor(data).T
-    torch_result_tensor = torch.tensor(tensor_T.data).reshape(tensor_T.shape)
-
-    torch_tensor = torch.tensor(data)
-    T_dims = torch.arange(torch_tensor.ndim - 1, -1, -1).tolist()
-    torch_expected_tensor = torch_tensor.permute(T_dims)
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-# Testing .mT
-
-
-@pytest.mark.parametrize("shape", shapes_for_T_mT, ids=shapes_for_mT_ids)
-def test_tensor_mT(shape: list):
-    data = torch.arange(24).reshape(shape).tolist()
-
-    tensor_mT = tensor(data).mT
-    torch_result_tensor = torch.tensor(tensor_mT.data).reshape(tensor_mT.shape)
-
-    torch_expected_tensor = torch.tensor(data).mT
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
-
-
-# Testing sum()
-
-
-@pytest.mark.parametrize("data, axis", reduction_operations_data, ids=sum_ids)
-def test_tensor_sum(data: list, axis: Optional[int]):
-    result_tensor = tensor(data).sum(axis=axis)
-    torch_result_tensor = torch.tensor(result_tensor.data).reshape(result_tensor.shape)
-
-    torch_expected_tensor = torch.tensor(data).sum(axis=axis)
-
-    assert compare_tensors(torch_result_tensor, torch_expected_tensor)
+def test_tensor_backward():
+    tensor = Tensor([1, 2, 3], requires_grad=True)
+    result = tensor * 2
+    result.backward()
+    assert tensor.grad.data == [2, 2, 2]

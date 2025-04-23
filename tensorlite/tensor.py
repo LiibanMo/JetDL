@@ -120,19 +120,15 @@ class Tensor:
                         result += "\n" + " " * depth
                 return result.strip(",")
 
-
         index = [0] * self.ndim
         if self.ndim == 0:
             result = f"tensor({self.data[0]}"
         else:
             result = "tensor([" + print_my_tensor(self, 0, index)
 
-
         if self.grad_fn:
             self_grad_fn_str = self.grad_fn.__str__().split(" ")[0].split(".")[2]
-            result += (
-                f", grad_fn=<{self_grad_fn_str}>)"
-            )
+            result += f", grad_fn=<{self_grad_fn_str}>)"
         else:
             result += "])" if self.ndim != 0 else ")"
 
@@ -169,7 +165,7 @@ class Tensor:
         item = Tensor._C.get_item(self._tensor, indices)
         return item
 
-    def __add__(self, operand):
+    def __add__(self, operand) -> "Tensor":
         if isinstance(operand, (int, float)):
             Tensor._C.scalar_add_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
@@ -179,7 +175,11 @@ class Tensor:
 
             c_result_tensor = Tensor._C.scalar_add_tensor(self._tensor, operand)
 
-            return _C_to_Python_create_tensor(c_result_tensor)
+            result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+            _assign_grad_and_grad_fn(self, None, result_tensor, AddBackward)
+
+            return result_tensor
 
         elif isinstance(operand, Tensor):
             if self._shape == operand._shape:
@@ -193,16 +193,14 @@ class Tensor:
 
                 result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
-                result_tensor.requires_grad = (
-                    self.requires_grad or operand.requires_grad
-                )
-                if result_tensor.requires_grad:
-                    result_tensor.grad_fn = AddBackward(self, operand, result_tensor)
+                _assign_grad_and_grad_fn(self, operand, result_tensor, AddBackward)
 
                 return result_tensor
 
             else:
-                if not _can_broadcast(self._shape, self.ndim, operand._shape, operand.ndim):
+                if not _can_broadcast(
+                    self._shape, self.ndim, operand._shape, operand.ndim
+                ):
                     raise RuntimeError(
                         f"Shapes of operand tensor A {self._shape} and operand tensor B {operand._shape} are incompatible for addition broadcasting."
                     )
@@ -213,18 +211,25 @@ class Tensor:
                 ]
                 Tensor._C.add_broadcasted.restype = ctypes.POINTER(C_Tensor)
 
-                c_result_tensor = Tensor._C.add_broadcasted(self._tensor, operand._tensor)
+                c_result_tensor = Tensor._C.add_broadcasted(
+                    self._tensor, operand._tensor
+                )
 
-                return _C_to_Python_create_tensor(c_result_tensor)
+                result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+                _assign_grad_and_grad_fn(self, operand, result_tensor, AddBackward)
+
+                return result_tensor
+
         else:
             raise TypeError(
                 f"Wrong data type for tensor addition. Operand datatype = {type(operand)}."
             )
 
-    def __radd__(self, operand):
+    def __radd__(self, operand) -> "Tensor":
         return self + operand
 
-    def __sub__(self, operand):
+    def __sub__(self, operand) -> "Tensor":
         if isinstance(operand, (int, float)):
             Tensor._C.scalar_sub_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
@@ -234,7 +239,11 @@ class Tensor:
 
             c_result_tensor = Tensor._C.scalar_sub_tensor(self._tensor, operand)
 
-            return _C_to_Python_create_tensor(c_result_tensor)
+            result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+            _assign_grad_and_grad_fn(self, None, result_tensor, SubBackward)
+
+            return result_tensor
 
         elif isinstance(operand, Tensor):
             if self._shape == operand._shape:
@@ -246,10 +255,16 @@ class Tensor:
 
                 c_result_tensor = Tensor._C.sub_tensor(self._tensor, operand._tensor)
 
-                return _C_to_Python_create_tensor(c_result_tensor)
+                result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+                _assign_grad_and_grad_fn(self, operand, result_tensor, SubBackward)
+
+                return result_tensor
 
             else:
-                if not _can_broadcast(self._shape, self.ndim, operand._shape, operand.ndim):
+                if not _can_broadcast(
+                    self._shape, self.ndim, operand._shape, operand.ndim
+                ):
                     raise RuntimeError(
                         f"Shapes of operand tensor A {self._shape} and operand tensor B {operand._shape} are incompatible for subtraction broadcasting."
                     )
@@ -260,21 +275,28 @@ class Tensor:
                 ]
                 Tensor._C.sub_broadcasted.restype = ctypes.POINTER(C_Tensor)
 
-                c_result_tensor = Tensor._C.sub_broadcasted(self._tensor, operand._tensor)
+                c_result_tensor = Tensor._C.sub_broadcasted(
+                    self._tensor, operand._tensor
+                )
 
-                return _C_to_Python_create_tensor(c_result_tensor)
+                result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+                _assign_grad_and_grad_fn(self, operand, result_tensor, SubBackward)
+
+                return result_tensor
+
         else:
             raise TypeError(
                 f"Wrong data type for tensor subtraction. Operand datatype = {type(operand)}."
             )
 
-    def __neg__(self):
+    def __neg__(self) -> "Tensor":
         return -1 * self
 
-    def __rsub__(self, operand):
+    def __rsub__(self, operand) -> "Tensor":
         return -self + operand
 
-    def __mul__(self, operand):
+    def __mul__(self, operand) -> "Tensor":
         if isinstance(operand, (int, float)):
             Tensor._C.scalar_mul_tensor.argtypes = [
                 ctypes.POINTER(C_Tensor),
@@ -284,7 +306,11 @@ class Tensor:
 
             c_result_tensor = Tensor._C.scalar_mul_tensor(self._tensor, operand)
 
-            return _C_to_Python_create_tensor(c_result_tensor)
+            result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+            _assign_grad_and_grad_fn(self, operand, result_tensor, MulBackward)
+
+            return result_tensor
 
         elif isinstance(operand, Tensor):
             if self._shape == operand._shape:
@@ -298,13 +324,19 @@ class Tensor:
                     self._tensor, operand._tensor
                 )
 
-                return _C_to_Python_create_tensor(c_result_tensor)
+                result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+                _assign_grad_and_grad_fn(self, operand, result_tensor, MulBackward)
+
+                return result_tensor
 
             else:
-                if not _can_broadcast(self._shape, self.ndim, operand._shape, operand.ndim):
+                if not _can_broadcast(
+                    self._shape, self.ndim, operand._shape, operand.ndim
+                ):
                     raise RuntimeError(
-                                f"Shapes of operand tensor A {self._shape} and operand tensor B {operand._shape} are incompatible for multiplication broadcasting."
-                            )
+                        f"Shapes of operand tensor A {self._shape} and operand tensor B {operand._shape} are incompatible for multiplication broadcasting."
+                    )
 
                 Tensor._C.mul_broadcasted.argtypes = [
                     ctypes.POINTER(C_Tensor),
@@ -312,9 +344,15 @@ class Tensor:
                 ]
                 Tensor._C.mul_broadcasted.restype = ctypes.POINTER(C_Tensor)
 
-                c_result_tensor = Tensor._C.mul_broadcasted(self._tensor, operand._tensor)
+                c_result_tensor = Tensor._C.mul_broadcasted(
+                    self._tensor, operand._tensor
+                )
 
-                return _C_to_Python_create_tensor(c_result_tensor)
+                result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+                _assign_grad_and_grad_fn(self, operand, result_tensor, MulBackward)
+
+                return result_tensor
         else:
             raise TypeError(
                 f"Wrong data type for element-wise multiplication. Operand datatype = {type(operand)}."
@@ -336,9 +374,13 @@ class Tensor:
             ]
             Tensor._C.vector_dot_product.restype = ctypes.POINTER(C_Tensor)
 
-            c_result_tensor = Tensor._C.vector_dot_product(self._tensor, operand._tensor)
+            c_result_tensor = Tensor._C.vector_dot_product(
+                self._tensor, operand._tensor
+            )
 
             result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+            _assign_grad_and_grad_fn(self, operand, result_tensor, MmBackward)
 
             return result_tensor
 
@@ -358,9 +400,7 @@ class Tensor:
 
             result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
-            result_tensor.requires_grad = self.requires_grad or operand.requires_grad
-            if result_tensor.requires_grad:
-                result_tensor.grad_fn = MmBackward(self, operand, result_tensor)
+            _assign_grad_and_grad_fn(self, operand, result_tensor, MmBackward)
 
             return result_tensor
 
@@ -389,7 +429,11 @@ class Tensor:
             result_shape = result_tensor._shape.copy()
             result_shape.pop(0)
 
-            return result_tensor.reshape(result_shape)
+            result_tensor = result_tensor.reshape(result_shape)
+
+            _assign_grad_and_grad_fn(self, operand, result_tensor, MmBackward)
+
+            return result_tensor
 
         elif self.ndim == 2 and operand.ndim == 1:
             if self._shape[1] != operand._shape[0]:
@@ -416,7 +460,11 @@ class Tensor:
             result_shape = result_tensor._shape.copy()
             result_shape.pop(1)
 
-            return result_tensor.reshape(result_shape)
+            result_tensor = result_tensor.reshape(result_shape)
+
+            _assign_grad_and_grad_fn(self, operand, result_tensor, MmBackward)
+
+            return result_tensor
 
         elif self.ndim > 2 or operand.ndim > 2:
             if self.ndim == 1:
@@ -462,7 +510,11 @@ class Tensor:
                 idx_to_squeeze = result_tensor.ndim - 2
                 result_shape.pop(idx_to_squeeze)
 
-                return result_tensor.reshape(result_shape)
+                result_tensor = result_tensor.reshape(result_shape)
+
+                _assign_grad_and_grad_fn(self, operand, result_tensor, MmBackward)
+
+                return result_tensor
 
             elif operand.ndim == 1:
                 new_shape = operand._shape.copy() + [1]
@@ -477,9 +529,15 @@ class Tensor:
                 idx_to_squeeze = result_tensor.ndim - 1
                 result_shape.pop(idx_to_squeeze)
 
-                return result_tensor.reshape(result_shape)
+                result_tensor = result_tensor.reshape(result_shape)
 
-            c_result_tensor = Tensor._C.matmul_broadcasted(self._tensor, operand._tensor)
+                _assign_grad_and_grad_fn(self, operand, result_tensor, MmBackward)
+
+                return result_tensor
+
+            c_result_tensor = Tensor._C.matmul_broadcasted(
+                self._tensor, operand._tensor
+            )
 
             return _C_to_Python_create_tensor(c_result_tensor)
 
@@ -516,7 +574,9 @@ class Tensor:
                 return _C_to_Python_create_tensor(c_result_tensor)
 
             else:
-                if not _can_broadcast(self._shape, self.ndim, operand._shape, operand.ndim):
+                if not _can_broadcast(
+                    self._shape, self.ndim, operand._shape, operand.ndim
+                ):
                     raise RuntimeError(
                         f"Shapes of operand tensor A {self._shape} and operand tensor B {operand._shape} are incompatible for multiplication broadcasting."
                     )
@@ -527,9 +587,27 @@ class Tensor:
                 ]
                 Tensor._C.div_broadcasted.restype = ctypes.POINTER(C_Tensor)
 
-                c_result_tensor = Tensor._C.div_broadcasted(self._tensor, operand._tensor)
+                c_result_tensor = Tensor._C.div_broadcasted(
+                    self._tensor, operand._tensor
+                )
 
                 return _C_to_Python_create_tensor(c_result_tensor)
+
+    def __pow__(self, exponent: Union[int, float]):
+        Tensor._C.pow_tensor.argtypes = [
+            ctypes.POINTER(C_Tensor),
+            ctypes.c_double,
+        ]
+        Tensor._C.pow_tensor.restype = ctypes.POINTER(C_Tensor)
+
+        c_exponent = ctypes.c_double(exponent)
+        c_result_tensor = Tensor._C.pow_tensor(self._tensor, c_exponent)
+
+        result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+        _assign_grad_and_grad_fn(self, exponent, result_tensor, PowBackward)
+
+        return result_tensor
 
     def reshape(self, new_shape: list) -> "Tensor":
         if new_shape == self._shape:
@@ -571,8 +649,11 @@ class Tensor:
 
     @property
     def shape(self) -> tuple:
-        return tuple(self._shape)
-    
+        if self._shape == [0]:
+            return ()
+        else:
+            return tuple(self._shape)
+
     @property
     def T(self) -> "Tensor":
         Tensor._C.transpose_tensor.argtypes = [
@@ -618,7 +699,7 @@ class Tensor:
             c_result_tensor = Tensor._C.sum_tensor(self._tensor)
 
             return _C_to_Python_create_tensor(c_result_tensor)
-        
+
         elif isinstance(axis, int):
             if axis < 0:
                 c_axis = ctypes.c_int(self.ndim + axis)
@@ -631,10 +712,9 @@ class Tensor:
             ]
             Tensor._C.sum_axis_tensor.restype = ctypes.POINTER(C_Tensor)
 
-            
             c_result_tensor = Tensor._C.sum_axis_tensor(self._tensor, c_axis)
             return _C_to_Python_create_tensor(c_result_tensor)
-            
+
         elif isinstance(axis, list):
             axes = []
             for dim in axis:
@@ -655,12 +735,12 @@ class Tensor:
                     c_axis = ctypes.c_int(axes[idx])
                     c_result_tensor = Tensor._C.sum_axis_tensor(tensor._tensor, c_axis)
                     result_tensor = _C_to_Python_create_tensor(c_result_tensor)
-                    return sum_axes_recursively(result_tensor, axes, idx-1)
+                    return sum_axes_recursively(result_tensor, axes, idx - 1)
                 else:
                     c_axis = ctypes.c_int(axes[idx])
                     c_result_tensor = Tensor._C.sum_axis_tensor(tensor._tensor, c_axis)
                     return _C_to_Python_create_tensor(c_result_tensor)
-            
+
             result_tensor = sum_axes_recursively(self, axes, len(axes) - 1)
 
             return result_tensor
@@ -674,7 +754,11 @@ class Tensor:
 
             c_result_tensor = Tensor._C.mean_tensor(self._tensor)
 
-            return _C_to_Python_create_tensor(c_result_tensor)
+            result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+            _assign_grad_and_grad_fn(self, axis, result_tensor, MeanBackward)
+
+            return result_tensor
 
         elif isinstance(axis, int):
             Tensor._C.mean_axis_tensor.argtypes = [
@@ -686,8 +770,17 @@ class Tensor:
             c_result_tensor = Tensor._C.mean_axis_tensor(self._tensor, axis)
 
             return _C_to_Python_create_tensor(c_result_tensor)
-    
-    def sum_to_size(self, shape: list) :
+
+    def copy(self):
+        c_data = (len(self.data) * ctypes.c_double)(*self.data)
+        c_shape = (len(self.shape) * ctypes.c_int)(*self.shape)
+        c_ndim = len(self.shape)
+
+        c_result_tensor = Tensor._C.create_tensor(c_data, c_shape, c_ndim)
+
+        return _C_to_Python_create_tensor(c_result_tensor)
+
+    def sum_to_size(self, shape: list):
         if not _can_broadcast(self._shape, self.ndim, shape, len(shape)):
             raise RuntimeError(
                 f"size {tuple(self._shape)} cannot reduce to {tuple(shape)}."
@@ -708,17 +801,23 @@ class Tensor:
             if idx > 0:
                 axis = broadcasted_axes[idx]
                 result_tensor = tensor.sum(axis)
-                return sum_axes_recursively(result_tensor, broadcasted_axes, idx-1)
+                return sum_axes_recursively(result_tensor, broadcasted_axes, idx - 1)
             else:
                 axis = broadcasted_axes[idx]
                 result_tensor = tensor.sum(axis)
                 return result_tensor
-        
-        result_tensor = sum_axes_recursively(self, broadcasted_axes, len(broadcasted_axes) - 1)
-        
-        return result_tensor.reshape(shape)
 
-    def backward(self, init_grad=1.0):
+        if broadcasted_axes:
+            result_tensor = sum_axes_recursively(
+                self, broadcasted_axes, len(broadcasted_axes) - 1
+            )
+            result_tensor = result_tensor.reshape(shape)
+        else:
+            result_tensor = self.copy()
+
+        return result_tensor
+
+    def backward(self):
         def build_comp_graph(tensor):
             topo = []
             visited = set()
@@ -747,16 +846,18 @@ class Tensor:
 
             return topo
 
-        if isinstance(init_grad, float):
-            self.grad = Tensor(init_grad)
+        from .routines import ones
+
+        self.grad = ones(self.shape)
 
         topo = build_comp_graph(self)
 
         for fn in reversed(topo):
             gradients = fn.backward()
-            prev_tensors = fn.prev_tensors
-            for grad, tensor in zip(gradients, prev_tensors):
-                tensor.grad += grad
+            next_tensors = fn.next_tensors
+            for grad, tensor in zip(gradients, next_tensors):
+                if isinstance(tensor, Tensor):
+                    tensor.grad += grad
 
 
 def _C_to_Python_create_tensor(c_result_tensor) -> "Tensor":
@@ -782,6 +883,7 @@ def _C_to_Python_create_tensor(c_result_tensor) -> "Tensor":
 
     return result_tensor
 
+
 def _can_broadcast(shapeA, ndimA, shapeB, ndimB) -> bool:
     min_ndim = min(ndimA, ndimB)
     for idx in range(min_ndim):
@@ -793,3 +895,9 @@ def _can_broadcast(shapeA, ndimA, shapeB, ndimB) -> bool:
             return False
         else:
             return True
+
+
+def _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, grad_fn):
+    result_tensor.requires_grad = tensorA.requires_grad or tensorB.requires_grad
+    if result_tensor.requires_grad:
+        result_tensor.grad_fn = grad_fn(tensorA, tensorB, result_tensor)

@@ -3,6 +3,7 @@
 
 #include "tensor.h"
 
+// METHODS
 void assign_tensor_data_cpu(Tensor* tensor, double* result_data);
 void add_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 void scalar_add_tensor_cpu(Tensor* tensorA, double operand, double* result_data);
@@ -24,5 +25,9 @@ void sum_cpu(Tensor* tensor, double* result_data);
 void sum_axis_cpu(Tensor* tensor, double* result_data, const int axis);
 void mean_cpu(Tensor* tensor, double* result_data);
 void mean_axis_cpu(Tensor* tensor, double* result_data, const int axis);
+void pow_cpu(Tensor* tensor, double exponent, double* result_data);
+// FUNCTIONS
+void ones_cpu(double* result_data, int size);
+void outer_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
 
 #endif

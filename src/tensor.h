@@ -35,6 +35,8 @@ extern "C" {
     Tensor* sum_axis_tensor(Tensor* tensor, const int axis);
     Tensor* mean_tensor(Tensor* tensor);
     Tensor* mean_axis_tensor(Tensor* tensor, const int axis);
+    Tensor* pow_tensor(Tensor* tensor, double exponent);
     void free_tensor(Tensor* tensor_ptr);
 }
+
 #endif

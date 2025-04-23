@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "string.h"
 #include "tensor.h"
 
@@ -372,6 +373,26 @@ void mean_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
             }
             sum /= tensor->shape[axis];
             result_data[j + inner_size * i] = sum;
+        }
+    }
+}
+
+void pow_cpu(Tensor* tensor, double exponent, double* result_data) {
+    for (int idx = 0; idx < tensor->size; idx++) {
+        result_data[idx] = pow(tensor->data[idx], exponent);
+    }
+}
+
+void ones_cpu(double* result_data, int size) {
+    for (int idx = 0; idx < size; idx++) {
+        result_data[idx] = 1.0;
+    }
+}
+
+void outer_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+    for (int i = 0; i < tensorA->size; i++) {
+        for (int j = 0; j < tensorB->size; j++) {
+            result_data[tensorB->size * i + j] = tensorA->data[i] * tensorB->data[j];
         }
     }
 }
