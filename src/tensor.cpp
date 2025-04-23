@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include "tensor.h"
 #include "cpu.h"
 
