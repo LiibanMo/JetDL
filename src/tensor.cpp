@@ -702,13 +702,13 @@ Tensor* sum_tensor(Tensor* tensor) {
 Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
     int ndim = tensor->ndim - 1;
     
-    int ndim = (ndim == 0) ? ndim + 1 : ndim;
+    ndim = (ndim == 0) ? ndim + 1 : ndim;
     int* shape = (int*)malloc(ndim * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    int ndim = (ndim == 0) ? ndim - 1 : ndim;
+    ndim = (ndim == 0) ? ndim - 1 : ndim;
 
     for (int idx = 0; idx < tensor->ndim; idx++) {
         int idx_shape = (idx <= axis) ? idx : idx - 1;
@@ -753,13 +753,13 @@ Tensor* mean_tensor(Tensor* tensor) {
 Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
     int ndim = tensor->ndim - 1;
 
-    int ndim = (ndim == 0) ? ndim + 1 : ndim;
+    ndim = (ndim == 0) ? ndim + 1 : ndim;
     int* shape = (int*)malloc(ndim * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    int ndim = (ndim == 0) ? ndim - 1 : ndim;
+    ndim = (ndim == 0) ? ndim - 1 : ndim;
 
     for (int idx = 0; idx < tensor->ndim; idx++) {
         int idx_shape = (idx <= axis) ? idx : idx - 1;
