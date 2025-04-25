@@ -764,7 +764,7 @@ Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
 
     const int size = tensor->size / tensor->shape[axis];
 
-    double* result_data = (double*)malloc(size * sizeof(int));
+    double* result_data = (double*)malloc(size * sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
