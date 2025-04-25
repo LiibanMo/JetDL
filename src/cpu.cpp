@@ -356,24 +356,10 @@ void mean_cpu(Tensor* tensor, double* result_data) {
 }
 
 void mean_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
-    int size = tensor->size / tensor->shape[axis];
-
-    int outer_size = 1;
-    for (int idx = 0; idx < axis; idx++) {
-        outer_size *= tensor->shape[idx];
-    }
-
-    int inner_size = size / outer_size;
-
-    for (int i = 0; i < outer_size; i++) {
-        for (int j = 0; j < inner_size; j++) {
-            double sum = 0;
-            for (int k = 0; k < tensor->shape[axis]; k++) {
-                sum += tensor->data[inner_size * k + j + tensor->shape[axis] * inner_size * j];
-            }
-            sum /= tensor->shape[axis];
-            result_data[j + inner_size * i] = sum;
-        }
+    sum_axis_cpu(tensor, result_data, axis);
+    const int result_size = tensor->size / tensor->shape[axis];
+    for (int idx = 0; idx < result_size; idx++) {
+        result_data[idx] /= tensor->shape[axis];
     }
 }
 

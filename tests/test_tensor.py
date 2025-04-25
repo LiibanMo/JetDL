@@ -103,3 +103,77 @@ def test_tensor_backward():
     result = tensor * 2
     result.backward()
     assert tensor.grad.data == [2, 2, 2]
+
+def test_tensor_transpose():
+    tensor = Tensor([[[1, 2, 3], [4, 5, 6]]])
+    transposed = tensor.T
+    assert transposed.data == [1, 4, 2, 5, 3, 6]
+    assert transposed.shape == (3, 2, 1)
+
+
+def test_tensor_matrix_transpose():
+    tensor = Tensor([[1, 2, 3], [4, 5, 6]])
+    transposed = tensor.mT
+    assert transposed.data == [1, 4, 2, 5, 3, 6]
+    assert transposed.shape == (3, 2)
+
+
+def test_tensor_sum_axis():
+    tensor = Tensor([[1, 2], [3, 4]])
+    result = tensor.sum(axis=0)
+    assert result.data == [4, 6]
+    assert result.shape == (2,)
+
+
+def test_tensor_mean_axis():
+    tensor = Tensor([[1, 2], [3, 4]])
+    result = tensor.mean(axis=1)
+    assert result.data == pytest.approx([1.5, 3.5])
+    assert result.shape == (2,)
+
+
+def test_tensor_copy():
+    tensor = Tensor([1, 2, 3])
+    copied_tensor = tensor.copy()
+    assert copied_tensor.data == tensor.data
+    assert copied_tensor.shape == tensor.shape
+    assert copied_tensor is not tensor
+
+
+def test_tensor_broadcasting_addition():
+    tensor1 = Tensor([[1, 2], [3, 4]])
+    tensor2 = Tensor([1, 2])
+    result = tensor1 + tensor2
+    assert result.data == [2, 4, 4, 6]
+    assert result.shape == (2, 2)
+
+
+def test_tensor_broadcasting_subtraction():
+    tensor1 = Tensor([[5, 6], [7, 8]])
+    tensor2 = Tensor([1, 2])
+    result = tensor1 - tensor2
+    assert result.data == [4, 4, 6, 6]
+    assert result.shape == (2, 2)
+
+
+def test_tensor_broadcasting_multiplication():
+    tensor1 = Tensor([[1, 2], [3, 4]])
+    tensor2 = Tensor([2, 3])
+    result = tensor1 * tensor2
+    assert result.data == [2, 6, 6, 12]
+    assert result.shape == (2, 2)
+
+
+def test_tensor_division():
+    tensor = Tensor([4, 9, 16])
+    result = tensor / 2
+    assert result.data == pytest.approx([2, 4.5, 8])
+    assert result.shape == (3,)
+
+
+def test_tensor_broadcasting_division():
+    tensor1 = Tensor([[4, 9], [16, 25]])
+    tensor2 = Tensor([2, 3])
+    result = tensor1 / tensor2
+    assert result.data == pytest.approx([2, 3, 8, 8.333333333333334])
+    assert result.shape == (2, 2)

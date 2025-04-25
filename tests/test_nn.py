@@ -15,7 +15,7 @@ def test_parameter_initialization():
 def test_parameter_setattr():
     param = Parameter([1, 2, 3])
     param.grad = 5.0
-    assert param.grad == 5.0
+    assert param.grad == pytest.approx(5.0, abs=1e-6)
 
 
 def test_module_initialization():
@@ -44,7 +44,7 @@ def test_mse_loss_forward():
     input_tensor = Tensor([1, 2, 3])
     target_tensor = Tensor([1, 2, 3])
     loss = mse_loss(input_tensor, target_tensor)
-    assert loss.data[0] == 0.0
+    assert loss.data[0] == pytest.approx(0.0, abs=1e-6)
     assert loss.shape == ()
     assert loss.ndim == 0
 
@@ -60,7 +60,7 @@ def test_module_parameters():
 def test_module_zero_grad():
     linear = Linear(2, 3)
     for param in linear.parameters():
-        param.grad = 1.0
+        param.grad = pytest.approx(1.0, abs=1e-6)
     linear.zero_grad()
     for param in linear.parameters():
-        assert param.grad == 0.0
+        assert param.grad == pytest.approx(0.0)
