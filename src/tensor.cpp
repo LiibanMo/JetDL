@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstring>
 #include "tensor.h"
 #include "cpu.h"
 
@@ -299,14 +298,14 @@ Tensor* mul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
 }
 
 Tensor* vector_dot_product(Tensor* tensorA, Tensor* tensorB) {
-    const int ndim = 1;
+    const int ndim = 0;
 
     int* shape = (int*)malloc(sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    shape[0] = 1;
+    shape[0] = 0;
 
     double* result_data = (double*)malloc(sizeof(double));
     if (!result_data) {

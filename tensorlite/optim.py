@@ -1,3 +1,4 @@
+
 class Optimizer:
     def __init__(self, params, lr: float):
         self.params = list(params)
@@ -18,6 +19,8 @@ class SGD(Optimizer):
         super().__init__(params, lr)
 
     def step(self):
-        for idx, param in enumerate(self.params):
-            param.data -= self.lr * param.grad
-            self.params[idx] = param
+        from .routines import no_grad
+        with no_grad():
+            for idx, param in enumerate(self.params):
+                param.data -= self.lr * param.grad
+                self.params[idx] = param

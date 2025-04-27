@@ -856,7 +856,7 @@ class Tensor:
             gradients = fn.backward()
             next_tensors = fn.next_tensors
             for grad, tensor in zip(gradients, next_tensors):
-                if isinstance(tensor, Tensor):
+                if grad and isinstance(tensor, Tensor):
                     tensor.grad += grad
 
 
@@ -898,6 +898,11 @@ def _can_broadcast(shapeA, ndimA, shapeB, ndimB) -> bool:
 
 
 def _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, grad_fn):
-    result_tensor.requires_grad = tensorA.requires_grad or tensorB.requires_grad
+    from .routines import GradMode
+    if isinstance(tensorB, Tensor):
+        result_tensor.requires_grad = (tensorA.requires_grad or tensorB.requires_grad) and GradMode.is_enabled()
+    else:
+        result_tensor.requires_grad = tensorA.requires_grad and GradMode.is_enabled()
+
     if result_tensor.requires_grad:
         result_tensor.grad_fn = grad_fn(tensorA, tensorB, result_tensor)

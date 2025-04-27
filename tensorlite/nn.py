@@ -69,7 +69,7 @@ class Linear(Module):
         "y = xA^T + b"
         super().__init__()
         self.weights = Parameter([[1] * out_features] * in_features)
-        self.bias = Parameter([0] * out_features)
+        self.bias = Parameter([1] * out_features)
 
     def forward(self, input: Tensor):
         return input @ self.weights + self.bias
