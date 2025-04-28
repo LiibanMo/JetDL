@@ -877,7 +877,8 @@ def _C_to_Python_create_tensor(c_result_tensor) -> "Tensor":
     c_result_strides_ptr = c_result_tensor.contents.strides
     result_tensor.strides = []
 
-    for idx in range(result_tensor.ndim):
+    iterations = result_tensor.ndim if result_tensor.ndim > 0 else 1
+    for idx in range(iterations):
         result_tensor._shape.append(c_result_shape_ptr[idx])
         result_tensor.strides.append(c_result_strides_ptr[idx])
 

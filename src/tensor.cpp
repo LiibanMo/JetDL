@@ -11,8 +11,9 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
     }
 
     tensor->ndim = ndim;
+    int ndim_ = (ndim == 0) ? ndim + 1 : ndim;
 
-    tensor->shape = (int*)malloc(tensor->ndim * sizeof(int));
+    tensor->shape = (int*)malloc(ndim_ * sizeof(int));
     if (!tensor->shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
@@ -21,19 +22,20 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
         tensor->shape[idx] = shape[idx];
     }
 
-    tensor->strides = (int*)malloc(ndim * sizeof(int));
+    tensor->strides = (int*)malloc(ndim_ * sizeof(int));
     if (!tensor->strides) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    tensor->strides[ndim-1] = 1;
-    for (int idx = ndim-2; idx >= 0; idx--) {
+    tensor->strides[ndim_-1] = 1;
+    for (int idx = ndim_-2; idx >= 0; idx--) {
         tensor->strides[idx] = tensor->strides[idx+1] * tensor->shape[idx+1];
     }
 
     tensor->size = 1;
-    for (int idx = 0; idx < ndim; idx++) {
-        tensor->size *= tensor->shape[idx];
+    for (int idx = 0; idx < ndim_; idx++) {
+        int dim = (tensor->shape[idx] > 0) ? tensor->shape[idx] : 1;
+        tensor->size *= dim;
     }
 
     tensor->data = (double*)malloc(tensor->size * sizeof(double));
