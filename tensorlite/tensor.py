@@ -774,7 +774,7 @@ class Tensor:
     def copy(self):
         c_data = (len(self.data) * ctypes.c_double)(*self.data)
         c_shape = (len(self.shape) * ctypes.c_int)(*self.shape)
-        c_ndim = len(self.shape)
+        c_ndim = ctypes.c_int(len(self.shape))
 
         c_result_tensor = Tensor._C.create_tensor(c_data, c_shape, c_ndim)
 
