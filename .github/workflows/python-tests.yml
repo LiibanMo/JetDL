@@ -38,4 +38,4 @@ jobs:
 
       - name: Run tests
         run: | 
-          ASAN_OPTIONS=detect_leaks=1 pytest --disable-warnings
+          ASAN_OPTIONS=detect_leaks=1 pytest -v --disable-warnings
