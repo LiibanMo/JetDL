@@ -685,7 +685,7 @@ Tensor* matrix_transpose_tensor(Tensor* tensor) {
 Tensor* sum_tensor(Tensor* tensor) {
     const int ndim = 0;
 
-    int* shape = (int*)malloc(sizeof(int));
+    int* shape = (int*)malloc(1 * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
@@ -693,7 +693,7 @@ Tensor* sum_tensor(Tensor* tensor) {
     
     shape[0] = 0;
 
-    double* result_data = (double*)malloc(sizeof(double));
+    double* result_data = (double*)malloc(1 * sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
