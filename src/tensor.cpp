@@ -798,19 +798,19 @@ Tensor* pow_tensor(Tensor* tensor, double exponent) {
 
 void free_tensor(Tensor* tensor_ptr) {
     if (tensor_ptr) {
+        if (tensor_ptr->data) {
+            free(tensor_ptr->data);
+            tensor_ptr->data = NULL;
+        }
+        if (tensor_ptr->shape) {
+            free(tensor_ptr->shape);
+            tensor_ptr->shape = NULL;
+        }
+        if (tensor_ptr->strides) {
+            free(tensor_ptr->strides);
+            tensor_ptr->strides = NULL;
+        }
         free(tensor_ptr);
         tensor_ptr = NULL;
-    }
-    if (tensor_ptr->data) {
-        free(tensor_ptr->data);
-        tensor_ptr->data = NULL;
-    }
-    if (tensor_ptr->shape) {
-        free(tensor_ptr->shape);
-        tensor_ptr->shape = NULL;
-    }
-    if (tensor_ptr->strides) {
-        free(tensor_ptr->strides);
-        tensor_ptr->strides = NULL;
     }
 }
