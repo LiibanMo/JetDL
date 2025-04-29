@@ -701,12 +701,7 @@ Tensor* sum_tensor(Tensor* tensor) {
  
     sum_cpu(tensor, result_data);
 
-    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
-
-    free(shape);
-    free(result_data);
-
-    return result_tensor;
+    return create_tensor(result_data, shape, ndim);
 }
 
 Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
@@ -757,12 +752,7 @@ Tensor* mean_tensor(Tensor* tensor) {
 
     mean_cpu(tensor, result_data);
 
-    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
-
-    free(shape);
-    free(result_data);
-
-    return result_tensor;
+    return create_tensor(result_data, shape, ndim);
 }
 
 Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {

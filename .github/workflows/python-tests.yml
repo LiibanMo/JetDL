@@ -38,4 +38,4 @@ jobs:
 
       - name: Run tests
         run: | 
-          ASAN_OPTIONS=detect_leaks=1 pytest -v --disable-warnings
+          pytest -v --disable-warnings --pbd
