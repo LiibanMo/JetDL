@@ -59,10 +59,6 @@ class Module:
             if type == "module":
                 yield from self._modules[name].parameters()
 
-    def zero_grad(self, set_to_none: bool = False):
-        for param in self.parameters():
-            param.grad = None if set_to_none else 0.0
-
 
 class Linear(Module):
     def __init__(self, in_features: int, out_features: int):
