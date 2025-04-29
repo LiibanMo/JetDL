@@ -701,7 +701,12 @@ Tensor* sum_tensor(Tensor* tensor) {
  
     sum_cpu(tensor, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {

@@ -29,5 +29,6 @@ void pow_cpu(Tensor* tensor, double exponent, double* result_data);
 // FUNCTIONS
 void ones_cpu(double* result_data, int size);
 void outer_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);
+void exp_cpu(Tensor* tensorA, double* result_data);
 
 #endif

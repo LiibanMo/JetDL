@@ -6,6 +6,7 @@
 extern "C" {
     Tensor* ones(int* shape, const int ndim);
     Tensor* outer(Tensor* tensorA, Tensor* tensorB);
+    Tensor* c_exp(Tensor* tensorA);
 }
 
 #endif

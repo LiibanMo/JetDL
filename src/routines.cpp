@@ -44,3 +44,15 @@ Tensor* outer(Tensor* tensorA, Tensor* tensorB) {
 
     return create_tensor(result_data, shape, ndim);
 }
+
+Tensor* c_exp(Tensor* tensor) {
+    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    exp_cpu(tensor, result_data);
+
+    return create_tensor(result_data, tensor->shape, tensor->ndim);
+}

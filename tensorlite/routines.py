@@ -48,6 +48,18 @@ def outer(tensorA: "Tensor", tensorB: "Tensor") -> "Tensor":
     return _C_to_Python_create_tensor(c_result_tensor)
 
 
+def exp(input:"Tensor") -> "Tensor":
+    from .tensor import C_Tensor, _C_to_Python_create_tensor
+
+    _C_Routines._C.c_exp.argtypes = [
+        ctypes.POINTER(C_Tensor),
+    ]
+    _C_Routines._C.c_exp.restypes = ctypes.POINTER(C_Tensor)
+
+    c_result_tensor = _C_Routines._C.c_exp(input._tensor)
+
+    return _C_to_Python_create_tensor(c_result_tensor)
+
 class GradMode:
     _enabled = True
     _no_grad_depth = 0

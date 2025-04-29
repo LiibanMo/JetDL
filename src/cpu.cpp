@@ -382,3 +382,9 @@ void outer_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
         }
     }
 }
+
+void exp_cpu(Tensor* tensorA, double* result_data) {
+    for (int idx = 0; idx < tensorA->size; idx++) {
+        result_data[idx] = std::exp(tensorA->data[idx]);
+    }
+}
