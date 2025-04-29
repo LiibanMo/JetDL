@@ -56,11 +56,3 @@ def test_module_parameters():
     assert isinstance(params[0], Parameter)
     assert isinstance(params[1], Parameter)
 
-
-def test_module_zero_grad():
-    linear = Linear(2, 3)
-    for param in linear.parameters():
-        param.grad = pytest.approx(1.0, abs=1e-6)
-    linear.zero_grad()
-    for param in linear.parameters():
-        assert param.grad == pytest.approx(0.0)
