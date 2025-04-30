@@ -18,7 +18,7 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
     }
-    for (int idx = 0; idx < tensor->ndim; idx++) {
+    for (int idx = 0; idx < ndim_; idx++) {
         tensor->shape[idx] = shape[idx];
     }
 
