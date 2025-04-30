@@ -77,7 +77,12 @@ Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB) {
     }
     add_tensor_cpu(tensorA, tensorB, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* scalar_add_tensor(Tensor* tensor, double operand) {
@@ -100,7 +105,12 @@ Tensor* scalar_add_tensor(Tensor* tensor, double operand) {
 
     scalar_add_tensor_cpu(tensor, operand, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* add_broadcasted(Tensor* tensorA, Tensor* tensorB) {
@@ -135,7 +145,12 @@ Tensor* add_broadcasted(Tensor* tensorA, Tensor* tensorB) {
 
     add_broadcasted_cpu(tensorA, tensorB, result_data, broadcasted_shape, broadcasted_size);
 
-    return create_tensor(result_data, broadcasted_shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, broadcasted_shape, ndim);
+
+    free(broadcasted_shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* sub_tensor(Tensor* tensorA, Tensor* tensorB) {
@@ -157,7 +172,12 @@ Tensor* sub_tensor(Tensor* tensorA, Tensor* tensorB) {
     }
     subtract_tensor_cpu(tensorA, tensorB, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* scalar_sub_tensor(Tensor* tensorA, double operand) {
@@ -180,7 +200,12 @@ Tensor* scalar_sub_tensor(Tensor* tensorA, double operand) {
     
     scalar_sub_tensor_cpu(tensorA, operand, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* sub_broadcasted(Tensor* tensorA, Tensor* tensorB) {
@@ -215,7 +240,12 @@ Tensor* sub_broadcasted(Tensor* tensorA, Tensor* tensorB) {
 
     sub_broadcasted_cpu(tensorA, tensorB, result_data, broadcasted_shape, broadcasted_size);
 
-    return create_tensor(result_data, broadcasted_shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, broadcasted_shape, ndim);
+
+    free(broadcasted_shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB) {
@@ -238,7 +268,12 @@ Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB) {
 
     hadamard_mul_tensor_cpu(tensorA, tensorB, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* scalar_mul_tensor(Tensor* tensorA, double operand) {
@@ -261,7 +296,12 @@ Tensor* scalar_mul_tensor(Tensor* tensorA, double operand) {
 
     scalar_mul_tensor_cpu(tensorA, operand, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* mul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
@@ -296,7 +336,12 @@ Tensor* mul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
 
     mul_broadcasted_cpu(tensorA, tensorB, result_data, broadcasted_shape, broadcasted_size);
 
-    return create_tensor(result_data, broadcasted_shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, broadcasted_shape, ndim);
+
+    free(broadcasted_shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* vector_dot_product(Tensor* tensorA, Tensor* tensorB) {
@@ -317,7 +362,12 @@ Tensor* vector_dot_product(Tensor* tensorA, Tensor* tensorB) {
 
     vector_dot_product_cpu(tensorA, tensorB, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* matmul_2d_2d(Tensor* tensorA, Tensor* tensorB) {
@@ -340,7 +390,12 @@ Tensor* matmul_2d_2d(Tensor* tensorA, Tensor* tensorB) {
 
     matmul_2d_2d_cpu(tensorA, tensorB, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
@@ -406,7 +461,12 @@ Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         }
         shape[ndim-1] = tensorB->shape[tensorB->ndim-1];
 
-        return create_tensor(result_data, shape, ndim);
+        Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+        free(shape);
+        free(result_data);
+
+        return result_tensor;
         
     } else if (tensorA->ndim < tensorB->ndim) {
 
@@ -487,7 +547,12 @@ Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
             }
         }
 
-        return create_tensor(result_data, shape, ndim);
+        Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+        free(shape);
+        free(result_data);
+
+        return result_tensor;
 
     } else {
         fprintf(stderr, "Wrong implementation of matmul used. This function is for: matmtul with operations with either one being N-D where N>2.\n");
@@ -516,7 +581,12 @@ Tensor* div_tensor(Tensor* tensorA, Tensor* tensorB) {
 
     div_tensor_cpu(tensorA, tensorB, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* scalar_div_tensor(Tensor* tensor, double divisor) {
@@ -539,7 +609,12 @@ Tensor* scalar_div_tensor(Tensor* tensor, double divisor) {
 
     scalar_div_tensor_cpu(tensor, divisor, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* div_broadcasted(Tensor* tensorA, Tensor* tensorB) {
@@ -574,7 +649,12 @@ Tensor* div_broadcasted(Tensor* tensorA, Tensor* tensorB) {
 
     div_broadcasted_cpu(tensorA, tensorB, result_data, broadcasted_shape, broadcasted_size);
 
-    return create_tensor(result_data, broadcasted_shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, broadcasted_shape, ndim);
+
+    free(broadcasted_shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim) {
@@ -597,7 +677,12 @@ Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim) {
 
     assign_tensor_data_cpu(tensor, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 
 }
 
@@ -620,7 +705,12 @@ Tensor* flatten_tensor(Tensor* tensor) {
 
     flatten_cpu(tensor, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* transpose_tensor(Tensor* tensor) {
@@ -647,6 +737,9 @@ Tensor* transpose_tensor(Tensor* tensor) {
     for (int idx = 0; idx < tensor->ndim; idx++) {
         result_tensor->strides[idx] = tensor->strides[tensor->ndim-1-idx];
     }
+
+    free(shape);
+    free(result_data);
 
     return result_tensor;
 }
@@ -679,13 +772,16 @@ Tensor* matrix_transpose_tensor(Tensor* tensor) {
     result_tensor->strides[tensor->ndim-1] = result_tensor->shape[tensor->ndim-2];
     result_tensor->strides[tensor->ndim-2] = 1;
 
+    free(shape);
+    free(result_data);
+
     return result_tensor;
 }
 
 Tensor* sum_tensor(Tensor* tensor) {
     const int ndim = 0;
 
-    int* shape = (int*)malloc(1 * sizeof(int));
+    int* shape = (int*)malloc(sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
@@ -693,7 +789,7 @@ Tensor* sum_tensor(Tensor* tensor) {
     
     shape[0] = 0;
 
-    double* result_data = (double*)malloc(1 * sizeof(double));
+    double* result_data = (double*)malloc(sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
@@ -701,7 +797,12 @@ Tensor* sum_tensor(Tensor* tensor) {
  
     sum_cpu(tensor, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
@@ -730,7 +831,12 @@ Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
 
     sum_axis_cpu(tensor, result_data, axis);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* mean_tensor(Tensor* tensor) {
@@ -752,7 +858,12 @@ Tensor* mean_tensor(Tensor* tensor) {
 
     mean_cpu(tensor, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
@@ -781,7 +892,12 @@ Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
 
     mean_axis_cpu(tensor, result_data, axis);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* pow_tensor(Tensor* tensor, double exponent) {
@@ -793,7 +909,11 @@ Tensor* pow_tensor(Tensor* tensor, double exponent) {
 
     pow_cpu(tensor, exponent, result_data);
 
-    return create_tensor(result_data, tensor->shape, tensor->ndim);
+    Tensor* result_tensor = create_tensor(result_data, tensor->shape, tensor->ndim);
+
+    free(result_data);
+
+    return result_tensor;
 }
 
 void free_tensor(Tensor* tensor_ptr) {
