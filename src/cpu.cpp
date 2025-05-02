@@ -388,3 +388,9 @@ void exp_cpu(Tensor* tensorA, double* result_data) {
         result_data[idx] = std::exp(tensorA->data[idx]);
     }
 }
+
+void log_cpu(Tensor* tensor, double* result_data) {
+    for (int idx = 0; idx < tensor->size; idx++) {
+        result_data[idx] = std::log(tensor->data[idx]);
+    }
+}

@@ -12,12 +12,16 @@ Tensor* ones(int* shape, const int ndim) {
     double* result_data = (double*)malloc(size * sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
-        return NULL;
+        exit(1);
     }
 
     ones_cpu(result_data, size);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* outer(Tensor* tensorA, Tensor* tensorB) {
@@ -26,7 +30,7 @@ Tensor* outer(Tensor* tensorA, Tensor* tensorB) {
     int* shape = (int*)malloc(ndim * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed\n");
-        return NULL;
+        exit(1);
     }
 
     shape[0] = tensorA->size;
@@ -37,22 +41,47 @@ Tensor* outer(Tensor* tensorA, Tensor* tensorB) {
     double* result_data = (double*)malloc(size * sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
-        return NULL;
+        exit(1);
     }
 
     outer_cpu(tensorA, tensorB, result_data);
 
-    return create_tensor(result_data, shape, ndim);
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* c_exp(Tensor* tensor) {
     double* result_data = (double*)malloc(tensor->size * sizeof(double));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
+        exit(1);
     }
 
     exp_cpu(tensor, result_data);
 
-    return create_tensor(result_data, tensor->shape, tensor->ndim);
+    Tensor* result_tensor = create_tensor(result_data, tensor->shape, tensor->ndim);
+
+    free(result_data);
+
+    return result_tensor;
+}
+
+Tensor* c_log(Tensor* tensor) {
+    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    log_cpu(tensor, result_data);
+
+    Tensor* result_tensor = create_tensor(result_data, tensor->shape, tensor->ndim);
+
+    free(result_data);
+
+    return result_tensor;
 }

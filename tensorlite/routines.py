@@ -54,11 +54,29 @@ def exp(input:"Tensor") -> "Tensor":
     _C_Routines._C.c_exp.argtypes = [
         ctypes.POINTER(C_Tensor),
     ]
-    _C_Routines._C.c_exp.restypes = ctypes.POINTER(C_Tensor)
+    _C_Routines._C.c_exp.restype = ctypes.POINTER(C_Tensor)
 
     c_result_tensor = _C_Routines._C.c_exp(input._tensor)
 
     return _C_to_Python_create_tensor(c_result_tensor)
+
+
+def log(input:"Tensor") -> "Tensor":
+    for entry in input.data:
+        if entry <= 0:
+            raise ValueError(f"Input must have positive entries for logarithm.")
+
+    from .tensor import C_Tensor, _C_to_Python_create_tensor
+
+    _C_Routines._C.c_log.argtypes = [
+        ctypes.POINTER(C_Tensor),
+    ]
+    _C_Routines._C.c_log.restype = ctypes.POINTER(C_Tensor)
+
+    c_result_tensor = _C_Routines._C.c_log(input._tensor)
+
+    return _C_to_Python_create_tensor(c_result_tensor)
+
 
 class GradMode:
     _enabled = True
