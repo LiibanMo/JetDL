@@ -1,6 +1,13 @@
-from .routines import *
-from .tensor import Tensor
+from .function.math import exp, log
+from .function.tensor_creation import ones
+from .linalg import outer
+from .tensor import Tensor, tensor
 
-
-def tensor(data=None, requires_grad: bool = True):
-    return Tensor(data, requires_grad)
+__all__ = [
+    "exp",
+    "log",
+    "ones",
+    "outer",
+    "Tensor",
+    "tensor",
+]

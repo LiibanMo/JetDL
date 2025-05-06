@@ -33,7 +33,7 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
     }
 
     tensor->size = 1;
-    for (int idx = 0; idx < ndim_; idx++) {
+    for (int idx = 0; idx < tensor->ndim; idx++) {
         int dim = (tensor->shape[idx] > 0) ? tensor->shape[idx] : 1;
         tensor->size *= dim;
     }
@@ -75,6 +75,7 @@ Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
     }
+    
     add_tensor_cpu(tensorA, tensorB, result_data);
 
     Tensor* result_tensor = create_tensor(result_data, shape, ndim);

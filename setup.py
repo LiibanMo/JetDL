@@ -14,7 +14,7 @@ class BuildSharedLibrary(build_ext):
 
     def run(self):
         source_dir = "src"
-        output_dir = "tensorlite"
+        output_dir = "tensorlite/tensor"
         shared_library = "libtensor.so"
         # Ensures the tensorlite directory exists
         os.makedirs(output_dir, exist_ok=True)
