@@ -1,8 +1,8 @@
 import pytest
 
-from tensorlite import ones
-from tensorlite.nn import Parameter
-from tensorlite.optim import SGD
+from jetdl import ones
+from jetdl.nn import Parameter
+from jetdl.optim import SGD
 
 @pytest.fixture
 def mock_parameter():

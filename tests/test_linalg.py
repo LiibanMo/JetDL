@@ -1,6 +1,6 @@
 import pytest
 
-from tensorlite import (
+from jetdl import (
     tensor,
     Tensor,
     outer,

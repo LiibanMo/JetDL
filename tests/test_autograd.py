@@ -1,9 +1,9 @@
 import pytest
 
-from tensorlite.tensor import tensor
-from tensorlite.autograd import (AddBackward, MeanBackward, MmBackward,
+from jetdl.tensor import tensor
+from jetdl.autograd import (AddBackward, MeanBackward, MmBackward,
                                  MulBackward, PowBackward, SubBackward)
-from tensorlite.autograd.control_utils import (
+from jetdl.autograd.control_utils import (
     GradMode, no_grad
 )
 

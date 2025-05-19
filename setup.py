@@ -14,7 +14,7 @@ class BuildSharedLibrary(build_ext):
 
     def run(self):
         source_dir = "src"
-        output_dir = "tensorlite/tensor"
+        output_dir = "jetdl/tensor"
         shared_library = "libtensor.so"
         # Ensures the tensorlite directory exists
         os.makedirs(output_dir, exist_ok=True)
@@ -26,8 +26,9 @@ class BuildSharedLibrary(build_ext):
         # Builds the shared library, libtensor.so, using clang++
         subprocess.check_call(
             [
-                "clang++",
+                "g++-14",
                 "-std=c++20",
+                "-fopenmp",
                 "-shared",
                 "-o",
                 shared_library,
@@ -41,7 +42,7 @@ class BuildSharedLibrary(build_ext):
 
 
 setup(
-    name="tensorlite",
+    name="jetdl",
     version="0.1.0",
     author="Liiban Mohamud",
     author_email="liibanmohamud12@gmail.com",
@@ -56,8 +57,8 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    packages=["tensorlite"],
-    package_data={"tensorlite": ["libtensor.so"]},
+    packages=["jetdl"],
+    package_data={"jetdl": ["libtensor.so"]},
     ext_modules=[],
     cmdclass={"build_ext": BuildSharedLibrary},
     python_requires=">=3.7",

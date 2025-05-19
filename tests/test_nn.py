@@ -1,7 +1,7 @@
 import pytest
 
-from tensorlite.nn import Linear, Module, MSELoss, Parameter
-from tensorlite import tensor, Tensor
+from jetdl.nn import Linear, Module, MSELoss, Parameter
+from jetdl import tensor, Tensor
 
 
 def test_parameter_initialization():

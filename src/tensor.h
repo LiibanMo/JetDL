@@ -36,6 +36,11 @@ extern "C" {
     Tensor* mean_tensor(Tensor* tensor);
     Tensor* mean_axis_tensor(Tensor* tensor, const int axis);
     Tensor* pow_tensor(Tensor* tensor, double exponent);
+    Tensor* ones(int* shape, const int ndim);
+    Tensor* outer(Tensor* tensorA, Tensor* tensorB);
+    Tensor* c_exp(Tensor* tensorA);
+    Tensor* c_log(Tensor* tensor);
+
     void free_tensor(Tensor* tensor_ptr);
 }
 

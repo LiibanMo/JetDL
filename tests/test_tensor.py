@@ -1,6 +1,6 @@
 import pytest
 
-from tensorlite.tensor import Tensor
+from jetdl import Tensor
 
 
 def test_tensor_creation():
