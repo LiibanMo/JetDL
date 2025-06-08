@@ -127,8 +127,6 @@ class Tensor(_TensorBase):
             
             else:
                 if self._shape[-1] == other._shape[-2]:
-                    print(f"operandA = {self}")
-                    print(f"operandB = {other}")
                     return MatmulMixin.tensor_matmul_tensor_broadcasted(self, other)
                 else:
                     raise runtime_error
@@ -162,10 +160,18 @@ class Tensor(_TensorBase):
     def sum(self, axis: Union[int, list, tuple] = None) -> "Tensor":
         if axis is None:
             return SumMixin.total_sum(self)
+        
         elif isinstance(axis, int):
+            if axis not in range(self.ndim):
+                raise IndexError(f"The inputted axis {axis} is out of range.")
             return SumMixin.sum_axis(self, axis)
+        
         elif isinstance(axis, (list, tuple)):
             input_axes = list(axis)
+            for axis in input_axes:
+                if axis not in range(self.ndim):
+                    raise IndexError(f"The inputted axis {axis} is out of range.")
+            
             return SumMixin.sum_axes(self, input_axes)
 
     def mean(self, axis: Union[int, list, tuple] = None) -> "Tensor":
@@ -207,7 +213,6 @@ class Tensor(_TensorBase):
         for fn in reversed(topo):
             gradients = fn.backward()
             next_tensors = fn.next_tensors
-            # make tensors.grad = None when initialising
             for grad, tensor in zip(gradients, next_tensors):
                 if grad and isinstance(tensor, Tensor):
                     tensor.grad += grad

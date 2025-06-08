@@ -2,7 +2,7 @@
 #include <cmath>
 #include <omp.h>
 #include "string.h"
-#include "tensor.h"
+#include "lib.h"
 
 
 void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
@@ -330,7 +330,7 @@ void sum_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
 
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(outer_size * inner_size / 10, 1));
 
-    #pragma omp parallel for, collapse(2), num_threads(NUM_THREADS)
+    #pragma omp parallel for collapse(2), num_threads(NUM_THREADS)
     for (int i = 0; i < outer_size; i++) {
         for (int j = 0; j < inner_size; j++) {
             double sum = 0;

@@ -1,7 +1,7 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
-#include "tensor.h"
+#include "lib.h"
 
 void ones_cpu(double* result_data, int size);
 void exp_cpu(Tensor* tensorA, double* result_data);

@@ -2,7 +2,7 @@ import ctypes
 from typing import Union
 
 from ..tensor import Tensor
-from ..tensor._C import C_Tensor, _TensorBase
+from ..tensor._C import C_Lib, C_Tensor
 from ..tensor._utils import _C_to_Python_create_tensor
 
 
@@ -20,11 +20,15 @@ def ones(shape: Union[int, list, tuple]) -> Tensor:
     c_shape = (ndim * ctypes.c_int)(*input_shape)
     c_ndim = ctypes.c_int(ndim)
 
-    _TensorBase._C.ones.argtypes = [ctypes.POINTER(ctypes.c_int), ctypes.c_int]
-    _TensorBase._C.ones.restype = ctypes.POINTER(C_Tensor)
+    C_Lib._C.ones.argtypes = [
+        ctypes.POINTER(ctypes.c_int), 
+        ctypes.c_int,
+    ]
+    
+    C_Lib._C.ones.restype = ctypes.POINTER(C_Tensor)
 
-    c_result_tensor = _TensorBase._C.ones(c_shape, c_ndim)
+    c_result_tensor = C_Lib._C.ones(c_shape, c_ndim)
 
-    result_tensor = _C_to_Python_create_tensor(c_result_tensor, None, None)
+    result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
     return result_tensor

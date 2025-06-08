@@ -1,5 +1,6 @@
+#include <cstddef>
 #include <iostream>
-#include "tensor.h"
+#include "lib.h"
 #include "ops-cpu.h"
 #include "function-cpu.h"
 #include "linalg-cpu.h"
@@ -14,7 +15,7 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
     }
 
     tensor->ndim = ndim;
-    int ndim_ = (ndim == 0) ? ndim + 1 : ndim;
+    int ndim_ = std::max(ndim, 1);
 
     tensor->shape = (int*)malloc(ndim_ * sizeof(int));
     if (!tensor->shape) {
@@ -403,165 +404,42 @@ Tensor* matmul_2d_2d(Tensor* tensorA, Tensor* tensorB) {
 }
 
 Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
-    if (tensorA->ndim >= tensorB->ndim) {
 
-        Tensor* view_tensorB = (Tensor*)malloc(sizeof(Tensor));
-        if (!view_tensorB) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-        view_tensorB->data = tensorB->data;
+    const int ndim = std::max(tensorA->ndim, tensorB->ndim);
 
-        view_tensorB->ndim = tensorA->ndim;
-
-        view_tensorB->shape = (int*)malloc(view_tensorB->ndim * sizeof(int));
-        if (!view_tensorB->shape) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-
-        view_tensorB->strides = (int*)malloc(view_tensorB->ndim * sizeof(int));
-        if (!view_tensorB->strides) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-        
-        for (int idx = 0; idx < view_tensorB->ndim; idx++) {
-            if (idx < view_tensorB->ndim - tensorB->ndim) {
-                view_tensorB->shape[idx] = 1;
-                view_tensorB->strides[idx] = 0;
-            } else {
-                view_tensorB->shape[idx] = tensorB->shape[idx - (view_tensorB->ndim - tensorB->ndim)];
-                view_tensorB->strides[idx] = tensorB->strides[idx - (view_tensorB->ndim - tensorB->ndim)];
-            }
-        }
-
-        int size = 1;
-        for (int idx = 0; idx < tensorA->ndim-1; idx++) {
-            size *= tensorA->shape[idx];
-        }
-        size *= tensorB->shape[tensorB->ndim-1];
-
-        double* result_data = (double*)malloc(size * sizeof(double));
-        if (!result_data) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-
-        char broadcasted[] = "B";
-        matmul_broadcasted_cpu(tensorA, view_tensorB, result_data, broadcasted);
-
-        free_tensor(view_tensorB);
-        
-        const int ndim = tensorA->ndim;
-
-        int* shape = (int*)malloc(ndim * sizeof(int));
-        if (!shape) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-        for (int idx = 0; idx < ndim-1; idx++) {
-            shape[idx] = tensorA->shape[idx];
-        }
-        shape[ndim-1] = tensorB->shape[tensorB->ndim-1];
-
-        Tensor* result_tensor = create_tensor(result_data, shape, ndim);
-
-        free(shape);
-        free(result_data);
-
-        return result_tensor;
-        
-    } else if (tensorA->ndim < tensorB->ndim) {
-
-        Tensor* view_tensorA = (Tensor*)malloc(sizeof(Tensor));
-        if (!view_tensorA) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-        view_tensorA->data = tensorA->data;
-
-        view_tensorA->ndim = tensorB->ndim;
-
-        view_tensorA->shape = (int*)malloc(view_tensorA->ndim * sizeof(int));
-        if (!view_tensorA->shape) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-
-        view_tensorA->strides = (int*)malloc(view_tensorA->ndim * sizeof(int));
-        if (!view_tensorA->strides) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-
-        for (int idx = 0; idx < view_tensorA->ndim; idx++) {
-            if (idx < view_tensorA->ndim - tensorA->ndim) {
-                view_tensorA->shape[idx] = 1;
-                view_tensorA->strides[idx] = 0;
-            } else {
-                view_tensorA->shape[idx] = tensorA->shape[idx - (view_tensorA->ndim - tensorA->ndim)];
-                view_tensorA->strides[idx] = tensorA->strides[idx - (view_tensorA->ndim - tensorA->ndim)];
-            }
-        }
-
-        int size = 1;
-        for (int idx = 0; idx < tensorB->ndim-2; idx++) {
-            size *= tensorB->shape[idx];
-        }
-        if (tensorA->ndim != 1) {
-            size *= tensorA->shape[tensorA->ndim-2];
-        }
-        size *= tensorB->shape[tensorB->ndim-1];
-
-        double* result_data = (double*)malloc(size * sizeof(double));
-        if (!result_data) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-
-        char broadcasted[] = "A";
-        matmul_broadcasted_cpu(view_tensorA, tensorB, result_data, broadcasted);
-
-        free_tensor(view_tensorA);
-
-        int ndim = tensorB->ndim;
-        if (tensorA->ndim == 1) {
-            ndim--;
-        }
-
-        int* shape = (int*)malloc(ndim * sizeof(int));
-        if (!shape) {
-            fprintf(stderr, "Memory allocation failed.\n");
-            exit(1);
-        }
-        switch (ndim) {
-            case 2 : {
-                shape[ndim-2] = tensorB->shape[tensorB->ndim-3];
-                shape[ndim-1] = tensorB->shape[tensorB->ndim-1];
-                break;
-            }
-            default : {
-                for (int idx = 0; idx < ndim-2; idx++) {
-                    shape[idx] = tensorB->shape[idx];
-                }
-                shape[ndim-2] = tensorA->shape[tensorA->ndim-2];
-                shape[ndim-1] = tensorB->shape[tensorB->ndim-1];
-                break;
-            }
-        }
-
-        Tensor* result_tensor = create_tensor(result_data, shape, ndim);
-
-        free(shape);
-        free(result_data);
-
-        return result_tensor;
-
-    } else {
-        fprintf(stderr, "Wrong implementation of matmul used. This function is for: matmtul with operations with either one being N-D where N>2.\n");
+    int* shape = (int*)malloc(ndim * sizeof(int));
+    if (!shape) {
+        fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
     }
+
+    int* shape_ptr = (tensorA->ndim >= tensorB->ndim) ? tensorA->shape : tensorB->shape; 
+    for (int idx = 0; idx < ndim-2; idx++) {
+        shape[idx] = shape_ptr[idx];
+    }
+
+    shape[ndim-2] = tensorA->shape[tensorA->ndim-2];
+    shape[ndim-1] = tensorB->shape[tensorB->ndim-1];
+
+    int size = 1;
+    for (int idx = 0; idx < ndim; idx++) {
+        size *= shape[idx];
+    }
+
+    double* result_data = (double*)malloc(size * sizeof(double));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    matmul_broadcasted_cpu(tensorA, tensorB, result_data);
+
+    Tensor* result_tensor = create_tensor(result_data, shape, ndim);
+
+    free(shape);
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* div_tensor(Tensor* tensorA, Tensor* tensorB) {
@@ -728,22 +606,13 @@ Tensor* transpose_tensor(Tensor* tensor) {
         shape[idx] = tensor->shape[tensor->ndim-1-idx];
     }
 
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
-    if (!result_data) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        exit(1);
-    }
-
-    assign_tensor_data_cpu(tensor, result_data);
-
-    Tensor* result_tensor =  create_tensor(result_data, shape, tensor->ndim);
+    Tensor* result_tensor = create_tensor(tensor->data, shape, tensor->ndim);
 
     for (int idx = 0; idx < tensor->ndim; idx++) {
         result_tensor->strides[idx] = tensor->strides[tensor->ndim-1-idx];
     }
 
     free(shape);
-    free(result_data);
 
     return result_tensor;
 }
@@ -763,21 +632,12 @@ Tensor* matrix_transpose_tensor(Tensor* tensor) {
     shape[tensor->ndim-2] = tensor->shape[tensor->ndim-1];
     shape[tensor->ndim-1] = tensor->shape[tensor->ndim-2];
 
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
-    if (!result_data) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        exit(1);
-    }
+    Tensor* result_tensor = create_tensor(tensor->data, shape, tensor->ndim);
 
-    assign_tensor_data_cpu(tensor, result_data);
-
-    Tensor* result_tensor = create_tensor(result_data, shape, tensor->ndim);
-
-    result_tensor->strides[tensor->ndim-1] = result_tensor->shape[tensor->ndim-2];
-    result_tensor->strides[tensor->ndim-2] = 1;
+    result_tensor->strides[result_tensor->ndim-2] = tensor->strides[tensor->ndim-1];
+    result_tensor->strides[result_tensor->ndim-1] = tensor->strides[tensor->ndim-2];
 
     free(shape);
-    free(result_data);
 
     return result_tensor;
 }
@@ -812,13 +672,11 @@ Tensor* sum_tensor(Tensor* tensor) {
 Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
     int ndim = tensor->ndim - 1;
     
-    ndim = (ndim == 0) ? ndim + 1 : ndim;
-    int* shape = (int*)malloc(ndim * sizeof(int));
+    int* shape = (int*)malloc(std::max(ndim, 1) * sizeof(int));
     if (!shape) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
     }
-    ndim = (ndim == 0) ? ndim - 1 : ndim;
 
     for (int idx = 0; idx < tensor->ndim; idx++) {
         int idx_shape = (idx <= axis) ? idx : idx - 1;
@@ -1007,17 +865,13 @@ void free_tensor(Tensor* tensor_ptr) {
     if (tensor_ptr) {
         if (tensor_ptr->data) {
             free(tensor_ptr->data);
-            tensor_ptr->data = NULL;
         }
         if (tensor_ptr->shape) {
             free(tensor_ptr->shape);
-            tensor_ptr->shape = NULL;
         }
         if (tensor_ptr->strides) {
             free(tensor_ptr->strides);
-            tensor_ptr->strides = NULL;
         }
         free(tensor_ptr);
-        tensor_ptr = NULL;
     }
 }

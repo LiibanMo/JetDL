@@ -1,7 +1,7 @@
 #ifndef OPS_CPU_H
 #define OPS_CPU_H
 
-#include "tensor.h"
+#include "lib.h"
 
 void assign_tensor_data_cpu(Tensor* tensor, double* result_data);
 void add_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data);

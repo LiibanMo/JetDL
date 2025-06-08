@@ -26,7 +26,7 @@ class BuildSharedLibrary(build_ext):
         # Builds the shared library, libtensor.so, using clang++
         subprocess.check_call(
             [
-                "g++-14",
+                "clang++",
                 "-std=c++20",
                 "-fopenmp",
                 "-shared",

@@ -4,7 +4,7 @@ from ._utils import _obtain_broadcast_booleans
 from .function import Function
 
 if TYPE_CHECKING:
-    from tensorlite.tensor.tensor import Tensor
+    from ..tensor.tensor import Tensor
 
 
 class AddBackward(Function):

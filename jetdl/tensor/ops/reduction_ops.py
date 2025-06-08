@@ -2,7 +2,7 @@ import ctypes
 from typing import TYPE_CHECKING, Union
 
 from ...autograd import MeanBackward
-from .._C import C_Tensor, _TensorBase
+from .._C import C_Lib, C_Tensor, _TensorBase
 from .._utils import _assign_grad_and_grad_fn, _C_to_Python_create_tensor
 from ._utils import ReductionUtils
 
@@ -11,14 +11,14 @@ class SumMixin:
 
     @staticmethod
     def total_sum(operandA: _TensorBase) -> _TensorBase:
-        _TensorBase._C.sum_tensor.argtypes = [
+        C_Lib._C.sum_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
         ]
-        _TensorBase._C.sum_tensor.restype = ctypes.POINTER(C_Tensor)
+        C_Lib._C.sum_tensor.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = _TensorBase._C.sum_tensor(operandA._tensor)
+        c_result_tensor = C_Lib._C.sum_tensor(operandA._tensor)
 
-        result_tensor = _C_to_Python_create_tensor(c_result_tensor, operandA, None)
+        result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
         return result_tensor
 
@@ -29,15 +29,15 @@ class SumMixin:
         else:
             c_axis = ctypes.c_int(axis)
 
-        _TensorBase._C.sum_axis_tensor.argtypes = [
+        C_Lib._C.sum_axis_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
             ctypes.c_int,
         ]
-        _TensorBase._C.sum_axis_tensor.restype = ctypes.POINTER(C_Tensor)
+        C_Lib._C.sum_axis_tensor.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = _TensorBase._C.sum_axis_tensor(operandA._tensor, c_axis)
+        c_result_tensor = C_Lib._C.sum_axis_tensor(operandA._tensor, c_axis)
 
-        result_tensor = _C_to_Python_create_tensor(c_result_tensor, operandA, None)
+        result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
         return result_tensor
 
@@ -51,11 +51,11 @@ class SumMixin:
                 axes.append(dim)
         axes.sort()
 
-        _TensorBase._C.sum_axis_tensor.argtypes = [
+        C_Lib._C.sum_axis_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
             ctypes.c_int,
         ]
-        _TensorBase._C.sum_axis_tensor.restype = ctypes.POINTER(C_Tensor)
+        C_Lib._C.sum_axis_tensor.restype = ctypes.POINTER(C_Tensor)
 
         result_tensor = ReductionUtils.sum_axes_recursively(
             operandA, axes, len(axes) - 1
@@ -101,14 +101,14 @@ class MeanMixin:
     
     @staticmethod
     def total_mean(operandA: _TensorBase) -> _TensorBase:
-        _TensorBase._C.mean_tensor.argtypes = [
+        C_Lib._C.mean_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
         ]
-        _TensorBase._C.mean_tensor.restype = ctypes.POINTER(C_Tensor)
+        C_Lib._C.mean_tensor.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = _TensorBase._C.mean_tensor(operandA._tensor)
+        c_result_tensor = C_Lib._C.mean_tensor(operandA._tensor)
 
-        result_tensor = _C_to_Python_create_tensor(c_result_tensor, operandA, None)
+        result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
         _assign_grad_and_grad_fn(operandA, None, result_tensor, MeanBackward)
 
@@ -121,14 +121,14 @@ class MeanMixin:
         else:
             c_axis = ctypes.c_int(axis)
 
-        _TensorBase._C.mean_axis_tensor.argtypes = [
+        C_Lib._C.mean_axis_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
             ctypes.c_int,
         ]
-        _TensorBase._C.mean_axis_tensor.restype = ctypes.POINTER(C_Tensor)
+        C_Lib._C.mean_axis_tensor.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = _TensorBase._C.mean_axis_tensor(operandA._tensor, c_axis)
+        c_result_tensor = C_Lib._C.mean_axis_tensor(operandA._tensor, c_axis)
 
-        result_tensor = _C_to_Python_create_tensor(c_result_tensor, operandA, None)
+        result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
         return result_tensor

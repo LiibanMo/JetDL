@@ -2,7 +2,7 @@
 #include <cmath>
 #include <omp.h>
 #include "string.h"
-#include "tensor.h"
+#include "lib.h"
 
 
 void ones_cpu(double* result_data, int size) {

@@ -25,14 +25,10 @@ def _flatten(data: list) -> list:
     return flattened_data, shape
 
 
-def _C_to_Python_create_tensor(c_result_tensor, operandA, operandB):
+def _C_to_Python_create_tensor(c_result_tensor):
     from .tensor import Tensor
-    from ..nn.parameter import Parameter
 
-    if isinstance(operandA, Parameter) or isinstance(operandB, Parameter):
-        result_tensor = Parameter()
-    else:
-        result_tensor = Tensor()
+    result_tensor = Tensor()
         
     result_tensor._tensor = c_result_tensor
     result_tensor.ndim = int(c_result_tensor.contents.ndim)
@@ -49,7 +45,7 @@ def _C_to_Python_create_tensor(c_result_tensor, operandA, operandB):
     c_result_strides_ptr = c_result_tensor.contents.strides
     result_tensor.strides = []
 
-    iterations = result_tensor.ndim if result_tensor.ndim > 0 else 1
+    iterations = max(result_tensor.ndim, 1)
     for idx in range(iterations):
         result_tensor._shape.append(c_result_shape_ptr[idx])
         result_tensor.strides.append(c_result_strides_ptr[idx])
@@ -67,7 +63,8 @@ def _can_broadcast(shapeA, ndimA, shapeB, ndimB) -> bool:
         ):
             return False
         else:
-            return True
+            continue
+    return True
 
 
 def _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, grad_fn):
