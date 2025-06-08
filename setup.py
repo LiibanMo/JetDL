@@ -33,9 +33,6 @@ class BuildSharedLibrary(build_ext):
                 "-o",
                 shared_library,
                 "-fPIC",
-                "-I/opt/homebrew/opt/libomp/include",  # Homebrew LLVM OpenMP include path
-                "-L/opt/homebrew/opt/libomp/lib",      # Homebrew LLVM OpenMP lib path
-                "-lomp"
             ]
             + cpp_files
         )
