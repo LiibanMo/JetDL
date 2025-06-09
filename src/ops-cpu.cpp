@@ -5,7 +5,7 @@
 #include "lib.h"
 
 
-void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
+void assign_tensor_data_cpu(Tensor* tensor, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensor->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -14,7 +14,7 @@ void assign_tensor_data_cpu(Tensor* tensor, double* result_data) {
     }
 }
 
-void add_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+void add_tensor_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -23,7 +23,7 @@ void add_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
     }
 }
 
-void scalar_add_tensor_cpu(Tensor* tensorA, double operand, double* result_data) {
+void scalar_add_tensor_cpu(Tensor* tensorA, float operand, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -32,7 +32,7 @@ void scalar_add_tensor_cpu(Tensor* tensorA, double operand, double* result_data)
     }
 }
 
-void add_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+void add_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape, int broadcasted_size) {
     const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
 
     int* stridesA = (int*)malloc(ndim * sizeof(int));
@@ -83,7 +83,7 @@ void add_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, 
     free(stridesB);
 }
 
-void subtract_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+void subtract_tensor_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -92,7 +92,7 @@ void subtract_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) 
     }
 }
 
-void scalar_sub_tensor_cpu(Tensor* tensorA, double operand, double* result_data) {
+void scalar_sub_tensor_cpu(Tensor* tensorA, float operand, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -101,7 +101,7 @@ void scalar_sub_tensor_cpu(Tensor* tensorA, double operand, double* result_data)
     }
 }
 
-void sub_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+void sub_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape, int broadcasted_size) {
     const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
 
     int* stridesA = (int*)malloc(ndim * sizeof(int));
@@ -152,7 +152,7 @@ void sub_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, 
     free(stridesB);
 }   
 
-void scalar_mul_tensor_cpu(Tensor* tensorA, double operand, double* result_data) {
+void scalar_mul_tensor_cpu(Tensor* tensorA, float operand, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -161,7 +161,7 @@ void scalar_mul_tensor_cpu(Tensor* tensorA, double operand, double* result_data)
     }
 }
 
-void hadamard_mul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+void hadamard_mul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -170,7 +170,7 @@ void hadamard_mul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_da
     }
 }
 
-void mul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+void mul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape, int broadcasted_size) {
     const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
 
     int* stridesA = (int*)malloc(ndim * sizeof(int));
@@ -221,7 +221,7 @@ void mul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, 
     free(stridesB);
 }
 
-void div_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
+void div_tensor_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -230,7 +230,7 @@ void div_tensor_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data) {
     }
 }
 
-void scalar_div_tensor_cpu(Tensor* tensorA, double divisor, double* result_data) {
+void scalar_div_tensor_cpu(Tensor* tensorA, float divisor, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -239,7 +239,7 @@ void scalar_div_tensor_cpu(Tensor* tensorA, double divisor, double* result_data)
     }
 }
 
-void div_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, int* broadcasted_shape, int broadcasted_size) {
+void div_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape, int broadcasted_size) {
     const int ndim = (tensorA->ndim > tensorB->ndim) ? tensorA->ndim : tensorB->ndim;
 
     int* stridesA = (int*)malloc(ndim * sizeof(int));
@@ -290,7 +290,7 @@ void div_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, double* result_data, 
     free(stridesB);
 }
 
-void flatten_cpu(Tensor* tensor, double* result_data) {
+void flatten_cpu(Tensor* tensor, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensor->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -306,10 +306,10 @@ void flatten_cpu(Tensor* tensor, double* result_data) {
     }
 }
 
-void sum_cpu(Tensor* tensor, double* result_data) {
+void sum_cpu(Tensor* tensor, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensor->size / 10, 1));
 
-    double sum = 0;
+    float sum = 0;
 
     #pragma omp parallel for reduction(+:sum) num_threads(NUM_THREADS)
     for (int idx = 0; idx < tensor->size; idx++) {
@@ -318,7 +318,7 @@ void sum_cpu(Tensor* tensor, double* result_data) {
     result_data[0] = sum;
 }
 
-void sum_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
+void sum_axis_cpu(Tensor* tensor, float* result_data, const int axis) {
     int size = tensor->size / tensor->shape[axis];
 
     int outer_size = 1;
@@ -333,7 +333,7 @@ void sum_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
     #pragma omp parallel for collapse(2), num_threads(NUM_THREADS)
     for (int i = 0; i < outer_size; i++) {
         for (int j = 0; j < inner_size; j++) {
-            double sum = 0;
+            float sum = 0;
             #pragma omp parallel for reduction(+:sum)
             for (int k = 0; k < tensor->shape[axis]; k++) {
                 sum += tensor->data[inner_size * k + j + tensor->shape[axis] * inner_size * i];
@@ -343,10 +343,10 @@ void sum_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
     }
 }
 
-void mean_cpu(Tensor* tensor, double* result_data) {
+void mean_cpu(Tensor* tensor, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensor->size / 10, 1));
 
-    double sum = 0;
+    float sum = 0;
 
     #pragma omp parallel for reduction(+:sum) num_threads(NUM_THREADS)
     for (int idx = 0; idx < tensor->size; idx++) {
@@ -356,7 +356,7 @@ void mean_cpu(Tensor* tensor, double* result_data) {
     result_data[0] /= tensor->size;
 }
 
-void mean_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
+void mean_axis_cpu(Tensor* tensor, float* result_data, const int axis) {
     sum_axis_cpu(tensor, result_data, axis);
     const int result_size = tensor->size / tensor->shape[axis];
 
@@ -368,7 +368,7 @@ void mean_axis_cpu(Tensor* tensor, double* result_data, const int axis) {
     }
 }
 
-void pow_cpu(Tensor* tensor, double exponent, double* result_data) {
+void pow_cpu(Tensor* tensor, float exponent, float* result_data) {
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensor->size / 10, 1));
 
     #pragma omp parallel for num_threads(NUM_THREADS)

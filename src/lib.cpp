@@ -6,7 +6,7 @@
 #include "linalg-cpu.h"
 
 
-Tensor* create_tensor(double* data, int* shape, int ndim) {
+Tensor* create_tensor(float* data, int* shape, int ndim) {
 
     Tensor* tensor = (Tensor*)malloc(sizeof(Tensor));
     if (!tensor) {
@@ -42,7 +42,7 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
         tensor->size *= dim;
     }
 
-    tensor->data = (double*)malloc(tensor->size * sizeof(double));
+    tensor->data = (float*)malloc(tensor->size * sizeof(float));
     if (!tensor->data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -54,7 +54,7 @@ Tensor* create_tensor(double* data, int* shape, int ndim) {
     return tensor;
 }
 
-double get_item(Tensor* tensor, int* indices) {
+float get_item(Tensor* tensor, int* indices) {
     int index = 0;
     for (int idx = 0; idx < tensor->ndim; idx++) {
         index += tensor->strides[idx] * indices[idx];
@@ -74,7 +74,7 @@ Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB) {
         shape[idx] = tensorA->shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensorA->size * sizeof(double));
+    float* result_data = (float*)malloc(tensorA->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -90,7 +90,7 @@ Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB) {
     return result_tensor;
 }
 
-Tensor* scalar_add_tensor(Tensor* tensor, double operand) {
+Tensor* scalar_add_tensor(Tensor* tensor, float operand) {
     const int ndim = tensor->ndim;
 
     int* shape = (int*)malloc(ndim * sizeof(int));
@@ -102,7 +102,7 @@ Tensor* scalar_add_tensor(Tensor* tensor, double operand) {
         shape[idx] = tensor->shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -142,7 +142,7 @@ Tensor* add_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         broadcasted_size *= broadcasted_shape[idx];
     }
 
-    double* result_data = (double*)malloc(broadcasted_size * sizeof(double));
+    float* result_data = (float*)malloc(broadcasted_size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -170,7 +170,7 @@ Tensor* sub_tensor(Tensor* tensorA, Tensor* tensorB) {
        shape[idx] = tensorA->shape[idx]; 
     }  
 
-    double* result_data = (double*)malloc(tensorA->size * sizeof(double));
+    float* result_data = (float*)malloc(tensorA->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -185,7 +185,7 @@ Tensor* sub_tensor(Tensor* tensorA, Tensor* tensorB) {
     return result_tensor;
 }
 
-Tensor* scalar_sub_tensor(Tensor* tensorA, double operand) {
+Tensor* scalar_sub_tensor(Tensor* tensorA, float operand) {
     const int ndim = tensorA->ndim;
 
     int* shape = (int*)malloc(ndim * sizeof(int));
@@ -197,7 +197,7 @@ Tensor* scalar_sub_tensor(Tensor* tensorA, double operand) {
         shape[idx] = tensorA->shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensorA->size * sizeof(double));
+    float* result_data = (float*)malloc(tensorA->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -237,7 +237,7 @@ Tensor* sub_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         broadcasted_size *= broadcasted_shape[idx];
     }
 
-    double* result_data = (double*)malloc(broadcasted_size * sizeof(double));
+    float* result_data = (float*)malloc(broadcasted_size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -265,7 +265,7 @@ Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB) {
         shape[idx] = tensorA->shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensorA->size * sizeof(double));
+    float* result_data = (float*)malloc(tensorA->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -281,7 +281,7 @@ Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB) {
     return result_tensor;
 }
 
-Tensor* scalar_mul_tensor(Tensor* tensorA, double operand) {
+Tensor* scalar_mul_tensor(Tensor* tensorA, float operand) {
     const int ndim = tensorA->ndim;
 
     int* shape = (int*)malloc(ndim * sizeof(int));
@@ -293,7 +293,7 @@ Tensor* scalar_mul_tensor(Tensor* tensorA, double operand) {
         shape[idx] = tensorA->shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensorA->size * sizeof(double));
+    float* result_data = (float*)malloc(tensorA->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -333,7 +333,7 @@ Tensor* mul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         broadcasted_size *= broadcasted_shape[idx];
     }
 
-    double* result_data = (double*)malloc(broadcasted_size * sizeof(double));
+    float* result_data = (float*)malloc(broadcasted_size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -359,7 +359,7 @@ Tensor* vector_dot_product(Tensor* tensorA, Tensor* tensorB) {
     }
     shape[0] = 0;
 
-    double* result_data = (double*)malloc(sizeof(double));
+    float* result_data = (float*)malloc(sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -387,7 +387,7 @@ Tensor* matmul_2d_2d(Tensor* tensorA, Tensor* tensorB) {
     shape[1] = tensorB->shape[1];
 
     const int size = shape[0] * shape[1];
-    double* result_data = (double*)malloc(size * sizeof(double));
+    float* result_data = (float*)malloc(size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -426,7 +426,7 @@ Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         size *= shape[idx];
     }
 
-    double* result_data = (double*)malloc(size * sizeof(double));
+    float* result_data = (float*)malloc(size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -455,7 +455,7 @@ Tensor* div_tensor(Tensor* tensorA, Tensor* tensorB) {
         shape[idx] = tensorA->shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensorA->size * sizeof(double));
+    float* result_data = (float*)malloc(tensorA->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -471,7 +471,7 @@ Tensor* div_tensor(Tensor* tensorA, Tensor* tensorB) {
     return result_tensor;
 }
 
-Tensor* scalar_div_tensor(Tensor* tensor, double divisor) {
+Tensor* scalar_div_tensor(Tensor* tensor, float divisor) {
     const int ndim = tensor->ndim;
 
     int* shape = (int*)malloc(ndim * sizeof(int));
@@ -483,7 +483,7 @@ Tensor* scalar_div_tensor(Tensor* tensor, double divisor) {
         shape[idx] = tensor->shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -523,7 +523,7 @@ Tensor* div_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         broadcasted_size *= broadcasted_shape[idx];
     }
 
-    double* result_data = (double*)malloc(broadcasted_size * sizeof(double));
+    float* result_data = (float*)malloc(broadcasted_size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -551,7 +551,7 @@ Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim) {
         shape[idx] = new_shape[idx];
     }
 
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -579,7 +579,7 @@ Tensor* flatten_tensor(Tensor* tensor) {
 
     shape[0] = tensor->size;
 
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -653,7 +653,7 @@ Tensor* sum_tensor(Tensor* tensor) {
     
     shape[0] = 0;
 
-    double* result_data = (double*)malloc(sizeof(double));
+    float* result_data = (float*)malloc(sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -685,7 +685,7 @@ Tensor* sum_axis_tensor(Tensor* tensor, const int axis) {
 
     const int size = tensor->size / tensor->shape[axis];
 
-    double* result_data = (double*)malloc(size * sizeof(double));
+    float* result_data = (float*)malloc(size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -712,7 +712,7 @@ Tensor* mean_tensor(Tensor* tensor) {
 
     shape[0] = 0;
 
-    double* result_data = (double*)malloc(sizeof(double));
+    float* result_data = (float*)malloc(sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(1);
@@ -746,7 +746,7 @@ Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
 
     const int size = tensor->size / tensor->shape[axis];
 
-    double* result_data = (double*)malloc(size * sizeof(double));
+    float* result_data = (float*)malloc(size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(1);
@@ -762,8 +762,8 @@ Tensor* mean_axis_tensor(Tensor* tensor, const int axis) {
     return result_tensor;
 }
 
-Tensor* pow_tensor(Tensor* tensor, double exponent) {
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+Tensor* pow_tensor(Tensor* tensor, float exponent) {
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -784,7 +784,7 @@ Tensor* ones(int* shape, const int ndim) {
         size *= shape[idx];
     }
 
-    double* result_data = (double*)malloc(size * sizeof(double));
+    float* result_data = (float*)malloc(size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(1);
@@ -813,7 +813,7 @@ Tensor* outer(Tensor* tensorA, Tensor* tensorB) {
 
     const int size = shape[0] * shape[1];
 
-    double* result_data = (double*)malloc(size * sizeof(double));
+    float* result_data = (float*)malloc(size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(1);
@@ -830,7 +830,7 @@ Tensor* outer(Tensor* tensorA, Tensor* tensorB) {
 }
 
 Tensor* c_exp(Tensor* tensor) {
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
@@ -846,7 +846,7 @@ Tensor* c_exp(Tensor* tensor) {
 }
 
 Tensor* c_log(Tensor* tensor) {
-    double* result_data = (double*)malloc(tensor->size * sizeof(double));
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
     if (!result_data) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);

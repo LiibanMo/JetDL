@@ -11,7 +11,7 @@ class C_Lib:
 
 class C_Tensor(ctypes.Structure):
     _fields_ = [
-        ("data", ctypes.POINTER(ctypes.c_double)),
+        ("data", ctypes.POINTER(ctypes.c_float)),
         ("shape", ctypes.POINTER(ctypes.c_int)),
         ("strides", ctypes.POINTER(ctypes.c_int)),
         ("ndim", ctypes.c_int),
@@ -20,7 +20,7 @@ class C_Tensor(ctypes.Structure):
 
 class _TensorBase:
     C_Lib._C.create_tensor.argtypes = [
-        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_float),
         ctypes.POINTER(ctypes.c_int),
         ctypes.c_int,
     ]
@@ -35,7 +35,7 @@ class _TensorBase:
                 data = [float(input_data)]
                 shape = []
 
-            c_data = (len(data) * ctypes.c_double)(*data)
+            c_data = (len(data) * ctypes.c_float)(*data)
             c_shape = (len(shape) * ctypes.c_int)(*shape)
             c_ndim = ctypes.c_int(len(shape))
 
@@ -113,7 +113,7 @@ class _TensorBase:
             ctypes.POINTER(ctypes.c_int),
             ctypes.POINTER(ctypes.c_int),
         ]
-        C_Lib._C.get_item.restype = ctypes.c_double
+        C_Lib._C.get_item.restype = ctypes.c_float
 
         if isinstance(indices, (int, float)):
             indices = (indices,)

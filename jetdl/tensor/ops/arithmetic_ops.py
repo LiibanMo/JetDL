@@ -15,7 +15,7 @@ class AddMixin:
     ) -> _TensorBase:
         C_Lib._C.scalar_add_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
-            ctypes.c_double,
+            ctypes.c_float,
         ]
         C_Lib._C.scalar_add_tensor.restype = ctypes.POINTER(C_Tensor)
 
@@ -74,7 +74,7 @@ class SubMixin:
     ) -> _TensorBase:
         C_Lib._C.scalar_sub_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
-            ctypes.c_double,
+            ctypes.c_float,
         ]
         C_Lib._C.scalar_sub_tensor.restype = ctypes.POINTER(C_Tensor)
 
@@ -131,7 +131,7 @@ class MulMixin:
     ) -> _TensorBase:
         C_Lib._C.scalar_mul_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
-            ctypes.c_double,
+            ctypes.c_float,
         ]
         C_Lib._C.scalar_mul_tensor.restype = ctypes.POINTER(C_Tensor)
 
@@ -188,7 +188,7 @@ class DivMixin:
     ) -> _TensorBase:
         C_Lib._C.scalar_div_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
-            ctypes.c_double,
+            ctypes.c_float,
         ]
         C_Lib._C.scalar_div_tensor.restype = ctypes.POINTER(C_Tensor)
 
@@ -245,7 +245,7 @@ class PowMixin:
     ) -> _TensorBase:
         C_Lib._C.pow_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
-            ctypes.c_double,
+            ctypes.c_float,
         ]
         C_Lib._C.pow_tensor.restype = ctypes.POINTER(C_Tensor)
 

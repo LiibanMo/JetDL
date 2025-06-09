@@ -28,6 +28,7 @@ class BuildSharedLibrary(build_ext):
             [
                 "clang++",
                 "-std=c++20",
+                "-O3",
                 "-fopenmp",
                 "-shared",
                 "-o",

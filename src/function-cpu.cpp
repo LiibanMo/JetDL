@@ -5,7 +5,7 @@
 #include "lib.h"
 
 
-void ones_cpu(double* result_data, int size) {
+void ones_cpu(float* result_data, int size) {
     const int NUM_ITERS = size;
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(NUM_ITERS / 10, 1));
 
@@ -15,7 +15,7 @@ void ones_cpu(double* result_data, int size) {
     }
 }
 
-void exp_cpu(Tensor* tensorA, double* result_data) {
+void exp_cpu(Tensor* tensorA, float* result_data) {
     const int NUM_ITERS = tensorA->size;
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(NUM_ITERS / 10, 1));
 
@@ -25,7 +25,7 @@ void exp_cpu(Tensor* tensorA, double* result_data) {
     }
 }
 
-void log_cpu(Tensor* tensor, double* result_data) {
+void log_cpu(Tensor* tensor, float* result_data) {
     const int NUM_ITERS = tensor->size;
     const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(NUM_ITERS / 10, 1));
 

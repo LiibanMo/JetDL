@@ -181,7 +181,7 @@ class Tensor(_TensorBase):
             return MeanMixin.mean_axis(self, axis)
 
     def copy(self) -> "Tensor":
-        c_data = (len(self._data) * ctypes.c_double)(*self._data)
+        c_data = (len(self._data) * ctypes.c_float)(*self._data)
         c_shape = (ctypes.c_int * len(self._shape))(*self._shape)
         c_ndim = ctypes.c_int(len(self._shape))
 

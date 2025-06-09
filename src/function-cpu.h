@@ -3,9 +3,9 @@
 
 #include "lib.h"
 
-void ones_cpu(double* result_data, int size);
-void exp_cpu(Tensor* tensorA, double* result_data);
-void log_cpu(Tensor* tensor, double* result_data);
+void ones_cpu(float* result_data, int size);
+void exp_cpu(Tensor* tensorA, float* result_data);
+void log_cpu(Tensor* tensor, float* result_data);
 
 
 #endif

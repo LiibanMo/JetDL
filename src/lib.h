@@ -2,7 +2,7 @@
 #define TENSOR_H
 
 typedef struct {
-    double* data;
+    float* data;
     int* shape;
     int* strides;
     int ndim;
@@ -10,18 +10,18 @@ typedef struct {
 } Tensor;
 
 extern "C" {
-    Tensor* create_tensor(double* data, int* shape, int ndim);
-    double get_item(Tensor* tensor, int* indices);
+    Tensor* create_tensor(float* data, int* shape, int ndim);
+    float get_item(Tensor* tensor, int* indices);
     Tensor* add_tensor(Tensor* tensor, Tensor* tensorB);
-    Tensor* scalar_add_tensor(Tensor* tensorA, double operand);
+    Tensor* scalar_add_tensor(Tensor* tensorA, float operand);
     Tensor* add_broadcasted(Tensor* tensorA, Tensor* tensorB);
 
     Tensor* sub_tensor(Tensor* tensorA, Tensor* tensorB);
-    Tensor* scalar_sub_tensor(Tensor* tensorA, double operand); 
+    Tensor* scalar_sub_tensor(Tensor* tensorA, float operand); 
     Tensor* sub_broadcasted(Tensor* tensorA, Tensor* tensorB);
 
     Tensor* hadamard_mul_tensor(Tensor* tensorA, Tensor* tensorB);
-    Tensor* scalar_mul_tensor(Tensor* tensorA, double operand);
+    Tensor* scalar_mul_tensor(Tensor* tensorA, float operand);
     Tensor* mul_broadcasted(Tensor* tensorA, Tensor* tensorB);
 
     Tensor* vector_dot_product(Tensor* tensorA, Tensor* tensorB);
@@ -29,7 +29,7 @@ extern "C" {
     Tensor* matmul_broadcasted(Tensor* tensorA, Tensor* tensorB);
 
     Tensor* div_tensor(Tensor* tensorA, Tensor* tensorB);
-    Tensor* scalar_div_tensor(Tensor* tensor, double divisor);
+    Tensor* scalar_div_tensor(Tensor* tensor, float divisor);
     Tensor* div_broadcasted(Tensor* tensorA, Tensor* tensorB);
 
     Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim);
@@ -44,7 +44,7 @@ extern "C" {
     Tensor* mean_tensor(Tensor* tensor);
     Tensor* mean_axis_tensor(Tensor* tensor, const int axis);
 
-    Tensor* pow_tensor(Tensor* tensor, double exponent);
+    Tensor* pow_tensor(Tensor* tensor, float exponent);
 
     Tensor* ones(int* shape, const int ndim);
     Tensor* outer(Tensor* tensorA, Tensor* tensorB);
