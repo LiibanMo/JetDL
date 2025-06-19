@@ -3,7 +3,6 @@
 #include <omp.h>
 #include "string.h"
 #include "lib.h"
-#include <cblas.h>
 
 
 void ones_cpu(float* result_data, int size) {

@@ -7,7 +7,6 @@
 
 void vector_dot_product_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int N = tensorA->shape[0];
-    // Use cblas_sdot for vector dot product
     result_data[0] = cblas_sdot(N, tensorA->data, 1, tensorB->data, 1);
 }
 
@@ -16,9 +15,6 @@ void matmul_2d_2d_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int N = tensorA->shape[1];
     const int P = tensorB->shape[1];
 
-    // Use cblas_sgemm for matrix multiplication
-    // C = alpha * A * B + beta * C
-    // where alpha = 1.0, beta = 0.0 (initialize result to zero)
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
                 M, P, N, 
                 1.0f, tensorA->data, N, 
@@ -65,7 +61,6 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data
 
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (int batch_idx = 0; batch_idx < total_num_matrices; batch_idx++) {
-        // Use cblas_sgemm for each batch
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
                     M, P, N, 
                     1.0f, 
