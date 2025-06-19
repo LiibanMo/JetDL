@@ -2,7 +2,6 @@ import glob
 import os
 import shutil
 import subprocess
-import platform
 
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
@@ -24,67 +23,22 @@ class BuildSharedLibrary(build_ext):
         if not cpp_files:
             raise FileNotFoundError(f"No .cpp files found in '{source_dir}' directory.")
 
-        # Detect platform and set appropriate compiler
-        system = platform.system()
-        if system == "Darwin":  # macOS
-            compiler = "clang++"
-            openmp_flag = "-fopenmp"
-            # macOS typically has OpenBLAS installed via Homebrew
-            cblas_include = "-I/opt/homebrew/include"
-            cblas_lib = "-L/opt/homebrew/lib"
-        elif system == "Linux":
-            compiler = "g++"  # Use g++ on Linux for better compatibility
-            openmp_flag = "-fopenmp"
-            # Linux typically has OpenBLAS in standard locations
-            cblas_include = ""
-            cblas_lib = ""
-        else:  # Windows or other
-            compiler = "g++"
-            openmp_flag = "-fopenmp"
-            cblas_include = ""
-            cblas_lib = ""
-
-        # Compilation flags
-        compilation_flags = [
-            compiler,
-            "-std=c++17",
+        # Compilation and linking flags
+        flags = [
+            "clang++",
+            "-std=c++20",
             "-O3",
-            openmp_flag,
-            "-c",  
-            "-fPIC",
-        ]
-        
-        # Add CBLAS include path if specified
-        if cblas_include:
-            compilation_flags.append(cblas_include)
-
-        # Linking flags
-        linking_flags = [
-            compiler,
+            "-fopenmp",
             "-shared",
+            "-fPIC",
+            "-I/opt/homebrew/opt/openblas/include",
+            "-L/opt/homebrew/opt/openblas/lib",
+            "-lopenblas",
             "-o", shared_library,
-            openmp_flag,
-            "-flto",  # Enable link-time optimization
         ]
-        
-        # Add CBLAS library path and linking if specified
-        if cblas_lib:
-            linking_flags.extend([cblas_lib])
-        linking_flags.append("-lopenblas")
 
-        # Compile each .cpp file to .o
-        object_files = []
-        for cpp_file in cpp_files:
-            obj_file = cpp_file.replace('.cpp', '.o')
-            subprocess.check_call(compilation_flags + [cpp_file, "-o", obj_file])
-            object_files.append(obj_file)
-
-        # Link all object files into final shared library
-        subprocess.check_call(linking_flags + object_files)
-
-        # Clean up object files
-        for obj_file in object_files:
-            os.remove(obj_file)
+        # Compile all .cpp files directly to shared library
+        subprocess.check_call(flags + cpp_files)
 
         self.announce(f"Moving {shared_library} to {output_dir}...", level=3)
         shutil.move(shared_library, os.path.join(output_dir, shared_library))
