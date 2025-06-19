@@ -2,6 +2,7 @@ import glob
 import os
 import shutil
 import subprocess
+import platform
 
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
@@ -23,29 +24,53 @@ class BuildSharedLibrary(build_ext):
         if not cpp_files:
             raise FileNotFoundError(f"No .cpp files found in '{source_dir}' directory.")
 
+        # Detect platform and set appropriate compiler
+        system = platform.system()
+        if system == "Darwin":  # macOS
+            compiler = "clang++"
+            openmp_flag = "-fopenmp"
+            # macOS typically has OpenBLAS installed via Homebrew
+            cblas_include = "-I/opt/homebrew/include"
+            cblas_lib = "-L/opt/homebrew/lib"
+        elif system == "Linux":
+            compiler = "g++"  # Use g++ on Linux for better compatibility
+            openmp_flag = "-fopenmp"
+            # Linux typically has OpenBLAS in standard locations
+            cblas_include = ""
+            cblas_lib = ""
+        else:  # Windows or other
+            compiler = "g++"
+            openmp_flag = "-fopenmp"
+            cblas_include = ""
+            cblas_lib = ""
+
         # Compilation flags
         compilation_flags = [
-            "clang++",
+            compiler,
             "-std=c++17",
             "-O3",
-            "-fopenmp",
+            openmp_flag,
             "-c",  
             "-fPIC",
-            "-I/opt/homebrew/include/eigen3",
-            "-I/opt/homebrew/Cellar/openblas/0.3.29/include",
         ]
+        
+        # Add CBLAS include path if specified
+        if cblas_include:
+            compilation_flags.append(cblas_include)
 
         # Linking flags
         linking_flags = [
-            "clang++",
+            compiler,
             "-shared",
             "-o", shared_library,
-            "-fopenmp",
-            "-I/opt/homebrew/opt/libomp/include", 
+            openmp_flag,
             "-flto",  # Enable link-time optimization
-            "-L/opt/homebrew/Cellar/openblas/0.3.29/lib",
-            "-lopenblas",
         ]
+        
+        # Add CBLAS library path and linking if specified
+        if cblas_lib:
+            linking_flags.extend([cblas_lib])
+        linking_flags.append("-lopenblas")
 
         # Compile each .cpp file to .o
         object_files = []
