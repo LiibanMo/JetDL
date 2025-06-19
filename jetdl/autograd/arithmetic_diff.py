@@ -89,7 +89,6 @@ class MulBackward(Function):
 
         elif broadcasted and not B_is_tensor:
             if tensorA.requires_grad:
-                print(f"tensorB = {tensorB}")
                 gradA = tensorB * self.result_tensor.grad
 
         else:

@@ -4,12 +4,13 @@
 #include "lib.h"
 
 void assign_tensor_data_cpu(Tensor* tensor, float* result_data);
+void make_contiguous_cpu(Tensor* tensor, float* result_data);
 void add_tensor_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data);
 void scalar_add_tensor_cpu(Tensor* tensorA, float operand, float* result_data);
 void add_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape, int broadcasted_size);
 void subtract_tensor_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data);
 void scalar_sub_tensor_cpu(Tensor* tensorA, float operand, float* result_data);
-void sub_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape, int broadcasted_size);
+void sub_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape);
 void scalar_mul_tensor_cpu(Tensor* tensorA, float operand, float* result_data);
 void hadamard_mul_tensor_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data);
 void mul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data, int* broadcasted_shape, int broadcasted_size);

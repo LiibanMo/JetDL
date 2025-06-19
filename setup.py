@@ -23,20 +23,43 @@ class BuildSharedLibrary(build_ext):
         if not cpp_files:
             raise FileNotFoundError(f"No .cpp files found in '{source_dir}' directory.")
 
-        # Builds the shared library, libtensor.so, using clang++
-        subprocess.check_call(
-            [
-                "clang++",
-                "-std=c++20",
-                "-O3",
-                "-fopenmp",
-                "-shared",
-                "-o",
-                shared_library,
-                "-fPIC",
-            ]
-            + cpp_files
-        )
+        # Compilation flags
+        compilation_flags = [
+            "clang++",
+            "-std=c++17",
+            "-O3",
+            "-fopenmp",
+            "-c",  
+            "-fPIC",
+            "-I/opt/homebrew/include/eigen3",
+            "-I/opt/homebrew/Cellar/openblas/0.3.29/include",
+        ]
+
+        # Linking flags
+        linking_flags = [
+            "clang++",
+            "-shared",
+            "-o", shared_library,
+            "-fopenmp",
+            "-I/opt/homebrew/opt/libomp/include", 
+            "-flto",  # Enable link-time optimization
+            "-L/opt/homebrew/Cellar/openblas/0.3.29/lib",
+            "-lopenblas",
+        ]
+
+        # Compile each .cpp file to .o
+        object_files = []
+        for cpp_file in cpp_files:
+            obj_file = cpp_file.replace('.cpp', '.o')
+            subprocess.check_call(compilation_flags + [cpp_file, "-o", obj_file])
+            object_files.append(obj_file)
+
+        # Link all object files into final shared library
+        subprocess.check_call(linking_flags + object_files)
+
+        # Clean up object files
+        for obj_file in object_files:
+            os.remove(obj_file)
 
         self.announce(f"Moving {shared_library} to {output_dir}...", level=3)
         shutil.move(shared_library, os.path.join(output_dir, shared_library))

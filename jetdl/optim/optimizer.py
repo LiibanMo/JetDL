@@ -22,6 +22,4 @@ class Optimizer:
     def zero_grad(self, set_to_none: bool = False):
         for idx in range(len(self.params)):
             self.params[idx].grad = None if set_to_none else 0.0
-            print(self.params[idx].grad)
-            print(self.params[idx])
             

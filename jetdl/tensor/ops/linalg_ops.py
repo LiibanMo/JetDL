@@ -10,7 +10,7 @@ class MatmulMixin:
 
     @staticmethod
     def vector_matmul_vector(
-        operandA: _TensorBase, operandB: _TensorBase
+        tensorA: _TensorBase, tensorB: _TensorBase
     ) -> _TensorBase:
         C_Lib._C.vector_dot_product.argtypes = [
             ctypes.POINTER(C_Tensor),
@@ -19,22 +19,22 @@ class MatmulMixin:
         C_Lib._C.vector_dot_product.restype = ctypes.POINTER(C_Tensor)
 
         c_result_tensor = C_Lib._C.vector_dot_product(
-            operandA._tensor, operandB._tensor
+            tensorA._tensor, tensorB._tensor
         )
 
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
-        _assign_grad_and_grad_fn(operandA, operandB, result_tensor, MmBackward)
+        _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, MmBackward)
 
         return result_tensor
 
     @staticmethod
     def vector_matmul_matrix(
-        operandA: _TensorBase, operandB: _TensorBase
+        tensorA: _TensorBase, tensorB: _TensorBase
     ) -> _TensorBase:
-        new_shape = [1] + operandA._shape.copy()
+        new_shape = [1] + tensorA._shape.copy()
 
-        broadcasted_tensor = operandA.reshape(new_shape)
+        broadcasted_tensor = tensorA.reshape(new_shape)
 
         C_Lib._C.matmul_2d_2d.argtypes = [
             ctypes.POINTER(C_Tensor),
@@ -42,9 +42,26 @@ class MatmulMixin:
         ]
         C_Lib._C.matmul_2d_2d.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = C_Lib._C.matmul_2d_2d(
-            broadcasted_tensor._tensor, operandB._tensor
-        )
+        if broadcasted_tensor.is_contiguous and tensorB.is_contiguous:
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                broadcasted_tensor._tensor, tensorB._tensor
+            )
+        elif not broadcasted_tensor.is_contiguous and tensorB.is_contiguous:
+            operandA = broadcasted_tensor._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                operandA._tensor, tensorB._tensor
+            )
+        elif broadcasted_tensor.is_contiguous and not tensorB.is_contiguous:
+            operandB = tensorB._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                broadcasted_tensor._tensor, operandB._tensor
+            )
+        else:
+            operandA = broadcasted_tensor._make_contiguous()
+            operandB = tensorB._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                operandA._tensor, operandB._tensor
+            )
 
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
@@ -53,17 +70,17 @@ class MatmulMixin:
 
         result_tensor = result_tensor.reshape(result_shape)
 
-        _assign_grad_and_grad_fn(operandA, operandB, result_tensor, MmBackward)
+        _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, MmBackward)
 
         return result_tensor
 
     @staticmethod
     def matrix_matmul_vector(
-        operandA: _TensorBase, operandB: _TensorBase
+        tensorA: _TensorBase, tensorB: _TensorBase
     ) -> _TensorBase:
-        new_shape = operandB._shape.copy() + [1]
+        new_shape = tensorB._shape.copy() + [1]
 
-        broadcasted_tensor = operandB.reshape(new_shape)
+        broadcasted_tensor = tensorB.reshape(new_shape)
 
         C_Lib._C.matmul_2d_2d.argtypes = [
             ctypes.POINTER(C_Tensor),
@@ -71,9 +88,15 @@ class MatmulMixin:
         ]
         C_Lib._C.matmul_2d_2d.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = C_Lib._C.matmul_2d_2d(
-            operandA._tensor, broadcasted_tensor._tensor
-        )
+        if tensorA.is_contiguous:
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                tensorA._tensor, broadcasted_tensor._tensor
+            )
+        else:
+            operandA = tensorA._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                operandA._tensor, broadcasted_tensor._tensor
+            )
 
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
@@ -83,13 +106,13 @@ class MatmulMixin:
 
         result_tensor = result_tensor.reshape(result_shape)
 
-        _assign_grad_and_grad_fn(operandA, operandB, result_tensor, MmBackward)
+        _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, MmBackward)
 
         return result_tensor
 
     @staticmethod
     def matrix_matmul_matrix(
-        operandA: _TensorBase, operandB: _TensorBase
+        tensorA: _TensorBase, tensorB: _TensorBase
     ) -> _TensorBase:
         C_Lib._C.matmul_2d_2d.argtypes = [
             ctypes.POINTER(C_Tensor),
@@ -97,30 +120,65 @@ class MatmulMixin:
         ]
         C_Lib._C.matmul_2d_2d.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = C_Lib._C.matmul_2d_2d(
-            operandA._tensor, operandB._tensor
-        )
+        if tensorA.is_contiguous and tensorB.is_contiguous:
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                tensorA._tensor, tensorB._tensor
+            )
+        elif not tensorA.is_contiguous and tensorB.is_contiguous:
+            operandA = tensorA._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                operandA._tensor, tensorB._tensor
+            )
+        elif tensorA.is_contiguous and not tensorB.is_contiguous:
+            operandB = tensorB._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                tensorA._tensor, operandB._tensor
+            )
+        else:
+            operandA = tensorA._make_contiguous()
+            operandB = tensorB._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_2d_2d(
+                operandA._tensor, operandB._tensor
+            )
 
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
-        _assign_grad_and_grad_fn(operandA, operandB, result_tensor, MmBackward)
+        _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, MmBackward)
 
         return result_tensor
     
     @staticmethod
-    def vector_matmul_tensor_broadcasted(operandA: _TensorBase, operandB: _TensorBase) -> _TensorBase:
+    def vector_matmul_tensor_broadcasted(tensorA: _TensorBase, tensorB: _TensorBase) -> _TensorBase:
         C_Lib._C.matmul_broadcasted.argtypes = [
             ctypes.POINTER(C_Tensor),
             ctypes.POINTER(C_Tensor),
         ]
         C_Lib._C.matmul_broadcasted.restype = ctypes.POINTER(C_Tensor)
         
-        new_shape = operandB._shape.copy() + [1]
-        broadcasted_tensor = operandB.reshape(new_shape)
+        new_shape = tensorB._shape.copy() + [1]
+        broadcasted_tensor = tensorB.reshape(new_shape)
 
-        c_result_tensor = C_Lib._C.matmul_broadcasted(
-            operandA._tensor, broadcasted_tensor._tensor
-        )
+        if tensorA.is_contiguous and broadcasted_tensor.is_contiguous:
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                tensorA._tensor, broadcasted_tensor._tensor
+            )
+        elif not tensorA.is_contiguous and broadcasted_tensor.is_contiguous:
+            operandA = tensorA._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                operandA._tensor, broadcasted_tensor._tensor
+            )
+        elif tensorA.is_contiguous and not broadcasted_tensor.is_contiguous:
+            operandB = broadcasted_tensor._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                tensorA._tensor, operandB._tensor
+            )
+        else:
+            operandA = tensorA._make_contiguous()
+            operandB = broadcasted_tensor._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                operandA._tensor, operandB._tensor
+            )
+
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
         result_shape = result_tensor._shape.copy()
@@ -129,24 +187,42 @@ class MatmulMixin:
 
         result_tensor = result_tensor.reshape(result_shape)
 
-        _assign_grad_and_grad_fn(operandA, operandB, result_tensor, MmBackward)
+        _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, MmBackward)
 
         return result_tensor
     
     @staticmethod
-    def tensor_matmul_vector_broadcasted(operandA: _TensorBase, operandB: _TensorBase) -> _TensorBase:
+    def tensor_matmul_vector_broadcasted(tensorA: _TensorBase, tensorB: _TensorBase) -> _TensorBase:
         C_Lib._C.matmul_broadcasted.argtypes = [
             ctypes.POINTER(C_Tensor),
             ctypes.POINTER(C_Tensor),
         ]
         C_Lib._C.matmul_broadcasted.restype = ctypes.POINTER(C_Tensor)
 
-        new_shape = operandB._shape.copy() + [1]
-        broadcasted_tensor = operandB.reshape(new_shape)
+        new_shape = tensorB._shape.copy() + [1]
+        broadcasted_tensor = tensorB.reshape(new_shape)
 
-        c_result_tensor = C_Lib._C.matmul_broadcasted(
-            operandA._tensor, broadcasted_tensor._tensor
-        )
+        if tensorA.is_contiguous and broadcasted_tensor.is_contiguous:
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                tensorA._tensor, broadcasted_tensor._tensor
+            )
+        elif not tensorA.is_contiguous and broadcasted_tensor.is_contiguous:
+            operandA = tensorA._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                operandA._tensor, broadcasted_tensor._tensor
+            )
+        elif tensorA.is_contiguous and not broadcasted_tensor.is_contiguous:
+            operandB = broadcasted_tensor._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                tensorA._tensor, operandB._tensor
+            )
+        else:
+            operandA = tensorA._make_contiguous()
+            operandB = broadcasted_tensor._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                operandA._tensor, operandB._tensor
+            )
+
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
         result_shape = result_tensor._shape.copy()
@@ -155,52 +231,73 @@ class MatmulMixin:
 
         result_tensor = result_tensor.reshape(result_shape)
 
-        _assign_grad_and_grad_fn(operandA, operandB, result_tensor, MmBackward)
+        _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, MmBackward)
 
         return result_tensor
     
     @staticmethod
-    def tensor_matmul_tensor_broadcasted(operandA: _TensorBase, operandB: _TensorBase) -> _TensorBase:
+    def tensor_matmul_tensor_broadcasted(tensorA: _TensorBase, tensorB: _TensorBase) -> _TensorBase:
         C_Lib._C.matmul_broadcasted.argtypes = [
             ctypes.POINTER(C_Tensor),
             ctypes.POINTER(C_Tensor),
         ]
         C_Lib._C.matmul_broadcasted.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = C_Lib._C.matmul_broadcasted(
-            operandA._tensor, operandB._tensor
-        )
+        if tensorA.is_contiguous and tensorB.is_contiguous:
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                tensorA._tensor, tensorB._tensor
+            )
+        elif not tensorA.is_contiguous and tensorB.is_contiguous:
+            operandA = tensorA._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                operandA._tensor, tensorB._tensor
+            )
+        elif tensorA.is_contiguous and not tensorB.is_contiguous:
+            operandB = tensorB._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                tensorA._tensor, operandB._tensor
+            )
+        else:
+            operandA = tensorA._make_contiguous()
+            operandB = tensorB._make_contiguous()
+            c_result_tensor = C_Lib._C.matmul_broadcasted(
+                operandA._tensor, operandB._tensor
+            )
 
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
 
-        _assign_grad_and_grad_fn(operandA, operandB, result_tensor, MmBackward)
+        _assign_grad_and_grad_fn(tensorA, tensorB, result_tensor, MmBackward)
 
         return result_tensor
 
 
 class TransposeMixin:
     @staticmethod
-    def T(operandA: _TensorBase) -> _TensorBase:
+    def T(tensorA: _TensorBase) -> _TensorBase:
         C_Lib._C.transpose_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
         ]
         C_Lib._C.transpose_tensor.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = C_Lib._C.transpose_tensor(operandA._tensor)
+        c_result_tensor = C_Lib._C.transpose_tensor(tensorA._tensor)
 
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+        result_tensor.is_contiguous = False
 
         return result_tensor
 
     @staticmethod
-    def mT(operandA: _TensorBase) -> _TensorBase:
+    def mT(tensorA: _TensorBase) -> _TensorBase:
         C_Lib._C.matrix_transpose_tensor.argtypes = [
             ctypes.POINTER(C_Tensor),
         ]
         C_Lib._C.matrix_transpose_tensor.restype = ctypes.POINTER(C_Tensor)
 
-        c_result_tensor = C_Lib._C.matrix_transpose_tensor(operandA._tensor)
+        c_result_tensor = C_Lib._C.matrix_transpose_tensor(tensorA._tensor)
 
         result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+        result_tensor.is_contiguous = False
 
         return result_tensor

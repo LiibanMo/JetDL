@@ -2,7 +2,7 @@ import ctypes
 import os
 from typing import Union
 
-from ._utils import _flatten
+from ._utils import _flatten, _C_to_Python_create_tensor
 
 class C_Lib:
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -60,6 +60,7 @@ class _TensorBase:
         self.requires_grad = requires_grad
         self.grad_fn = None
         self.grad = 0.0
+        self.is_contiguous = True
 
     def __del__(self) -> None:
         C_Lib._C.free_tensor.argtypes = [ctypes.POINTER(C_Tensor)]
@@ -139,3 +140,17 @@ class _TensorBase:
         item = C_Lib._C.get_item(self._tensor, c_indices, c_strides)
         return item
 
+    def _make_contiguous(self) -> "_TensorBase":
+        if self.is_contiguous:
+            return self
+        
+        C_Lib._C.make_contiguous.argtypes = [ctypes.POINTER(C_Tensor)]
+        C_Lib._C.make_contiguous.restype = ctypes.POINTER(C_Tensor)
+
+        c_result_tensor = C_Lib._C.make_contiguous(self._tensor)
+
+        result_tensor = _C_to_Python_create_tensor(c_result_tensor)
+
+        self.is_contiguous = True
+
+        return result_tensor

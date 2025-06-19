@@ -77,12 +77,6 @@ class Tensor(_TensorBase):
     
     def __rtruediv__(self, other) -> "Tensor":
         return (self.__pow__(-1)).__mul__(other)
-
-    def __pow__(self, other: Union[int, float]) -> "Tensor":
-        if isinstance(other, (int, float)):
-            return PowMixin.tensor_pow_scalar(self, other)
-        else:
-            raise TypeError(f"Invalid exponent type: {type(other)}.")
         
     def __matmul__(self, other: "Tensor") -> "Tensor":
         runtime_error = RuntimeError(
@@ -134,6 +128,9 @@ class Tensor(_TensorBase):
             raise ValueError(
                 f"Invalid dimensions for matmul. Got {self.ndim} and {other.ndim}."
             )
+        
+    def __pow__(self, other: Union[int, float]) -> "Tensor":
+        return PowMixin.tensor_pow_scalar(self, other)
 
     @property
     def shape(self) -> tuple:
@@ -151,13 +148,17 @@ class Tensor(_TensorBase):
 
     @property
     def T(self) -> "Tensor":
+        if self.ndim < 2:
+            return self
         return TransposeMixin.T(self)
 
     @property
     def mT(self) -> "Tensor":
+        if self.ndim < 2:
+            return self
         return TransposeMixin.mT(self)
 
-    def sum(self, axis: Union[int, list, tuple] = None) -> "Tensor":
+    def sum(self, axis: Union[None, int, list, tuple] = None) -> "Tensor":
         if axis is None:
             return SumMixin.total_sum(self)
         
@@ -174,7 +175,7 @@ class Tensor(_TensorBase):
             
             return SumMixin.sum_axes(self, input_axes)
 
-    def mean(self, axis: Union[int, list, tuple] = None) -> "Tensor":
+    def mean(self, axis: Union[None, int, list, tuple] = None) -> "Tensor":
         if axis is None:
             return MeanMixin.total_mean(self)
         elif isinstance(axis, int):

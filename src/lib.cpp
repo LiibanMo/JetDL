@@ -1,5 +1,7 @@
-#include <cstddef>
-#include <iostream>
+#include <cstddef>  
+#include <cstdio>   
+#include <cstdlib>  
+#include <algorithm> 
 #include "lib.h"
 #include "ops-cpu.h"
 #include "function-cpu.h"
@@ -60,6 +62,22 @@ float get_item(Tensor* tensor, int* indices) {
         index += tensor->strides[idx] * indices[idx];
     }
     return tensor->data[index];
+}
+
+Tensor* make_contiguous(Tensor* tensor) {
+    float* result_data = (float*)malloc(tensor->size * sizeof(float));
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+    
+    make_contiguous_cpu(tensor, result_data);
+
+    Tensor* result_tensor = create_tensor(result_data, tensor->shape, tensor->ndim);
+
+    free(result_data);
+
+    return result_tensor;
 }
 
 Tensor* add_tensor(Tensor* tensorA, Tensor* tensorB) {
@@ -243,7 +261,7 @@ Tensor* sub_broadcasted(Tensor* tensorA, Tensor* tensorB) {
         exit(1);
     }
 
-    sub_broadcasted_cpu(tensorA, tensorB, result_data, broadcasted_shape, broadcasted_size);
+    sub_broadcasted_cpu(tensorA, tensorB, result_data, broadcasted_shape);
 
     Tensor* result_tensor = create_tensor(result_data, broadcasted_shape, ndim);
 

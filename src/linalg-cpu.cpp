@@ -1,19 +1,14 @@
-#include <cstddef>
-#include <iostream>
-#include <cmath>
 #include <omp.h>
+#include <cblas.h>
+#include <cstdio>
+#include <cstdlib>
+#include <algorithm>
 #include "lib.h"
-
 
 void vector_dot_product_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int N = tensorA->shape[0];
-
-    float sum = 0;
-    #pragma omp parallel for reduction(+:sum)
-    for (int sum_idx = 0; sum_idx < N; sum_idx++) {
-        sum += tensorA->data[sum_idx] * tensorB->data[sum_idx];
-    }
-    result_data[0] = sum;
+    // Use cblas_sdot for vector dot product
+    result_data[0] = cblas_sdot(N, tensorA->data, 1, tensorB->data, 1);
 }
 
 void matmul_2d_2d_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
@@ -21,23 +16,14 @@ void matmul_2d_2d_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
     const int N = tensorA->shape[1];
     const int P = tensorB->shape[1];
 
-    const int NUM_ITERS = M * P * N;
-    const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(NUM_ITERS / 10, 1));
-
-    #pragma omp parallel for //num_threads(NUM_THREADS)
-    for (int row_idx = 0; row_idx < M; row_idx++) {
-        #pragma omp parallel for num_threads(NUM_THREADS)
-        for (int col_idx = 0; col_idx < P; col_idx++) {
-            float sum = 0;
-            for (int sum_idx = 0; sum_idx < N; sum_idx++) {
-                int idxA = tensorA->strides[tensorA->ndim-2]*row_idx + tensorA->strides[tensorA->ndim-1]*sum_idx;
-                int idxB = tensorB->strides[tensorB->ndim-2]*sum_idx + tensorB->strides[tensorB->ndim-1]*col_idx;
-                sum += tensorA->data[idxA] * tensorB->data[idxB]; 
-            }
-            int idx_result_data = P*row_idx + col_idx;
-            result_data[idx_result_data] = sum;
-        }
-    }
+    // Use cblas_sgemm for matrix multiplication
+    // C = alpha * A * B + beta * C
+    // where alpha = 1.0, beta = 0.0 (initialize result to zero)
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                M, P, N, 
+                1.0f, tensorA->data, N, 
+                tensorB->data, P, 
+                0.0f, result_data, P);
 }
 
 void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data){
@@ -74,39 +60,36 @@ void matmul_broadcasted_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data
     }
 
     const int NUM_ITERS = total_num_matrices * M * P * N;
-    const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(NUM_ITERS / 10, 1));
+    const int NUM_THREADS = std::min(omp_get_max_threads(), 
+                                   std::max(1, NUM_ITERS / (256 * 1024)));
 
-    #pragma omp parallel for collapse(3) num_threads(NUM_THREADS)
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (int batch_idx = 0; batch_idx < total_num_matrices; batch_idx++) {
-        for (int row_idx = 0; row_idx < M; row_idx++) {
-            for (int col_idx = 0; col_idx < P; col_idx++) {
-                float sum = 0;
-                #pragma omp parallel for reduction(+:sum)
-                for (int sum_idx = 0; sum_idx < N; sum_idx++) { 
-                    int idxA = stridesA[max_ndim-3]*batch_idx + stridesA[max_ndim-2]*row_idx + stridesA[max_ndim-1]*sum_idx;
-                    int idxB = stridesB[max_ndim-3]*batch_idx + stridesB[max_ndim-2]*sum_idx + stridesB[max_ndim-1]*col_idx;
-                    sum += tensorA->data[idxA] * tensorB->data[idxB];
-                }
-                int idx_result = M*P*batch_idx + P*row_idx + col_idx;
-                result_data[idx_result] = sum;
-            }
-        }
+        // Use cblas_sgemm for each batch
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                    M, P, N, 
+                    1.0f, 
+                    &tensorA->data[stridesA[max_ndim-3]*batch_idx], N, 
+                    &tensorB->data[stridesB[max_ndim-3]*batch_idx], P, 
+                    0.0f, 
+                    &result_data[M*P*batch_idx], P);
     }
 
-    if (tensorA->ndim < max_ndim) {
+    if (tensorA->ndim < max_ndim && stridesA) {
         free(stridesA);
-    } else { // tensorB->ndim < max_ndim
+    }
+    if (tensorB->ndim < max_ndim && stridesB) {
         free(stridesB);
     }
 }
 
 void outer_cpu(Tensor* tensorA, Tensor* tensorB, float* result_data) {
-    const int NUM_THREADS = std::max(omp_get_max_threads(), std::min(tensorA->size * tensorB->size / 10, 1));
-
-    #pragma omp parallel for collapse(2) num_threads(NUM_THREADS)
-    for (int i = 0; i < tensorA->size; i++) {
-        for (int j = 0; j < tensorB->size; j++) {
-            result_data[tensorB->size * i + j] = tensorA->data[i] * tensorB->data[j];
+    const int N = tensorA->size;
+    const int M = tensorB->size;
+    
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            result_data[i * M + j] = tensorA->data[i] * tensorB->data[j];
         }
     }
 }

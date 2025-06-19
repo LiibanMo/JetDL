@@ -1,8 +1,5 @@
-import ctypes
 from ._utils import _obtain_broadcasted_batch_dims
 from .function import Function
-from ..tensor._C import C_Lib, C_Tensor
-from ..tensor._utils import _C_to_Python_create_tensor
 
 
 class MmBackward(Function):

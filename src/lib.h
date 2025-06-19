@@ -12,6 +12,8 @@ typedef struct {
 extern "C" {
     Tensor* create_tensor(float* data, int* shape, int ndim);
     float get_item(Tensor* tensor, int* indices);
+    Tensor* make_contiguous(Tensor* tensor);
+
     Tensor* add_tensor(Tensor* tensor, Tensor* tensorB);
     Tensor* scalar_add_tensor(Tensor* tensorA, float operand);
     Tensor* add_broadcasted(Tensor* tensorA, Tensor* tensorB);
