@@ -56,8 +56,8 @@ jobs:
         run: |
           choco install -y cmake
           git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
-          "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
-          "$env:VCPKG_ROOT\vcpkg.exe" install openblas:x64-windows
+          & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+          & "$env:VCPKG_ROOT\vcpkg.exe" install openblas:x64-windows
           choco install -y llvm
         shell: pwsh
         env:
