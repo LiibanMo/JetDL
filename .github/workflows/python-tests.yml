@@ -56,6 +56,26 @@ jobs:
         run: |
           choco install -y cmake
           git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
+
+          # --- DEBUGGING LINES TO VERIFY VCPKG CLONE ---
+          Write-Host "VCPKG_ROOT is set to: '$env:VCPKG_ROOT'"
+          Write-Host "Checking if VCPKG_ROOT directory exists..."
+          if (-not (Test-Path "$env:VCPKG_ROOT")) {
+            Write-Error "Error: VCPKG_ROOT directory '$env:VCPKG_ROOT' does not exist after git clone!"
+            exit 1
+          }
+          Write-Host "Listing contents of '$env:VCPKG_ROOT' (first 2 levels):"
+          Get-ChildItem -Path "$env:VCPKG_ROOT" -Recurse -Depth 2 | Format-List FullName,PSIsContainer # List files and dirs
+          
+          Write-Host "Checking for existence of bootstrap-vcpkg.bat..."
+          if (-not (Test-Path "$env:VCPKG_ROOT\bootstrap-vcpkg.bat")) {
+            Write-Error "Error: 'bootstrap-vcpkg.bat' not found at '$env:VCPKG_ROOT\bootstrap-vcpkg.bat'."
+            Write-Error "Please verify the git clone command, the VCPKG_ROOT path, and the script name."
+            exit 1 # Fail the step if the script isn't found
+          }
+          Write-Host "'bootstrap-vcpkg.bat' found. Proceeding with bootstrap."
+          # --- END DEBUGGING LINES ---
+
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
           & "$env:VCPKG_ROOT\vcpkg.exe" install openblas:x64-windows
           choco install -y llvm
