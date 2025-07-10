@@ -64,8 +64,14 @@ jobs:
           pip install -r requirements.txt
           
       - name: Build shared library(s) (Linux\MacOS)
+        if: runner.os != 'Windows'
         run: |
           pip install -e .
+
+      - name: Build shared library(s) (Linux\MacOS)
+        if: runner.os == 'Windows'
+        run: |
+          pip install -e . --config-settings="cmake.args=-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake;-DCMAKE_FIND_DEBUG_MODE=TRUE;-DCMAKE_VERBOSE_MAKEFILE=ON"
 
       - name: Run tests
         run: | 

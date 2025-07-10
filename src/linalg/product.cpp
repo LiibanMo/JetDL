@@ -1,9 +1,12 @@
 #include "product.hpp"
 #include "product-cpu.hpp"
 
+#include <pybind11/pybind11.h>
 #include <vector>
 #include <cstdio>
 #include <algorithm>
+
+namespace py = pybind11;
 
 Tensor c_matmul(const Tensor& a, const Tensor& b) {
     Tensor result_tensor = Tensor();
@@ -29,8 +32,12 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
         int dimA = (idxA < 0) ? 0 : a.shape[idxA];
         int dimB = (idxB < 0) ? 0 : b.shape[idxB];
 
-        stridesA[i] = dimA;
-        stridesB[i] = dimB;
+        if ((dimA != 1 && dimA < dimB) || (dimB != 1 && dimB < dimA)) {
+            std::invalid_argument()
+        }
+        
+        stridesA[i] = (dimA < dimB) ? 0 : dimA;
+        stridesB[i] = (dimB < dimA) ? 0 : dimB;
 
         nbatch *= (dimA < dimB) ? dimB : dimA;
     }
