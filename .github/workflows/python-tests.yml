@@ -56,13 +56,15 @@ jobs:
       - name: Install build dependencies (Windows)
         if: runner.os == 'Windows'
         run:
-          choco install -y llvm
-          choco install -y cmake
-          choco install -y miniconda3
+          choco install -y 
+          llvm
+          cmake
+          miniconda3
           conda create -n jetdl_env python=${{ matrix.python-version }}
           conda activate jetdl_env
-          conda install -y pybind11
-          conda install -y openblas 
+          conda install -y
+          pybind11
+          openblas 
         shell: pwsh
 
       - name: Install dependencies
