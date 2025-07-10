@@ -1,5 +1,5 @@
-from .matrix_products import outer
+from .products import matmul
 
 __all__ = [
-    "outer",
+    "matmul",
 ]

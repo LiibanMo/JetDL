@@ -12,28 +12,40 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Test on ${{ matrix.runner }} with Python ${{ matrix.python-version }}
+    strategy:
+      matrix:
+        runner:
+          - ubuntu-latest
+          - ubuntu-latest-arm64
+        python-version:
+          - 3.11
+          - 3.x
+
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.11
-          
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install build dependencies (apt-get)
+        run: |
+          apt-get update
+          apt-get install -y build-essential cmake
+
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libomp-dev libopenblas-dev
-          python -m pip install --upgrade pip
-          pip install wheel
-          pip install .
-          pip install pytest==8.3.4
+          pip install -U pip
+          pip install -r requirements.txt
           
       - name: Build shared library(s)
-        run: python setup.py build_ext --inplace
+        run: pip install -e .
 
       - name: Run tests
         run: | 
