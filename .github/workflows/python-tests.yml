@@ -21,7 +21,7 @@ jobs:
           - macos-latest
         python-version:
           - 3.11
-          - 3.x
+          - 3.13
 
     runs-on: ${{ matrix.runner }}
 
@@ -35,11 +35,28 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
-      - name: Install build dependencies (apt-get)
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
+          sudo apt-get install -y gfortran
           sudo apt-get install -y build-essential cmake
           sudo apt-get install -y libopenblas-dev
+
+      - name: Install build dependencies (MacOS)
+        if: runner.os == 'MacOS'
+        run:
+          brew update
+          brew install cmake
+          brew install openblas
+
+      - name: Install build dependencies (Windows)
+        if: runner.os == 'Windows'
+        run:
+          choco install -y cmake
+          choco install -y miniconda3
+          conda create -n jetdl_env python=${{ matrix.python-version }} openblas -y
+          conda activate jetdl_env
 
       - name: Install dependencies
         run: |
