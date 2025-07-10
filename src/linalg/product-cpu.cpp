@@ -1,5 +1,4 @@
 #include "product-cpu.hpp"
-#include <omp.h>
 
 #if defined(__ARM_NEON__)
 #include <arm_neon.h>
