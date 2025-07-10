@@ -47,7 +47,6 @@ jobs:
       - name: Install build dependencies (MacOS)
         if: runner.os == 'MacOS'
         run:
-          brew upgrade
           brew install llvm
           brew install openblas
           brew install pybind11
