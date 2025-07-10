@@ -60,8 +60,6 @@ jobs:
           & "$env:VCPKG_ROOT\vcpkg.exe" install openblas:x64-windows
           choco install -y llvm
         shell: pwsh
-        env:
-          VCPKG_ROOT: C:\vcpkg
 
       - name: Install dependencies
         run: |
