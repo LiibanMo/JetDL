@@ -5,6 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
+find_package(BLAS REQUIRED)
 
 pybind11_add_module(_Cpp 
     bindings.cpp
@@ -25,16 +26,13 @@ target_compile_options(_Cpp PRIVATE
     -fPIC
     -DNDEBUG
     -march=native
-    -I/opt/homebrew/opt/openblas/include
 )
 
 target_link_libraries(_Cpp PRIVATE 
-    -L/opt/homebrew/opt/openblas/lib 
-    -lopenblas
-    -lblas
+    ${BLAS_LIBRARIES}
 )
 
 target_include_directories(_Cpp PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    /opt/homebrew/opt/openblas/include
+    ${BLAS_INCLUDE_DIRS} 
 )
