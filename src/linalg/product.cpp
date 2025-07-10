@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdio>
+#include <algorithm>
 
 Tensor c_matmul(const Tensor& a, const Tensor& b) {
     Tensor result_tensor = Tensor();
@@ -10,6 +11,29 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     const int m = a.shape[a.ndim - 2];
     const int n = a.shape[a.ndim - 1];
     const int p = b.shape[b.ndim - 1];
+
+    const int max_ndim = std::max(a.ndim, b.ndim);
+
+    int* stridesA = (int*)malloc(max_ndim * sizeof(int));
+    int* stridesB = (int*)malloc(max_ndim * sizeof(int));
+    if (!stridesA || !stridesB) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    int nbatch = 1;
+    for (int i = 0; i < max_ndim-2; i++) {
+        int idxA = a.ndim - max_ndim + i;
+        int idxB = b.ndim - max_ndim + i;
+
+        int dimA = (idxA < 0) ? 0 : a.shape[idxA];
+        int dimB = (idxB < 0) ? 0 : b.shape[idxB];
+
+        stridesA[i] = dimA;
+        stridesB[i] = dimB;
+
+        nbatch *= (dimA < dimB) ? dimB : dimA;
+    }
 
     result_tensor.size = m * p;
     result_tensor._data = std::vector<float>(result_tensor.size, 0.0f);
@@ -23,7 +47,6 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     const int DATA1_SIZE = DATA1_ROWS * n;
     const int DATA2_SIZE = n * DATA2_COLS;
 
-    
     float* data1 = (float*)malloc(DATA1_SIZE * sizeof(float));
     float* data2 = (float*)malloc(DATA2_SIZE * sizeof(float));
     if (!data1 || !data2) {
