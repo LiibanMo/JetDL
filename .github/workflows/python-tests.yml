@@ -39,24 +39,31 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gfortran
+          sudo apt-get install -y clang llvm
           sudo apt-get install -y build-essential cmake
           sudo apt-get install -y libopenblas-dev
+          sudo apt-get install -y python3-pybind11 pybind11-dev
 
       - name: Install build dependencies (MacOS)
         if: runner.os == 'MacOS'
         run:
-          brew update
-          brew install cmake
+          brew install llvm
           brew install openblas
+          brew install pybind11
+          brew install cmake
+          brew upgrade
 
       - name: Install build dependencies (Windows)
         if: runner.os == 'Windows'
         run:
+          choco install -y llvm
           choco install -y cmake
           choco install -y miniconda3
-          conda create -n jetdl_env python=${{ matrix.python-version }} openblas -y
+          conda create -n jetdl_env python=${{ matrix.python-version }}
           conda activate jetdl_env
+          conda install -y pybind11
+          conda install -y openblas 
+        shell: pwsh
 
       - name: Install dependencies
         run: |
