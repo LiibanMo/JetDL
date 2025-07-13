@@ -45,19 +45,18 @@ jobs:
 
       - name: Install build dependencies (MacOS)
         if: runner.os == 'MacOS'
-        run:
-          brew install 
-          llvm
-          openblas
-          cmake
+        run: |
+          brew install llvm openblas cmake
 
       - name: Install build dependencies (Windows)
         if: runner.os == 'Windows'
-        run: |
-          choco install -y cmake openblas
-          choco install -y llvm
-        shell: pwsh
-
+        uses: lukka/run-vcpkg@v10
+        with:
+          vcpkgJsonGlob: '**/vcpkg.json'
+          vcpkgGitCommitId: 'latest'
+        env:
+          VCPKG_DEFAULT_TRIPLET: 'x64-windows'
+  
       - name: Install dependencies
         run: |
           pip install -U pip
@@ -68,10 +67,11 @@ jobs:
         run: |
           pip install -e .
 
-      - name: Build shared library(s) (Linux\MacOS)
+      - name: Build shared library(s) (Windows)
         if: runner.os == 'Windows'
         run: |
-          pip install -e . --config-settings="cmake.args=-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake;-DCMAKE_FIND_DEBUG_MODE=TRUE;-DCMAKE_VERBOSE_MAKEFILE=ON"
+          pip install -e . --config-settings="cmake.args=-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
+        shell: pwsh
 
       - name: Run tests
         run: | 

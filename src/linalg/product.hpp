@@ -1,10 +1,11 @@
 #pragma once
 
-#ifndef PRODUCT_H
-#define PRODUCT_H
+#ifndef PRODUCT_HPP
+#define PRODUCT_HPP
 
 #include "../tensor.hpp"
 
-Tensor c_matmul(const Tensor& a, const Tensor& b);
+// Tensor c_dot(Tensor& a, Tensor& b);
+Tensor c_matmul(Tensor& a, Tensor& b);
 
 #endif

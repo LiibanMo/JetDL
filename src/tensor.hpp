@@ -27,4 +27,17 @@ class Tensor {
         bool requires_grad;
 };
 
+inline void _obtain_strides(Tensor& tensor) {
+    if (tensor.shape.empty()) {
+        throw std::runtime_error("no shape allocated for strides to be obtained from.");
+    }
+    if (!tensor.ndim) {
+        throw std::runtime_error("no ndim provided for strides to be calculated.");
+    }
+    tensor.strides = std::vector(tensor.ndim, 1);
+    for (int idx = tensor.ndim-1; idx > 0; idx--) {
+        tensor.strides[idx-1] = tensor.strides[idx] * tensor.shape[idx];
+    }
+}
+
 #endif

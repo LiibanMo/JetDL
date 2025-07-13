@@ -1,6 +1,7 @@
 #include "tensor.hpp"
 
 #include <cstring>
+#include <vector>
 
 namespace py = pybind11;
 

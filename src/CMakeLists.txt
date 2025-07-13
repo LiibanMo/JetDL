@@ -18,12 +18,15 @@ else()
     set(ACTUAL_BLAS_INCLUDE_DIRS ${OpenBLAS_INCLUDE_DIRS})
 endif()
 
+file(GLOB LINALG_SOURCES 
+    "linalg/*.cpp"
+    "linalg/product/*.cpp"
+)
+
 pybind11_add_module(_Cpp 
     bindings.cpp
     tensor.cpp
-
-    linalg/product.cpp
-    linalg/product-cpu.cpp
+    ${LINALG_SOURCES}
 )
 
 set_target_properties(_Cpp PROPERTIES
