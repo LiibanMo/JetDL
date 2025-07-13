@@ -52,6 +52,13 @@ jobs:
         run: |
           pip install -U pip
           pip install -r requirements.txt
+
+      - name: Install OpenBLAS using vcpkg
+        if: runner.os == 'Windows'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg.exe install openblas:x64-windows
           
       - name: Build shared library(s) (Linux\MacOS)
         if: runner.os != 'Windows'
