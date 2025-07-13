@@ -47,15 +47,6 @@ jobs:
         if: runner.os == 'MacOS'
         run: |
           brew install llvm openblas cmake
-
-      - name: Install build dependencies (Windows)
-        if: runner.os == 'Windows'
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: '5b1214315250939257ef5d62ecdcbca18cf4fb1c'
-          vcpkgJsonGlob: '**/vcpkg.json'
-        env:
-          VCPKG_DEFAULT_TRIPLET: 'x64-windows'
   
       - name: Install dependencies
         run: |
