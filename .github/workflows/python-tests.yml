@@ -61,7 +61,7 @@ jobs:
       - name: Build shared library(s) (Windows)
         if: runner.os == 'Windows'
         run: |
-          pip install -e . --config-settings="cmake.args=-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
+          pip install -e .
         shell: pwsh
 
       - name: Run tests
