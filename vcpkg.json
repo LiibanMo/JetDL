@@ -1,9 +1,5 @@
 {
-  "name": "jetdl",
-  "version-string": "0.1.0",
   "dependencies": [
-    "cmake",
-    "openblas",
-    "llvm"
+    "openblas"
   ]
 }

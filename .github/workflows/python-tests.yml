@@ -58,7 +58,8 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg.exe install openblas:x64-windows
+          cd ${{ github.workspace }}
+          .\vcpkg\vcpkg.exe install 
           
       - name: Build shared library(s) (Linux\MacOS)
         if: runner.os != 'Windows'
