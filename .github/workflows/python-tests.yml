@@ -54,7 +54,15 @@ jobs:
           pip install -U pip
           pip install -r requirements.txt
           
-      - name: Build shared library(s)
+      - name: Build shared library(s) with debug symbols (Linux)
+        if: runner.os == 'Linux'
+        env:
+          CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+        run: |
+          pip install --verbose -e .
+          
+      - name: Build shared library(s) (MacOS)
+        if: runner.os == 'MacOS'
         run: |
           pip install -e .
           
