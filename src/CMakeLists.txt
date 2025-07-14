@@ -39,6 +39,7 @@ target_compile_options(_Cpp PRIVATE
     -ffast-math
     -fPIC
     # -DNDEBUG
+    -g
     -march=native
 )
 
