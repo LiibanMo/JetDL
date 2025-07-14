@@ -74,5 +74,11 @@ jobs:
         shell: pwsh
 
       - name: Run tests
+        if: runner.os != 'Linux'
         run: | 
           pytest -v --disable-warnings
+
+      - name: Run tests with GDB (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          gdb -ex run --args python -m pytest -v --disable-warnings
