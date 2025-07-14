@@ -17,11 +17,11 @@ jobs:
       matrix:
         runner:
           - ubuntu-latest
-          - windows-latest
           - macos-latest
         python-version:
           - 3.11
           - 3.12
+          - 3.13
 
     runs-on: ${{ matrix.runner }}
 
@@ -53,26 +53,11 @@ jobs:
         run: |
           pip install -U pip
           pip install -r requirements.txt
-
-      - name: Install OpenBLAS using vcpkg (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          .\vcpkg\bootstrap-vcpkg.bat
-          cd ${{ github.workspace }}
-          .\vcpkg\vcpkg.exe install 
           
-      - name: Build shared library(s) (Linux\MacOS)
-        if: runner.os != 'Windows'
+      - name: Build shared library(s)
         run: |
           pip install -e .
-
-      - name: Build shared library(s) (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          pip install -e .
-        shell: pwsh
-
+          
       - name: Run tests
         if: runner.os != 'Linux'
         run: | 
@@ -81,4 +66,4 @@ jobs:
       - name: Run tests with GDB (Linux)
         if: runner.os == 'Linux'
         run: |
-          gdb -ex run --args python -m pytest -v --disable-warnings
+          gdb -ex 'set pagination off' -ex 'run' -ex 'bt' -ex 'quit' --args python -m pytest -v --disable-warnings
