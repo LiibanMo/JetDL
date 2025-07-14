@@ -56,10 +56,8 @@ jobs:
           
       - name: Build shared library(s) with debug symbols (Linux)
         if: runner.os == 'Linux'
-        env:
-          CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
         run: |
-          pip install --verbose -e .
+          pip install --verbose -e . --config-settings=cmake.args="-DCMAKE_BUILD_TYPE=Debug"
           
       - name: Build shared library(s) (MacOS)
         if: runner.os == 'MacOS'
