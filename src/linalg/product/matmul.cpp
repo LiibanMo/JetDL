@@ -108,6 +108,8 @@ Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
             idx1[axis] = 0;
         }
     }
+    free(stridesA);
+    free(idx1);
 
     for (int i = 0; i < NBATCH; i++) {
         for (int j = 0; j < NDIM_BATCH; j++) {
@@ -124,6 +126,9 @@ Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
             idx2[axis] = 0;
         }
     }
+    free(stridesB);
+    free(idx2);
+    free(max_dim_values);
     // ------------------------------------------
 
     float* result_data = (float*)malloc(NBATCH * RESULT_DATA_SIZE * sizeof(float));
@@ -158,6 +163,11 @@ Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
         }
         std::memcpy(&result_data[batch * RESULT_DATA_SIZE], result_matrix, RESULT_DATA_SIZE * sizeof(float));
     }
+    free(idxs1);
+    free(idxs2);
+    free(result_matrix);
+    free(data1_matrix);
+    free(data2_matrix);
     
     for (int batch = 0; batch < NBATCH; batch++) {
         for (int i = 0; i < DATA1_ROWS; i++) {
@@ -166,19 +176,9 @@ Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
             }
         }
     }
+    free(result_data);
 
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
-
-    free(idx1);
-    free(idxs1);
-    free(idx2);
-    free(idxs2);
-    free(stridesA);
-    free(stridesB);
-    free(result_data);
-    free(result_matrix);
-    free(data1_matrix);
-    free(data2_matrix);
 
     return result_tensor;
 }
