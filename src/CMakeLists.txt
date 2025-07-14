@@ -35,10 +35,10 @@ set_target_properties(_Cpp PROPERTIES
 
 target_compile_options(_Cpp PRIVATE
     -std=c++17
-    -O3
+    # -O3
     -ffast-math
     -fPIC
-    -DNDEBUG
+    # -DNDEBUG
     -march=native
 )
 
