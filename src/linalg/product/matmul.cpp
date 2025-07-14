@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 #include <pybind11/pybind11.h>
 #include <stdexcept>
 #include <vector>
@@ -28,8 +29,8 @@ Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
     result_tensor.shape[max_ndim-1] = P;
     result_tensor.shape[max_ndim-2] = M; 
 
-    int* stridesA = (int*)malloc(max_ndim * sizeof(int));
-    int* stridesB = (int*)malloc(max_ndim * sizeof(int));
+    int* stridesA = (int*)calloc(max_ndim, sizeof(int));
+    int* stridesB = (int*)calloc(max_ndim, sizeof(int));
     if (!stridesA || !stridesB) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
@@ -74,11 +75,11 @@ Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
     const int RESULT_DATA_SIZE = DATA1_ROWS * DATA2_COLS;
 
     const int NDIM_BATCH = max_ndim - 2;
-    int* idxs1 = (int*)malloc(NBATCH * sizeof(int));
-    int* idx1 = (int*)malloc(NDIM_BATCH * sizeof(int));
-    int* idxs2 = (int*)malloc(NBATCH * sizeof(int));
-    int* idx2 = (int*)malloc(NDIM_BATCH * sizeof(int));
-    int* max_dim_values = (int*)malloc(NDIM_BATCH * sizeof(int));
+    int* idxs1 = (int*)calloc(NBATCH, sizeof(int));
+    int* idx1 = (int*)calloc(NDIM_BATCH, sizeof(int));
+    int* idxs2 = (int*)calloc(NBATCH, sizeof(int));
+    int* idx2 = (int*)calloc(NDIM_BATCH, sizeof(int));
+    int* max_dim_values = (int*)calloc(NDIM_BATCH, sizeof(int));
     if (!idxs1 || !idx1 || !idxs2 || !idx2) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
@@ -131,10 +132,10 @@ Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
     free(max_dim_values);
     // ------------------------------------------
 
-    float* result_data = (float*)malloc(NBATCH * RESULT_DATA_SIZE * sizeof(float));
-    float* result_matrix = (float*)malloc(RESULT_DATA_SIZE * sizeof(float));
-    float* data1_matrix = (float*)malloc(DATA1_MAT_SIZE * sizeof(float));
-    float* data2_matrix = (float*)malloc(DATA2_MAT_SIZE * sizeof(float));
+    float* result_data = (float*)calloc(NBATCH * RESULT_DATA_SIZE, sizeof(float));
+    float* result_matrix = (float*)calloc(RESULT_DATA_SIZE, sizeof(float));
+    float* data1_matrix = (float*)calloc(DATA1_MAT_SIZE, sizeof(float));
+    float* data2_matrix = (float*)calloc(DATA2_MAT_SIZE, sizeof(float));
     if (!result_data || !result_matrix || !data1_matrix || !data2_matrix) {
         throw std::runtime_error("Memory allocation failed.\n");
     }

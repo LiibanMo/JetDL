@@ -54,22 +54,10 @@ jobs:
           pip install -U pip
           pip install -r requirements.txt
           
-      - name: Build shared library(s) with debug symbols (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          pip install --verbose -e . --config-settings=cmake.args="-DCMAKE_BUILD_TYPE=Debug"
-          
-      - name: Build shared library(s) (MacOS)
-        if: runner.os == 'MacOS'
+      - name: Build shared library(s)
         run: |
           pip install -e .
           
       - name: Run tests
-        if: runner.os != 'Linux'
         run: | 
           pytest -v --disable-warnings
-
-      - name: Run tests with GDB (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          gdb -ex 'set pagination off' -ex 'run' -ex 'bt' -ex 'quit' --args python -m pytest -v --disable-warnings
