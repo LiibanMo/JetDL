@@ -1,6 +1,7 @@
 #include "check.hpp"
 
 #include <pybind11/pybind11.h>
+#include <stdexcept>
 #include <vector>
 
 namespace py = pybind11;
