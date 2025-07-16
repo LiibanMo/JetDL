@@ -1,10 +1,6 @@
 #pragma once
 
-#ifndef MATMUL_HPP
-#define MATMUL_HPP
+#include "../../tensor/tensor.hpp"
 
-#include "../../tensor.hpp"
-
+Tensor c_matvec(const Tensor& a, const Tensor& b);
 Tensor c_matmul_batched(const Tensor& a, const Tensor& b);
-
-#endif

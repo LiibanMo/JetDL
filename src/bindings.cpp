@@ -1,4 +1,4 @@
-#include "tensor.hpp"
+#include "tensor/tensor.hpp"
 #include "linalg/product.hpp"
 
 #include <pybind11/stl.h>

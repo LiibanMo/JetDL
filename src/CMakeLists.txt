@@ -6,27 +6,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
-find_package(OpenBLAS CONFIG QUIET)
-if(NOT OpenBLAS_FOUND)
-    message(STATUS "OpenBLASConfig.cmake not found. Falling back to generic FindBLAS.")
-    find_package(BLAS REQUIRED)
-    set(ACTUAL_BLAS_LIBRARIES ${BLAS_LIBRARIES})
-    set(ACTUAL_BLAS_INCLUDE_DIRS ${BLAS_INCLUDE_DIRS})
-else()
-    message(STATUS "OpenBLASConfig.cmake found. Using OpenBLAS specific variables.")
-    set(ACTUAL_BLAS_LIBRARIES ${OpenBLAS_LIBRARIES})
-    set(ACTUAL_BLAS_INCLUDE_DIRS ${OpenBLAS_INCLUDE_DIRS})
-endif()
+file (GLOB TENSOR_SOURCES
+    "tensor/*.cpp"
+)
 
 file(GLOB LINALG_SOURCES 
     "linalg/*.cpp"
     "linalg/product/*.cpp"
 )
 
+file(GLOB UTILS_SOURCES
+    "utils/*.cpp"
+)
+
 pybind11_add_module(_Cpp 
     bindings.cpp
-    tensor.cpp
+    ${TENSOR_SOURCES}
     ${LINALG_SOURCES}
+    ${UTILS_SOURCES}
 )
 
 set_target_properties(_Cpp PROPERTIES
@@ -42,11 +39,32 @@ target_compile_options(_Cpp PRIVATE
     -march=native
 )
 
-target_link_libraries(_Cpp PRIVATE 
-    ${ACTUAL_BLAS_LIBRARIES}
+target_include_directories(_Cpp PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} 
 )
 
-target_include_directories(_Cpp PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${ACTUAL_BLAS_INCLUDE_DIRS} 
-)
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/opt/homebrew/opt/openblas")
+message(STATUS "CMAKE_PREFIX_PATH set to: ${CMAKE_PREFIX_PATH}")
+
+set(BLA_VENDOR OpenBLAS)
+
+find_package(BLAS REQUIRED)
+
+if(BLAS_FOUND)
+    message(STATUS "BLAS found: ${BLAS_LIBRARIES}")
+    message(STATUS "BLAS include directories: ${BLAS_INCLUDE_DIRS}")
+
+    target_link_libraries(_Cpp PRIVATE 
+        ${BLAS_LIBRARIES}
+    )
+
+    if(BLAS_INCLUDE_DIRS)
+        target_include_directories(_Cpp PRIVATE ${BLAS_INCLUDE_DIRS})
+    else()
+        # Fallback if BLAS_INCLUDE_DIRS
+        message(WARNING "BLAS_INCLUDE_DIRS was not set by FindBLAS. Manually adding common OpenBLAS include path.")
+        target_include_directories(_Cpp PRIVATE "${CMAKE_PREFIX_PATH}/include")
+    endif()
+else()
+    message(FATAL_ERROR "OpenBLAS (or a compatible BLAS) not found. Please install OpenBLAS and ensure it's discoverable by CMake.")
+endif()
