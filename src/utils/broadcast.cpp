@@ -1,6 +1,8 @@
 #include "broadcast.hpp"
 #include "auxillary.hpp"
 
+#include <stdexcept>
+
 namespace utils {
 
     namespace broadcast {
