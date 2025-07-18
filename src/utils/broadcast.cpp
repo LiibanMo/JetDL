@@ -1,7 +1,9 @@
 #include "broadcast.hpp"
 #include "auxillary.hpp"
 
+#include <cstdlib>
 #include <stdexcept>
+#include <vector>
 
 namespace utils {
 
@@ -67,7 +69,7 @@ namespace utils {
 
                 result_shape[i] = std::max(dim1, dim2);
             }
-
+        
             // Assumes only one operand can be a vector
             if (ndim1 == 1) {
                 result_shape.erase(result_shape.end() - 2);

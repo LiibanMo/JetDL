@@ -2,5 +2,7 @@
 
 #include "../tensor/tensor.hpp"
 
-// Tensor c_dot(Tensor& a, Tensor& b);
-Tensor c_matmul(Tensor& a, Tensor& b);
+namespace linalg {
+    Tensor dot(const Tensor& a, const Tensor& b);
+    Tensor matmul(const Tensor& a, const Tensor& b);
+}

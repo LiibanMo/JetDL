@@ -8,6 +8,10 @@ numeric = Union[int, float]
 class Tensor(TensorBase):
     def __init__(self, data: list[numeric], requires_grad: bool) -> None:
         super().__init__(data, requires_grad)
+
+    def __matmul__(a: "Tensor", b: "Tensor") -> "Tensor":
+        from ..linalg import matmul
+        return matmul(a, b)
     
 def tensor(data: list[numeric], requires_grad: bool = True) -> Tensor:
     """

@@ -19,6 +19,7 @@ PYBIND11_MODULE(_Cpp, m) {
         .def_readonly("size", &Tensor::size)
         .def_readonly("strides", &Tensor::strides)
         .def_readonly("requires_grad", &Tensor::requires_grad);
-        
-    m.def("c_matmul", &c_matmul, py::call_guard<py::gil_scoped_release>());
+       
+    m.def("c_dot", &linalg::dot, py::call_guard<py::gil_scoped_release>());
+    m.def("c_matmul", &linalg::matmul, py::call_guard<py::gil_scoped_release>());
 }

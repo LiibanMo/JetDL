@@ -4,10 +4,12 @@ from .tensor import (
 )
 
 from .linalg import (
+    dot,
     matmul,
 )
 __all__ = [
     "Tensor",
     "tensor",
+    "dot",
     "matmul",
 ]

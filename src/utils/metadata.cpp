@@ -10,7 +10,7 @@ namespace utils {
             std::vector<float> result;
             for (auto item : data) {
                 if (py::isinstance<py::list>(item)) {
-                    auto nested_result = flattenNestedPylist(py::cast<py::list>(item));
+                    std::vector<float> nested_result = flattenNestedPylist(py::cast<py::list>(item));
                     result.insert(result.end(), nested_result.begin(), nested_result.end());
                 } else {
                     result.push_back(py::cast<float>(item));
@@ -26,7 +26,7 @@ namespace utils {
             }   
             shape.push_back(static_cast<int>(data.size()));
             if (!data.empty() && py::isinstance<py::list>(data[0])) {
-                auto nested_shape = getShape(py::cast<py::list>(data[0]));
+                std::vector<int> nested_shape = getShape(py::cast<py::list>(data[0]));
                 shape.insert(shape.end(), nested_shape.begin(), nested_shape.end());
             }
             return shape;

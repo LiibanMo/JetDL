@@ -26,9 +26,19 @@ namespace utils {
                 };
 
                 IntPtrs getBroadcastStrides();
+
                 std::vector<int> getResultShape();
+
         };
-    
+            
+        static inline int getBatchSize(std::vector<int> shape) {
+            int BATCH_SIZE = 1;
+            for (int i = shape.size()-3; i >= 0; i--) {
+                BATCH_SIZE *= shape[i];
+            }
+            return BATCH_SIZE;
+        }
+
     }
 
 }

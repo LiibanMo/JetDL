@@ -10,23 +10,63 @@ namespace utils {
 
     namespace check {
 
-        void matvecConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
-            // (..., M, N) @ (N)
+        void dotConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+            // (N) @ (N)
             const int ndim1 = shape1.size();
             const int ndim2 = shape2.size();
+
+            if (!(ndim1 == 1 && ndim2 == 1)) {
+                throw std::runtime_error("dot (C++): Wrong error checking used.");
+            }
+
+            if (shape1[0] != shape2[0]) {
+                py::gil_scoped_acquire acquire;
+                throw py::value_error(
+                    py::str(
+                        "matmul: Input operands have incompatible shapes; {} != {}"
+                    )
+                    .format(shape1[0], shape2[0])
+                );
+            }
+        }
+
+        void matvecConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+            // (..., M, N) @ (N)
+            const int ndim1 = shape1.size(); 
+            const int ndim2 = shape2.size(); // == 1
 
             if (!(ndim1 > 1 && ndim2 == 1)) {
                 throw std::runtime_error("matvec (C++): Wrong error checking used.");
             } 
             
             const int N = shape2[0];
-            if (shape1[ndim1-2] != N) {
+            if (shape1[ndim1-1] != N) {
                 py::gil_scoped_acquire acquire;
                 throw py::value_error(
                     py::str(
                         "matmul: Input operands have incompatible shapes; {} != {}"
                     )
-                    .format(shape1[ndim1-2], N)
+                    .format(shape1[ndim1-1], N)
+                );
+            }
+        }
+
+        void vecmatConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+            // (N) @ (..., N, P)
+            const int ndim1 = shape1.size(); // == 1
+            const int ndim2 = shape2.size();
+
+            if (!(ndim1 == 1 && ndim2 > 1)) {
+                throw std::runtime_error("vecmat (C++): Wrong error checking used.");
+            }
+
+            const int N = shape1[0];
+            if (shape2[ndim2-2] != N) {
+                py::gil_scoped_acquire acquire;
+                throw py::value_error(
+                    py::str(
+                        "matmul: Input operands have incompatible shapes; {} != {}"
+                    )
                 );
             }
         }
