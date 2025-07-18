@@ -82,8 +82,6 @@ void c_matmul_cpu(
     const float alpha = 1.0f;
     const float beta = 0.0f;
     
-    const int BLOCK_N_ROWS = 6;
-    const int BLOCK_N_COLS = 8;
     const int k = r - l;    
     
     cblas_sgemm(
