@@ -166,7 +166,7 @@ Tensor c_vecmat(const Tensor& a, const Tensor& b) {
     return result_tensor;
 }
 
-Tensor c_matmul_batched(const Tensor& a, const Tensor& b) {
+Tensor c_matmul(const Tensor& a, const Tensor& b) {
     // a.shape = (..., M, N), b.shape = (..., N, P)
     utils::check::matmulConditions(a.shape, b.shape);
 

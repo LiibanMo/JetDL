@@ -16,9 +16,9 @@ namespace linalg {
         } else if (a.ndim == 1 && b.ndim > 1) {
             result_tensor = c_vecmat(a, b);
         } else if (a.ndim > 1 && b.ndim > 1) {
-            result_tensor = c_matmul_batched(a, b);
+            result_tensor = c_matmul(a, b);
         }
         return result_tensor;
     }
-    
+
 }
