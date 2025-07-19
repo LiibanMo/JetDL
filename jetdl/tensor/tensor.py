@@ -9,6 +9,11 @@ class Tensor(TensorBase):
     def __init__(self, data: list[numeric], requires_grad: bool) -> None:
         super().__init__(data, requires_grad)
 
+    def __add__(a: "Tensor", b: "Tensor") -> "Tensor": 
+        from ..linalg import add
+
+        return add(a, b)
+    
     def __matmul__(a: "Tensor", b: "Tensor") -> "Tensor":
         from ..linalg import matmul
 

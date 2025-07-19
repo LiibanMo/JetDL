@@ -5,7 +5,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
-find_package(OpenMP REQUIRED)
 
 file (GLOB TENSOR_SOURCES
     "tensor/*.cpp"
@@ -40,12 +39,6 @@ target_compile_options(_Cpp PRIVATE
     -DNDEBUG
     -march=native
 )
-
-if (OpenMP_CXX_FOUND)
-    target_link_libraries(_Cpp PRIVATE
-        ${OpenMP_LIBRARIES}
-    )
-endif()
 
 target_include_directories(_Cpp PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR} 
