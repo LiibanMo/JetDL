@@ -1,0 +1,3 @@
+from ..tensor import Tensor
+
+def add(a: Tensor, b: Tensor) -> Tensor: ...

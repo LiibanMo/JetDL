@@ -1,9 +1,6 @@
-from typing import TYPE_CHECKING
+from .._Cpp import c_dot, c_matmul
 from ..tensor import Tensor
-from .._Cpp import (
-    c_dot,
-    c_matmul
-)
+
 
 def dot(a: Tensor, b: Tensor) -> Tensor:
     """
@@ -19,6 +16,7 @@ def dot(a: Tensor, b: Tensor) -> Tensor:
         Both tensors must be of ndim == 1 and of same shape.
     """
     return c_dot(a, b)
+
 
 def matmul(a: Tensor, b: Tensor) -> Tensor:
     """Matrix multiplication of two tensors.

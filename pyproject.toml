@@ -33,10 +33,9 @@ requires-python = ">=3.11"
 [project.optional-dependencies]
 dev = [
     "setuptools>=80.9.0",
-    "pytest>=7.0.0",
     "black>=22.0.0",
     "isort>=5.0.0",
 ]
 test = [
-    "pytest>=7.0.0",
+    "pytest>=8.3.4",
 ]

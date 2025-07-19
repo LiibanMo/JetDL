@@ -1,15 +1,10 @@
-from .tensor import (
-    Tensor,
-    tensor,
-)
+from .linalg import add, dot, matmul
+from .tensor import Tensor, tensor
 
-from .linalg import (
-    dot,
-    matmul,
-)
 __all__ = [
     "Tensor",
     "tensor",
+    "add",
     "dot",
     "matmul",
 ]

@@ -1,5 +1,6 @@
 #include "check.hpp"
 
+#include <algorithm>
 #include <pybind11/pybind11.h>
 #include <stdexcept>
 #include <vector>
@@ -9,6 +10,27 @@ namespace py = pybind11;
 namespace utils {
 
     namespace check {
+
+        void opsBroadcastConditions(const std::vector<int> shape1, const std::vector<int> shape2) {
+            const int ndim1 = shape1.size();
+            const int ndim2 = shape2.size();
+            const int max_ndim = std::max(ndim1, ndim2);
+
+            for (int i = max_ndim-1; i >= 0; i--) {
+                const int idx1 = i - max_ndim + ndim1;
+                const int idx2 = i - max_ndim + ndim2;
+
+                const int dim1 = (idx1 < 0) ? 1 : shape1[idx1];
+                const int dim2 = (idx2 < 0) ? 1 : shape2[idx2];
+
+                if (dim1 != dim2 && dim1 != 1 && dim2 != 1) {
+                    py::gil_scoped_acquire acquire;
+                    throw py::value_error(
+                        py::str("operands could not be broadcasted together.")
+                    );
+                }
+            }
+        }
 
         void dotConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
             // (N) @ (N)
@@ -95,10 +117,10 @@ namespace utils {
                 const int idx1 = i - max_ndim + ndim1;
                 const int idx2 = i - max_ndim + ndim2;
 
-                const int ndim1 = (idx1 < 0) ? 1 : shape1[idx1];
-                const int ndim2 = (idx2 < 0) ? 1 : shape2[idx2];
+                const int dim1 = (idx1 < 0) ? 1 : shape1[idx1];
+                const int dim2 = (idx2 < 0) ? 1 : shape2[idx2];
 
-                if (ndim1 != ndim2 && ndim1 != 1 && ndim2 != 1) {
+                if (dim1 != dim2 && dim1 != 1 && dim2 != 1) {
                     py::gil_scoped_acquire acquire;
                     throw py::value_error(
                         py::str("operands could not be broadcasted together along batch dimensions")

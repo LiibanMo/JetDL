@@ -1,5 +1,6 @@
 #include "tensor/tensor.hpp"
 #include "linalg/product.hpp"
+#include "linalg/ops.hpp"
 
 #include <pybind11/stl.h>
 
@@ -20,6 +21,7 @@ PYBIND11_MODULE(_Cpp, m) {
         .def_readonly("strides", &Tensor::strides)
         .def_readonly("requires_grad", &Tensor::requires_grad);
        
+    m.def("c_add", &linalg::add, py::call_guard<py::gil_scoped_release>());
     m.def("c_dot", &linalg::dot, py::call_guard<py::gil_scoped_release>());
     m.def("c_matmul", &linalg::matmul, py::call_guard<py::gil_scoped_release>());
 }
