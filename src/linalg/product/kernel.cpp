@@ -1,6 +1,7 @@
 #include "kernel.hpp"
 
-#if defined(__ARM_NEON__)
+#if !defined(__ARM_NEON__)
+
 #include <arm_neon.h>
 
 void c_matmul_cpu(
