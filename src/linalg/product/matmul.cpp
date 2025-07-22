@@ -167,7 +167,7 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     
     const int NDIM_BATCH = (max_ndim > 2) ? max_ndim - 2 : 1;
     
-    int* max_dim_values = (int*)malloc(NDIM_BATCH * sizeof(int));
+    int* max_dim_values = (int*)std::calloc(NDIM_BATCH, sizeof(int));
     if (!max_dim_values) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
