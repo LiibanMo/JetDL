@@ -6,14 +6,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
-file (GLOB TENSOR_SOURCES
-    "tensor/*.cpp"
+file(GLOB LINALG_SOURCES 
+"linalg/*.cpp"
+"linalg/product/*.cpp"
 )
 
-file(GLOB LINALG_SOURCES 
-    "linalg/*.cpp"
-    "linalg/product/*.cpp"
-    "linalg/ops/*.cpp"
+file (GLOB MATH_SOURCES
+"math/*.cpp"
+)
+
+file (GLOB TENSOR_SOURCES
+    "tensor/*.cpp"
 )
 
 file(GLOB UTILS_SOURCES
@@ -22,8 +25,9 @@ file(GLOB UTILS_SOURCES
 
 pybind11_add_module(_Cpp 
     bindings.cpp
-    ${TENSOR_SOURCES}
     ${LINALG_SOURCES}
+    ${MATH_SOURCES}
+    ${TENSOR_SOURCES}
     ${UTILS_SOURCES}
 )
 

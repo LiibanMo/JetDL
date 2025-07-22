@@ -1,7 +1,6 @@
 #pragma once
 
 #include "auxillary.hpp"
-#include <vector>
 
 namespace utils {
 

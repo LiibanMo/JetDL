@@ -3,7 +3,6 @@
 #include "../../utils/check.hpp"
 #include "../../utils/broadcast.hpp"
 #include "../../utils/metadata.hpp"
-#include <stdexcept>
 
 Tensor c_dot(const Tensor& a, const Tensor& b) {
     // (N) @ (N)
@@ -168,7 +167,7 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     
     const int NDIM_BATCH = (max_ndim > 2) ? max_ndim - 2 : 1;
     
-    int* max_dim_values = (int*)std::calloc(NDIM_BATCH, sizeof(int));
+    int* max_dim_values = (int*)malloc(NDIM_BATCH * sizeof(int));
     if (!max_dim_values) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
@@ -179,11 +178,9 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
         >>> = [0, 1, 1]
     */
     
-    std::transform(result_tensor.shape.begin(), result_tensor.shape.end() - 2, &max_dim_values[0], [](int x){return x - 1;});
-    
-    int* idxs1 = utils::populateLinearIdxs(max_dim_values, stridesA, NDIM_BATCH, BATCH_SIZE);
+    int* idxs1 = utils::populateLinearIdxs(result_tensor.shape, stridesA, 2);
     std::free(stridesA);
-    int* idxs2 = utils::populateLinearIdxs(max_dim_values, stridesB, NDIM_BATCH, BATCH_SIZE);
+    int* idxs2 = utils::populateLinearIdxs(result_tensor.shape, stridesB, 2);
     std::free(stridesB);
 
     std::free(max_dim_values);

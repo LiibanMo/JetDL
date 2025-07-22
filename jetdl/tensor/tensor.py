@@ -10,9 +10,24 @@ class Tensor(TensorBase):
         super().__init__(data, requires_grad)
 
     def __add__(a: "Tensor", b: "Tensor") -> "Tensor": 
-        from ..linalg import add
+        from ..math import add
 
         return add(a, b)
+    
+    def __sub__(a: "Tensor", b: "Tensor") -> "Tensor":
+        from ..math import sub
+
+        return sub(a, b)
+    
+    def __mul__(a: "Tensor", b: "Tensor") -> "Tensor":
+        from ..math import mul
+
+        return mul(a, b)
+    
+    def __truediv__(a: "Tensor", b: "Tensor") -> "Tensor":
+        from ..math import div
+
+        return div(a, b)
     
     def __matmul__(a: "Tensor", b: "Tensor") -> "Tensor":
         from ..linalg import matmul

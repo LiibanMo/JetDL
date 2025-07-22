@@ -1,10 +1,19 @@
-from .linalg import add, dot, matmul
+from .linalg import dot, matmul
+from .math import add, sub, mul, div
 from .tensor import Tensor, tensor
 
 __all__ = [
-    "Tensor",
-    "tensor",
-    "add",
+    #linalg
     "dot",
     "matmul",
+
+    #math
+    "add",
+    "sub",
+    "mul",
+    "div",
+
+    #tensor
+    "Tensor",
+    "tensor",
 ]

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace utils {
 
     struct IntPtrs {
@@ -12,6 +14,6 @@ namespace utils {
         return ((CURRENT + FACTOR - 1) / FACTOR) * FACTOR;
     }
 
-    int* populateLinearIdxs(int* max_dim_values, int* strides, const int ndim, const int size);
-
+    int* populateLinearIdxs(std::vector<int> shape, int* strides, const int offset);
+    
 }

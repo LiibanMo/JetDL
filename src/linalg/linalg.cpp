@@ -1,4 +1,4 @@
-#include "product.hpp"
+#include "linalg.hpp"
 #include "product/matmul.hpp"
 
 namespace linalg {
