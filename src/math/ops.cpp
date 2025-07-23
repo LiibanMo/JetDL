@@ -46,11 +46,6 @@ Tensor c_ops(const Tensor& a, const Tensor& b, std::string op) {
 
     utils::IntPtrs strides = BroadcastUtils.getBroadcastStrides();
 
-    int* max_dim_values = (int*)std::calloc(MAX_NDIM-1, sizeof(int));
-    if (!max_dim_values) {
-        throw std::runtime_error("Memory allocation failed.\n");
-    }
-
     int* stridesA = strides.ptr1;
     int* idxsA = utils::populateLinearIdxs(result_tensor.shape, stridesA, 1);
     free(stridesA);
@@ -58,7 +53,6 @@ Tensor c_ops(const Tensor& a, const Tensor& b, std::string op) {
     int* stridesB = strides.ptr2;
     int* idxsB = utils::populateLinearIdxs(result_tensor.shape, stridesB, 1);
     free(stridesB);
-    free(max_dim_values);
 
     const int NA = a.shape[a.ndim-1];
     const int NB = b.shape[b.ndim-1];
@@ -106,9 +100,9 @@ Tensor c_ops(const Tensor& a, const Tensor& b, std::string op) {
 
     free(idxsA);
     free(idxsB);
+    free(result_vec);
     free(data1_vec);
     free(data2_vec);
-    free(result_vec);
 
     return result_tensor;
 }

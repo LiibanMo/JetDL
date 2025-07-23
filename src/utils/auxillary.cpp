@@ -38,6 +38,7 @@ namespace utils {
                 idx[axis] = 0;
             }
         }
+        std::free(max_dim_values);
         std::free(idx);
         return lin_idxs;
     }

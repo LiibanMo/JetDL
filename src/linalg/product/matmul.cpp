@@ -167,23 +167,11 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     
     const int NDIM_BATCH = (max_ndim > 2) ? max_ndim - 2 : 1;
     
-    int* max_dim_values = (int*)malloc(NDIM_BATCH * sizeof(int));
-    if (!max_dim_values) {
-        throw std::runtime_error("Memory allocation failed.\n");
-    }
-    /*
-     subtracting 1 from each dimension from the batch dimensions.
-     I.e. if result_tensor.shape = [1, 2, 2, 3, 4]
-        >>> max_dim_values = [1, 2, 2] - 1
-        >>> = [0, 1, 1]
-    */
-    
     int* idxs1 = utils::populateLinearIdxs(result_tensor.shape, stridesA, 2);
     std::free(stridesA);
     int* idxs2 = utils::populateLinearIdxs(result_tensor.shape, stridesB, 2);
     std::free(stridesB);
 
-    std::free(max_dim_values);
     // ------------------------------------------
     float* result_matrix = (float*)std::calloc(RESULT_MAT_SIZE, sizeof(float));
     float* data1_matrix = (float*)std::calloc(DATA1_MAT_SIZE, sizeof(float));
