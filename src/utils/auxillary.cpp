@@ -18,8 +18,8 @@ namespace utils {
         }
         std::transform(shape.begin(), shape.end() - offset, &max_dim_values[0], [](int x){return x - 1;});
 
-        int* lin_idxs = (int*)malloc(size * sizeof(int));
-        int* idx = (int*)malloc(ndim * sizeof(int));
+        int* lin_idxs = (int*)std::calloc(size, sizeof(int));
+        int* idx = (int*)std::calloc(ndim, sizeof(int));
         if (!lin_idxs || !idx) {
             std::runtime_error("Memory allocation failed.\n");
         }

@@ -196,9 +196,9 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     */
 
     result_tensor._data = std::vector<float>(result_tensor.size, 0.0f);
-
+    
     for (int batch = 0; batch < BATCH_SIZE; batch++) {
-        std::memcpy(&data1_matrix[0], &a._data[idxs1[batch]], DATA1_MAT_SIZE * sizeof(float));
+        std::memcpy(&data1_matrix[0], &a._data[idxs1[batch]], M * N * sizeof(float));
         for (int i = 0; i < N; i++) {
             std::memcpy(&data2_matrix[i * DATA2_COLS], &b._data[idxs2[batch] + i * b.strides[b.ndim-2]], P * sizeof(float));
         } 
