@@ -5,54 +5,54 @@
 #include <arm_neon.h>
 
 void c_add_cpu(const float* a, const float* b, float* c, const int N) {
-    for (int i = 0; i < N; i += 4) {
-        __builtin_prefetch(&a[i+4]);
-        __builtin_prefetch(&b[i+4]);
-
+    for (int i = 0; i < N; i += 8) {
+        __builtin_prefetch(&a[i+8]);
+        __builtin_prefetch(&b[i+8]);
         const float32x4_t a0 = vld1q_f32(&a[i]);
         const float32x4_t b0 = vld1q_f32(&b[i]);
-        const float32x4_t r0 = vaddq_f32(a0, b0);
-        
-        vst1q_f32(&c[i], r0);
+        const float32x4_t a1 = vld1q_f32(&a[i+4]);
+        const float32x4_t b1 = vld1q_f32(&b[i+4]);
+        vst1q_f32(&c[i], vaddq_f32(a0, b0));
+        vst1q_f32(&c[i+4], vaddq_f32(a1, b1));
     }
 }
 
 void c_sub_cpu(const float* a, const float* b, float* c, const int N) {
-    for (int i = 0; i < N; i += 4) {
-        __builtin_prefetch(&a[i+4]);
-        __builtin_prefetch(&b[i+4]);
-
+    for (int i = 0; i < N; i += 8) {
+        __builtin_prefetch(&a[i+8]);
+        __builtin_prefetch(&b[i+8]);
         const float32x4_t a0 = vld1q_f32(&a[i]);
         const float32x4_t b0 = vld1q_f32(&b[i]);
-        const float32x4_t r0 = vsubq_f32(a0, b0);
-        
-        vst1q_f32(&c[i], r0);
+        const float32x4_t a1 = vld1q_f32(&a[i+4]);
+        const float32x4_t b1 = vld1q_f32(&b[i+4]);
+        vst1q_f32(&c[i], vsubq_f32(a0, b0));
+        vst1q_f32(&c[i+4], vsubq_f32(a1, b1));
     }
 }
 
 void c_mul_cpu(const float* a, const float* b, float* c, const int N) {
-    for (int i = 0; i < N; i += 4) {
-        __builtin_prefetch(&a[i+4]);
-        __builtin_prefetch(&b[i+4]);
-
+    for (int i = 0; i < N; i += 8) {
+        __builtin_prefetch(&a[i+8]);
+        __builtin_prefetch(&b[i+8]);
         const float32x4_t a0 = vld1q_f32(&a[i]);
         const float32x4_t b0 = vld1q_f32(&b[i]);
-        const float32x4_t r0 = vmulq_f32(a0, b0);
-        
-        vst1q_f32(&c[i], r0);
+        const float32x4_t a1 = vld1q_f32(&a[i+4]);
+        const float32x4_t b1 = vld1q_f32(&b[i+4]);
+        vst1q_f32(&c[i], vmulq_f32(a0, b0));
+        vst1q_f32(&c[i+4], vmulq_f32(a1, b1));
     }
 }
 
 void c_div_cpu(const float* a, const float* b, float* c, const int N) {
-    for (int i = 0; i < N; i += 4) {
-        __builtin_prefetch(&a[i+4]);
-        __builtin_prefetch(&b[i+4]);
-
+    for (int i = 0; i < N; i += 8) {
+        __builtin_prefetch(&a[i+8]);
+        __builtin_prefetch(&b[i+8]);
         const float32x4_t a0 = vld1q_f32(&a[i]);
         const float32x4_t b0 = vld1q_f32(&b[i]);
-        const float32x4_t r0 = vdivq_f32(a0, b0);
-        
-        vst1q_f32(&c[i], r0);
+        const float32x4_t a1 = vld1q_f32(&a[i+4]);
+        const float32x4_t b1 = vld1q_f32(&b[i+4]);
+        vst1q_f32(&c[i], vdivq_f32(a0, b0));
+        vst1q_f32(&c[i+4], vdivq_f32(a1, b1));
     }
 }
 
