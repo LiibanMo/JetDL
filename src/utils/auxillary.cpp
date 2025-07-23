@@ -12,7 +12,7 @@ namespace utils {
         const int ndim = shape.size();
         const int size = std::accumulate(shape.begin(), shape.end() - offset, 1, std::multiplies<int>());
         
-        int* max_dim_values = (int*)malloc(shape.size() * sizeof(int));
+        int* max_dim_values = (int*)std::calloc(shape.size(), sizeof(int));
         if (!max_dim_values) {
             throw std::runtime_error("Memory allocation failed.\n");
         }

@@ -23,7 +23,7 @@ class PyTestAsserts:
         return f"Expected shapes to match: {self.j.shape} vs {self.t.shape}"
 
     def check_results(self) -> bool:
-        return torch.allclose(self.j, self.t)
+        return torch.allclose(self.j, self.t, 1e-6)
 
     def results_error_output(self) -> str:
         return f"Expected tensors to be close: {self.j} vs {self.t}"
