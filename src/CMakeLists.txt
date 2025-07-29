@@ -7,12 +7,13 @@ find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
 file(GLOB LINALG_SOURCES 
-"linalg/*.cpp"
-"linalg/product/*.cpp"
+    "linalg/*.cpp"
+    "linalg/product/*.cpp"
+    "linalg/transpose/*.cpp"
 )
 
 file (GLOB MATH_SOURCES
-"math/*.cpp"
+    "math/*.cpp"
 )
 
 file (GLOB TENSOR_SOURCES

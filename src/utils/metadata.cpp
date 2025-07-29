@@ -1,7 +1,5 @@
 #include "metadata.hpp"
 
-#include <cstdlib>
-
 namespace utils {
 
     namespace metadata {

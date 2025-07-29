@@ -9,6 +9,7 @@ namespace py = pybind11;
 class Tensor {
     public:
         Tensor(py::list data, bool requires_grad);
+        Tensor(float data, bool requires_grad);
         Tensor();
         ~Tensor() = default;
 
@@ -18,4 +19,5 @@ class Tensor {
         int size;
         std::vector<int> strides;
         bool requires_grad;
+        bool is_contiguous;
 };

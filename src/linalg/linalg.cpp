@@ -1,5 +1,6 @@
 #include "linalg.hpp"
 #include "product/matmul.hpp"
+#include "transpose/transpose.hpp"
 
 namespace linalg {
 
@@ -21,4 +22,11 @@ namespace linalg {
         return result_tensor;
     }
 
+    Tensor T(const Tensor& a) {
+        return c_transpose(a);
+    }
+
+    Tensor mT(const Tensor& a) {
+        return c_matrix_transpose(a);
+    }
 }

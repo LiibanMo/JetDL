@@ -1,6 +1,6 @@
 from typing import Union
 
-from .._Cpp import Tensor as TensorBase
+from .._Cpp import TensorBase
 
 numeric = Union[int, float]
 
@@ -9,30 +9,42 @@ class Tensor(TensorBase):
     def __init__(self, data: list[numeric], requires_grad: bool) -> None:
         super().__init__(data, requires_grad)
 
-    def __add__(a: "Tensor", b: "Tensor") -> "Tensor": 
+    def __add__(self, other: "Tensor") -> "Tensor":
         from ..math import add
 
-        return add(a, b)
-    
-    def __sub__(a: "Tensor", b: "Tensor") -> "Tensor":
+        return add(self, other)
+
+    def __sub__(self, other: "Tensor") -> "Tensor":
         from ..math import sub
 
-        return sub(a, b)
-    
-    def __mul__(a: "Tensor", b: "Tensor") -> "Tensor":
+        return sub(self, other)
+
+    def __mul__(self, other: "Tensor") -> "Tensor":
         from ..math import mul
 
-        return mul(a, b)
-    
-    def __truediv__(a: "Tensor", b: "Tensor") -> "Tensor":
+        return mul(self, other)
+
+    def __truediv__(self, other: "Tensor") -> "Tensor":
         from ..math import div
 
-        return div(a, b)
-    
-    def __matmul__(a: "Tensor", b: "Tensor") -> "Tensor":
+        return div(self, other)
+
+    def __matmul__(self, other: "Tensor") -> "Tensor":
         from ..linalg import matmul
 
-        return matmul(a, b)
+        return matmul(self, other)
+
+    @property
+    def T(self) -> "Tensor":
+        from ..linalg import transpose
+
+        return transpose(self)
+    
+    @property
+    def mT(self) -> "Tensor":
+        from ..linalg import matrix_transpose
+
+        return matrix_transpose(self)
 
 
 def tensor(data: list[numeric], requires_grad: bool = True) -> Tensor:
