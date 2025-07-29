@@ -7,7 +7,7 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(_Cpp, m) {
-    py::class_<Tensor>(m, "Tensor")
+    py::class_<Tensor>(m, "TensorBase")
         .def(py::init<py::list, bool>(),
             py::arg("data"),
             py::arg("requires_grad") = false
@@ -25,6 +25,9 @@ PYBIND11_MODULE(_Cpp, m) {
     m.def("c_sub", &math::sub, py::call_guard<py::gil_scoped_release>());
     m.def("c_mul", &math::mul, py::call_guard<py::gil_scoped_release>());
     m.def("c_div", &math::div, py::call_guard<py::gil_scoped_release>());
+    
     m.def("c_dot", &linalg::dot, py::call_guard<py::gil_scoped_release>());
     m.def("c_matmul", &linalg::matmul, py::call_guard<py::gil_scoped_release>());
+    m.def("c_transpose", &linalg::T, py::call_guard<py::gil_scoped_release>());
+    m.def("c_matrix_transpose", &linalg::mT, py::call_guard<py::gil_scoped_release>());
 }
