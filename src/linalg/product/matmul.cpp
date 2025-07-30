@@ -3,6 +3,7 @@
 #include "utils/check.hpp"
 #include "utils/broadcast.hpp"
 #include "utils/metadata.hpp"
+#include <memory>
 
 Tensor c_dot(const Tensor& a, const Tensor& b) {
     // (N) @ (N)
@@ -51,9 +52,9 @@ Tensor c_matvec(const Tensor& a, const Tensor& b) {
     const int DATA2_MAT_SIZE = N * BLOCK_N_COLS;
     const int RESULT_MAT_SIZE = DATA1_MAT_SIZE * BLOCK_N_COLS;
 
-    float* result_matrix = (float*)std::calloc(RESULT_MAT_SIZE, sizeof(float));
-    float* data1_matrix = (float*)std::calloc(DATA1_MAT_SIZE, sizeof(float));
-    float* data2_matrix = (float*)std::calloc(DATA2_MAT_SIZE, sizeof(float));
+    std::unique_ptr<float[]> result_matrix(new float[RESULT_MAT_SIZE]());
+    std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
+    std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
     if (!result_matrix || !data1_matrix || !data2_matrix) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
@@ -66,16 +67,13 @@ Tensor c_matvec(const Tensor& a, const Tensor& b) {
     for (int batch = 0; batch < BATCH_SIZE; batch++) {
         std::memcpy(&data1_matrix[0], &a._data[batch * a.strides[a.ndim-3]], M * N * sizeof(float));
         for (int x = 0; x < DATA1_ROWS; x += BLOCK_N_ROWS) {
-            c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, x, 0, 0, N, BLOCK_N_COLS, N);
+            c_matmul_cpu(data1_matrix.get(), data2_matrix.get(), result_matrix.get(), x, 0, 0, N, BLOCK_N_COLS, N);
         }
         for (int i = 0; i < M; i++) {
             const int IDX = batch * result_tensor.strides[result_tensor.ndim-2] + i * result_tensor.strides[result_tensor.ndim-1];
             result_tensor._data[IDX] = result_matrix[i * BLOCK_N_COLS];
         }
     }
-    std::free(result_matrix);
-    std::free(data1_matrix);
-    std::free(data2_matrix);
 
     return result_tensor;
 }
@@ -105,9 +103,9 @@ Tensor c_vecmat(const Tensor& a, const Tensor& b) {
     const int DATA2_MAT_SIZE = BATCH_SIZE * N * DATA2_COLS;
     const int RESULT_MAT_SIZE = BLOCK_N_ROWS * DATA2_COLS;
     
-    float* result_matrix = (float*)std::calloc(RESULT_MAT_SIZE, sizeof(float));
-    float* data1_matrix = (float*)std::calloc(DATA1_MAT_SIZE, sizeof(float));
-    float* data2_matrix = (float*)std::calloc(DATA2_MAT_SIZE, sizeof(float));
+    std::unique_ptr<float[]> result_matrix(new float[RESULT_MAT_SIZE]());
+    std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
+    std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
     if (!result_matrix || !data1_matrix || !data2_matrix) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
@@ -120,13 +118,10 @@ Tensor c_vecmat(const Tensor& a, const Tensor& b) {
             std::memcpy(&data2_matrix[i * DATA2_COLS], &b._data[batch * b.strides[b.ndim-3] + i * b.strides[b.ndim-2]], P * sizeof(float));
         }
         for (int y = 0; y < DATA2_COLS; y += BLOCK_N_COLS) {
-            c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, 0, y, 0, N, DATA2_COLS, N);
+            c_matmul_cpu(data1_matrix.get(), data2_matrix.get(), result_matrix.get(), 0, y, 0, N, DATA2_COLS, N);
         }
         std::memcpy(&result_tensor._data[batch * result_tensor.strides[result_tensor.ndim-2]], &result_matrix[0], P * sizeof(float));
     }
-    std::free(result_matrix);
-    std::free(data1_matrix);
-    std::free(data2_matrix);
 
     return result_tensor;
 }
@@ -173,9 +168,10 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     std::free(stridesB);
 
     // ------------------------------------------
-    float* result_matrix = (float*)std::calloc(RESULT_MAT_SIZE, sizeof(float));
-    float* data1_matrix = (float*)std::calloc(DATA1_MAT_SIZE, sizeof(float));
-    float* data2_matrix = (float*)std::calloc(DATA2_MAT_SIZE, sizeof(float));
+    // float* result_matrix = (float*)std::calloc(RESULT_MAT_SIZE, sizeof(float));
+    std::unique_ptr<float[]> result_matrix (new float[RESULT_MAT_SIZE]());
+    std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
+    std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
     if (!result_matrix || !data1_matrix || !data2_matrix) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
@@ -204,7 +200,7 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
         } 
         for (int x = 0; x < DATA1_ROWS; x += BLOCK_N_ROWS) {
             for (int y = 0; y < DATA2_COLS; y += BLOCK_N_COLS) {
-                c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, x, y, 0, N, DATA2_COLS, N);
+                c_matmul_cpu(data1_matrix.get(), data2_matrix.get(), result_matrix.get(), x, y, 0, N, DATA2_COLS, N);
             }
         }
         for (int i = 0; i < M; i++) {
@@ -213,9 +209,6 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     }
     std::free(idxs1);
     std::free(idxs2);
-    std::free(result_matrix);
-    std::free(data1_matrix);
-    std::free(data2_matrix);
 
     return result_tensor;
 }
