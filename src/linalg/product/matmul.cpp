@@ -1,8 +1,8 @@
 #include "matmul.hpp"
 #include "kernel.hpp"
-#include "../../utils/check.hpp"
-#include "../../utils/broadcast.hpp"
-#include "../../utils/metadata.hpp"
+#include "utils/check.hpp"
+#include "utils/broadcast.hpp"
+#include "utils/metadata.hpp"
 
 Tensor c_dot(const Tensor& a, const Tensor& b) {
     // (N) @ (N)

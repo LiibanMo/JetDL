@@ -6,18 +6,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
-file(GLOB LINALG_SOURCES 
+file(GLOB_RECURSE LINALG_SOURCES 
     "linalg/*.cpp"
-    "linalg/product/*.cpp"
-    "linalg/transpose/*.cpp"
 )
 
-file (GLOB MATH_SOURCES
+file (GLOB_RECURSE MATH_SOURCES
     "math/*.cpp"
 )
 
 file (GLOB TENSOR_SOURCES
-    "tensor/*.cpp"
+    "tensor/tensor.cpp"
 )
 
 file(GLOB UTILS_SOURCES
@@ -46,8 +44,10 @@ target_compile_options(_Cpp PRIVATE
 )
 
 target_include_directories(_Cpp PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+# Include Directories and Link Libraries for BLAS
 
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/opt/homebrew/opt/openblas")
 message(STATUS "CMAKE_PREFIX_PATH set to: ${CMAKE_PREFIX_PATH}")

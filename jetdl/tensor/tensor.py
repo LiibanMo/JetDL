@@ -2,11 +2,10 @@ from typing import Union
 
 from .._Cpp import TensorBase
 
-numeric = Union[int, float]
-
+Numeric = list[Union[int, float]]
 
 class Tensor(TensorBase):
-    def __init__(self, data: list[numeric], requires_grad: bool) -> None:
+    def __init__(self, data: Numeric, requires_grad: bool) -> None:
         super().__init__(data, requires_grad)
 
     def __add__(self, other: "Tensor") -> "Tensor":
@@ -47,12 +46,12 @@ class Tensor(TensorBase):
         return matrix_transpose(self)
 
 
-def tensor(data: list[numeric], requires_grad: bool = True) -> Tensor:
+def tensor(data: Numeric, requires_grad: bool = False) -> Tensor:
     """
     Initialize a Tensor object with the given data and gradient tracking setting.
 
     Args:
-        data (list[numeric]): Input data as a nested list structure. Can contain integers or floats.
+        data (Numeric): Input data as a nested list structure. Can contain integers or floats.
                              The data will be flattened and stored internally.
         requires_grad (bool): Whether to track gradients for this tensor during backpropagation.
                             Defaults to False.

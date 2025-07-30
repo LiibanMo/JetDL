@@ -1,5 +1,5 @@
 #include "tensor.hpp"
-#include "../utils/metadata.hpp"
+#include "utils/metadata.hpp"
 
 #include <cstring>
 #include <vector>
@@ -14,6 +14,7 @@ Tensor::Tensor(py::list data, bool requires_grad) {
     this->strides = utils::metadata::getStrides(this->shape);
     this->requires_grad = requires_grad;
     this->is_contiguous = true;
+    this->is_leaf = true;
 }
 
 Tensor::Tensor(float data, bool requires_grad) {
@@ -24,8 +25,10 @@ Tensor::Tensor(float data, bool requires_grad) {
     this->strides = std::vector<int>();
     this->requires_grad = requires_grad;
     this->is_contiguous = true;
+    this->is_leaf = true;
 }
 
 Tensor::Tensor() {
     this->is_contiguous = true;
+    this->is_leaf = false;
 };

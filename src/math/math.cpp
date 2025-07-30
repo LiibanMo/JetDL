@@ -1,5 +1,5 @@
 #include "math.hpp"
-#include "ops.hpp"
+#include "ops/ops.hpp"
 
 namespace math {    
     

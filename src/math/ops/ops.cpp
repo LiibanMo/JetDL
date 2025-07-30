@@ -1,9 +1,9 @@
 #include "ops.hpp"
 #include "kernel.hpp"
-#include "../utils/auxillary.hpp"
-#include "../utils/broadcast.hpp"
-#include "../utils/check.hpp"
-#include "../utils/metadata.hpp"
+#include "utils/auxillary.hpp"
+#include "utils/broadcast.hpp"
+#include "utils/check.hpp"
+#include "utils/metadata.hpp"
 
 #include <cstdlib>
 #include <functional>

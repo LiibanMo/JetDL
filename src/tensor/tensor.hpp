@@ -20,4 +20,5 @@ class Tensor {
         std::vector<int> strides;
         bool requires_grad;
         bool is_contiguous;
+        bool is_leaf;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../tensor/tensor.hpp"
+#include "tensor/tensor.hpp"
 
 Tensor c_dot(const Tensor& a, const Tensor& b);
 Tensor c_matvec(const Tensor& a, const Tensor& b);
