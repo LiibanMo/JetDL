@@ -73,24 +73,24 @@ Tensor c_ops(const Tensor& a, const Tensor& b, std::string op) {
 
     if (NA == NB) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
-            std::memcpy(data1_vec.get(), a._data.get() + idxsA[row], NA * sizeof(float));
-            std::memcpy(data2_vec.get(), b._data.get() + idxsB[row], NB * sizeof(float));
+            std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
+            std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
-            std::memcpy(result_tensor._data.get() + row * N, result_vec.get(), N * sizeof(float));
+            std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
         }
     } else if (NA < NB && NA == 1) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
             std::fill(data1_vec.get(), data1_vec.get() + N, a._data[idxsA[row]]);
-            std::memcpy(data2_vec.get(), b._data.get() + idxsB[row], NB * sizeof(float));
+            std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
-            std::memcpy(result_tensor._data.get() + row * N, result_vec.get(), N * sizeof(float));
+            std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
         }
     } else if (NA > NB && NB == 1) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
-            std::memcpy(data1_vec.get(), a._data.get() + idxsA[row], NA * sizeof(float));
+            std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
             std::fill(data2_vec.get(), data2_vec.get() + N, b._data[idxsB[row]]);
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
-            std::memcpy(result_tensor._data.get() + row * N, result_vec.get(), N * sizeof(float));
+            std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
         }
     } else if (N == 1) {
         result_tensor._data[0] = a._data[0] + b._data[0];
