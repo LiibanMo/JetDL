@@ -3,6 +3,7 @@
 #include "metadata.hpp"
 
 #include <cstdlib>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 
@@ -16,8 +17,8 @@ namespace utils {
             const int max_ndim = this->max_ndim;
             
             IntPtrs stridesPtrs;
-            stridesPtrs.ptr1 = (int*)std::calloc(max_ndim, sizeof(int)); 
-            stridesPtrs.ptr2 = (int*)std::calloc(max_ndim, sizeof(int)); 
+            stridesPtrs.ptr1 = std::unique_ptr<int[]>(new int[max_ndim]());
+            stridesPtrs.ptr2 = std::unique_ptr<int[]>(new int[max_ndim]());
             if (!stridesPtrs.ptr1 || !stridesPtrs.ptr2) {
                 throw std::runtime_error("Memory allocation failed.\n");
             }

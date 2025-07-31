@@ -1,12 +1,13 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 namespace utils {
 
     struct IntPtrs {
-        int* ptr1;
-        int* ptr2;
+        std::unique_ptr<int[]> ptr1;
+        std::unique_ptr<int[]> ptr2;
     }; 
 
     inline int factorCeilingFunc(const int CURRENT, const int FACTOR) {
@@ -14,6 +15,6 @@ namespace utils {
         return ((CURRENT + FACTOR - 1) / FACTOR) * FACTOR;
     }
 
-    int* populateLinearIdxs(std::vector<int> shape, int* strides, const int offset);
+    std::unique_ptr<int[]> populateLinearIdxs(std::vector<int> shape, int* strides, const int offset);
     
 }

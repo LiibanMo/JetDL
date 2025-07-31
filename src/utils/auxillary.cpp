@@ -1,33 +1,27 @@
 #include "auxillary.hpp"
 
 #include <algorithm>
-#include <cstdlib>
 #include <functional>
 #include <numeric>
-#include <stdexcept>
 
 namespace utils {
 
-    int* populateLinearIdxs(std::vector<int> shape, int* strides, const int offset) {
+    std::unique_ptr<int[]> populateLinearIdxs(std::vector<int> shape, int* strides, const int offset) {
         const int ndim = shape.size();
         const int size = std::accumulate(shape.begin(), shape.end() - offset, 1, std::multiplies<int>());
         
-        int* max_dim_values = (int*)std::calloc(shape.size(), sizeof(int));
-        if (!max_dim_values) {
-            throw std::runtime_error("Memory allocation failed.\n");
-        }
+        std::unique_ptr<int[]> max_dim_values = std::unique_ptr<int[]>(new int[ndim]());
+
         std::transform(shape.begin(), shape.end() - offset, &max_dim_values[0], [](int x){return x - 1;});
 
-        int* lin_idxs = (int*)std::calloc(size, sizeof(int));
-        int* idx = (int*)std::calloc(ndim, sizeof(int));
-        if (!lin_idxs || !idx) {
-            std::runtime_error("Memory allocation failed.\n");
-        }
+        std::unique_ptr<int[]> lin_idxs = std::unique_ptr<int[]>(new int[size]());
+        std::unique_ptr<int[]> idx = std::unique_ptr<int[]>(new int[ndim]());
+
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < ndim; j++) {
                 lin_idxs[i] += strides[j] * idx[j];
             }
-            if (std::equal(idx, idx + ndim, max_dim_values)) {
+            if (std::equal(idx.get(), idx.get() + ndim, max_dim_values.get())) {
                 break;
             }
             for (int axis = ndim-1; axis >= 0; axis--) {
@@ -38,8 +32,6 @@ namespace utils {
                 idx[axis] = 0;
             }
         }
-        std::free(max_dim_values);
-        std::free(idx);
         return lin_idxs;
     }
 

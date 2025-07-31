@@ -19,7 +19,7 @@ Tensor c_dot(const Tensor& a, const Tensor& b) {
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
     // ------------------------------
 
-    result_tensor._data = {0};
+    result_tensor._data = std::shared_ptr<float[]>(new float[1]());
     for (int i = 0; i < a.shape[0]; i++) {
         result_tensor._data[0] += a._data[i] * b._data[i];
     }
@@ -59,13 +59,13 @@ Tensor c_matvec(const Tensor& a, const Tensor& b) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
 
-    result_tensor._data = std::vector<float>(result_tensor.size, 0.0f);
+    result_tensor._data = std::shared_ptr<float[]>(new float[result_tensor.size]());
 
     for (int i = 0; i < N; i++) {
         data2_matrix[i * BLOCK_N_COLS] = b._data[i];
     }
     for (int batch = 0; batch < BATCH_SIZE; batch++) {
-        std::memcpy(&data1_matrix[0], &a._data[batch * a.strides[a.ndim-3]], M * N * sizeof(float));
+        std::memcpy(data1_matrix.get(), a._data.get() + (batch * a.strides[a.ndim-3]), M * N * sizeof(float));
         for (int x = 0; x < DATA1_ROWS; x += BLOCK_N_ROWS) {
             c_matmul_cpu(data1_matrix.get(), data2_matrix.get(), result_matrix.get(), x, 0, 0, N, BLOCK_N_COLS, N);
         }
@@ -110,17 +110,17 @@ Tensor c_vecmat(const Tensor& a, const Tensor& b) {
         throw std::runtime_error("Memory allocation failed.\n");
     }
 
-    result_tensor._data = std::vector<float>(result_tensor.size, 0.0f);
+    result_tensor._data = std::shared_ptr<float[]>(new float[result_tensor.size]());
 
-    std::memcpy(&data1_matrix[0], &a._data[0], N * sizeof(float));
+    std::memcpy(data1_matrix.get(), a._data.get(), N * sizeof(float));
     for (int batch = 0; batch < BATCH_SIZE; batch++) {
         for (int i = 0; i < N; i++) {
-            std::memcpy(&data2_matrix[i * DATA2_COLS], &b._data[batch * b.strides[b.ndim-3] + i * b.strides[b.ndim-2]], P * sizeof(float));
+            std::memcpy(data2_matrix.get() + i * DATA2_COLS, b._data.get() + batch * b.strides[b.ndim-3] + i * b.strides[b.ndim-2], P * sizeof(float));
         }
         for (int y = 0; y < DATA2_COLS; y += BLOCK_N_COLS) {
             c_matmul_cpu(data1_matrix.get(), data2_matrix.get(), result_matrix.get(), 0, y, 0, N, DATA2_COLS, N);
         }
-        std::memcpy(&result_tensor._data[batch * result_tensor.strides[result_tensor.ndim-2]], &result_matrix[0], P * sizeof(float));
+        std::memcpy(result_tensor._data.get() + batch * result_tensor.strides[result_tensor.ndim-2], result_matrix.get(), P * sizeof(float));
     }
 
     return result_tensor;
@@ -147,10 +147,6 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     
     const int max_ndim = result_tensor.ndim;
     
-    utils::IntPtrs stridesPtrs = BroadcastUtils.getBroadcastStrides(); 
-    int* stridesA = stridesPtrs.ptr1;
-    int* stridesB = stridesPtrs.ptr2;
-    
     const int BATCH_SIZE = utils::broadcast::getBatchSize(result_tensor.shape);
     
     const int DATA1_ROWS = utils::factorCeilingFunc(M, BLOCK_N_ROWS);
@@ -161,11 +157,13 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     const int RESULT_MAT_SIZE = DATA1_ROWS * DATA2_COLS;
     
     const int NDIM_BATCH = (max_ndim > 2) ? max_ndim - 2 : 1;
-    
-    int* idxs1 = utils::populateLinearIdxs(result_tensor.shape, stridesA, 2);
-    std::free(stridesA);
-    int* idxs2 = utils::populateLinearIdxs(result_tensor.shape, stridesB, 2);
-    std::free(stridesB);
+
+    utils::IntPtrs stridesPtrs = BroadcastUtils.getBroadcastStrides(); 
+
+    std::unique_ptr<int[]> stridesA = std::move(stridesPtrs.ptr1);
+    std::unique_ptr<int[]> idxs1 = utils::populateLinearIdxs(result_tensor.shape, stridesA.get(), 2);
+    std::unique_ptr<int[]> stridesB = std::move(stridesPtrs.ptr2);
+    std::unique_ptr<int[]> idxs2 = utils::populateLinearIdxs(result_tensor.shape, stridesB.get(), 2);
 
     // ------------------------------------------
     // float* result_matrix = (float*)std::calloc(RESULT_MAT_SIZE, sizeof(float));
@@ -191,12 +189,12 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     block matrix of the intermediate result padded with 0s.
     */
 
-    result_tensor._data = std::vector<float>(result_tensor.size, 0.0f);
+    result_tensor._data = std::shared_ptr<float[]>(new float[result_tensor.size]());
     
     for (int batch = 0; batch < BATCH_SIZE; batch++) {
-        std::memcpy(&data1_matrix[0], &a._data[idxs1[batch]], M * N * sizeof(float));
+        std::memcpy(data1_matrix.get(), a._data.get() + idxs1[batch], M * N * sizeof(float));
         for (int i = 0; i < N; i++) {
-            std::memcpy(&data2_matrix[i * DATA2_COLS], &b._data[idxs2[batch] + i * b.strides[b.ndim-2]], P * sizeof(float));
+            std::memcpy(data2_matrix.get() + i * DATA2_COLS, b._data.get() + idxs2[batch] + i * b.strides[b.ndim-2], P * sizeof(float));
         } 
         for (int x = 0; x < DATA1_ROWS; x += BLOCK_N_ROWS) {
             for (int y = 0; y < DATA2_COLS; y += BLOCK_N_COLS) {
@@ -204,11 +202,9 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
             }
         }
         for (int i = 0; i < M; i++) {
-            std::memcpy(&result_tensor._data[batch * M * P + i * P], &result_matrix[i * DATA2_COLS], P * sizeof(float));
+            std::memcpy(result_tensor._data.get() + (batch * M * P + i * P), result_matrix.get() + i * DATA2_COLS, P * sizeof(float));
         }
     }
-    std::free(idxs1);
-    std::free(idxs2);
 
     return result_tensor;
 }

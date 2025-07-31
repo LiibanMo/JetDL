@@ -6,8 +6,8 @@
 Tensor c_transpose(const Tensor& a) {
     Tensor result = Tensor();
 
-    result._data = std::vector<float>(a.size, 0.0f);
-    std::copy(a._data.begin(), a._data.end(), result._data.begin());
+    result._data = std::shared_ptr<float[]>(new float[a.size]());
+    std::copy(a._data.get(), a._data.get() + a.size, result._data.get());
     
     result.shape = std::vector<int>(a.ndim, 0);
     std::copy(a.shape.begin(), a.shape.end(), result.shape.begin());
@@ -38,8 +38,8 @@ Tensor c_matrix_transpose(const Tensor& a) {
 
     Tensor result = Tensor();
 
-    result._data = std::vector<float>(a.size, 0.0f);
-    std::copy(a._data.begin(), a._data.end(), result._data.begin());
+    result._data = std::shared_ptr<float[]>(new float[a.size]());
+    std::copy(a._data.get(), a._data.get() + a.size, result._data.get());
     
     result.shape = std::vector<int>(a.ndim, 0);
     std::copy(a.shape.begin(), a.shape.end(), result.shape.begin());

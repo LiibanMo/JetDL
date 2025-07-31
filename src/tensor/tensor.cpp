@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-Tensor::Tensor(py::list data, bool requires_grad) {
+Tensor::Tensor(py::list data, const bool requires_grad) {
     this->_data = utils::metadata::flattenNestedPylist(data);
     this->shape = utils::metadata::getShape(data);
     this->ndim = utils::metadata::getNumDim(this->shape);
@@ -18,7 +18,7 @@ Tensor::Tensor(py::list data, bool requires_grad) {
 }
 
 Tensor::Tensor(float data, bool requires_grad) {
-    this->_data = std::vector<float> {data};
+    this->_data = std::shared_ptr<float[]>(new float[1]{data});
     this->shape = std::vector<int>();
     this->ndim = 0;
     this->size = 1;

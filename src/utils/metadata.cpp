@@ -1,19 +1,40 @@
 #include "metadata.hpp"
 
+#include <numeric>
+
 namespace utils {
 
     namespace metadata {
 
-        std::vector<float> flattenNestedPylist(py::list data) {
-            std::vector<float> result;
-            for (auto item : data) {
-                if (py::isinstance<py::list>(item)) {
-                    std::vector<float> nested_result = flattenNestedPylist(py::cast<py::list>(item));
-                    result.insert(result.end(), nested_result.begin(), nested_result.end());
-                } else {
-                    result.push_back(py::cast<float>(item));
+        // std::vector<float> flattenNestedPylist(py::list data) {
+        //     std::vector<float> result;
+        //     for (auto item : data) {
+        //         if (py::isinstance<py::list>(item)) {
+        //             std::vector<float> nested_result = flattenNestedPylist(py::cast<py::list>(item));
+        //             result.insert(result.end(), nested_result.begin(), nested_result.end());
+        //         } else {
+        //             result.push_back(py::cast<float>(item));
+        //         }
+        //     }
+        //     return result;
+        // }
+
+        std::shared_ptr<float[]> flattenNestedPylist(py::list data) {
+            std::vector<float> flat_vector;
+            std::function<void(py::list)> flatten = 
+                [&](py::list l) {
+                for (auto item : l) {
+                    if (py::isinstance<py::list>(item)) {
+                        flatten(py::cast<py::list>(item));
+                    } else {
+                        flat_vector.push_back(py::cast<float>(item));
+                    }
                 }
-            }
+            };
+            flatten(data);
+            
+            std::shared_ptr<float[]> result(new float[flat_vector.size()]);
+            std::copy(flat_vector.begin(), flat_vector.end(), result.get());
             return result;
         }
 
@@ -30,7 +51,7 @@ namespace utils {
             return shape;
         }
 
-        int getNumDim(const std::vector<int>& shape) {
+        const int getNumDim(const std::vector<int>& shape) {
             return shape.size();
         }
 
@@ -43,11 +64,8 @@ namespace utils {
             return strides;
         }
 
-        int getSize(const std::vector<int>& shape) {
-            int size = 1;
-            for (int i = 0; i < shape.size(); i++) {
-                size *= shape[i];
-            }
+        const int getSize(const std::vector<int>& shape) {
+            const int size = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
             return size;
         }
 
