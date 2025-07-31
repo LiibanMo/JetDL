@@ -14,7 +14,7 @@ authors = [
 maintainers = [
     {name = "Liiban Mohamud", email = "liibanmohamud12@gmail.com"}
 ]
-keywords = ["deep-learning", "automatic-differentiation", "tensor", "neural-networks"]
+keywords = ["machine-learning", "deep-learning", "automatic-differentiation", "tensor", "neural-networks"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

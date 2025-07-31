@@ -6,19 +6,6 @@ namespace utils {
 
     namespace metadata {
 
-        // std::vector<float> flattenNestedPylist(py::list data) {
-        //     std::vector<float> result;
-        //     for (auto item : data) {
-        //         if (py::isinstance<py::list>(item)) {
-        //             std::vector<float> nested_result = flattenNestedPylist(py::cast<py::list>(item));
-        //             result.insert(result.end(), nested_result.begin(), nested_result.end());
-        //         } else {
-        //             result.push_back(py::cast<float>(item));
-        //         }
-        //     }
-        //     return result;
-        // }
-
         std::shared_ptr<float[]> flattenNestedPylist(py::list data) {
             std::vector<float> flat_vector;
             std::function<void(py::list)> flatten = 

@@ -55,9 +55,6 @@ Tensor c_matvec(const Tensor& a, const Tensor& b) {
     std::unique_ptr<float[]> result_matrix(new float[RESULT_MAT_SIZE]());
     std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
     std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
-    if (!result_matrix || !data1_matrix || !data2_matrix) {
-        throw std::runtime_error("Memory allocation failed.\n");
-    }
 
     result_tensor._data = std::shared_ptr<float[]>(new float[result_tensor.size]());
 
@@ -106,9 +103,6 @@ Tensor c_vecmat(const Tensor& a, const Tensor& b) {
     std::unique_ptr<float[]> result_matrix(new float[RESULT_MAT_SIZE]());
     std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
     std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
-    if (!result_matrix || !data1_matrix || !data2_matrix) {
-        throw std::runtime_error("Memory allocation failed.\n");
-    }
 
     result_tensor._data = std::shared_ptr<float[]>(new float[result_tensor.size]());
 
@@ -166,14 +160,10 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     std::unique_ptr<int[]> idxs2 = utils::populateLinearIdxs(result_tensor.shape, stridesB.get(), 2);
 
     // ------------------------------------------
-    // float* result_matrix = (float*)std::calloc(RESULT_MAT_SIZE, sizeof(float));
     std::unique_ptr<float[]> result_matrix (new float[RESULT_MAT_SIZE]());
     std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
     std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
-    if (!result_matrix || !data1_matrix || !data2_matrix) {
-        throw std::runtime_error("Memory allocation failed.\n");
-    }
-    
+
     /*
     Pads the rows of the first matrix with 0s until multiple of BLOCK_N_ROWS and
     pads the columns of the second matrix with 0s until multiple of BLOCK_N_COLS, then
