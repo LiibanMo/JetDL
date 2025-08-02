@@ -9,13 +9,13 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(_Cpp, m) {
     py::class_<Tensor>(m, "TensorBase")
-        .def(py::init<py::list, bool>(),
+        .def(py::init<py::list&, bool>(),
             py::arg("data"),
-            py::arg("requires_grad") = false
+            py::arg("requires_grad")
         )
         .def(py::init<float, bool>(),
             py::arg("data"),
-            py::arg("requires_grad") = false
+            py::arg("requires_grad")
         )
         .def_property_readonly("_data", [](Tensor& self) {
             std::vector<float> _data = std::vector<float>(self.size, 0.0f);

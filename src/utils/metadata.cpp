@@ -6,7 +6,17 @@ namespace utils {
 
     namespace metadata {
 
-        std::shared_ptr<float[]> flattenNestedPylist(py::list data) {
+        void initialiseScalarTensor(Tensor& tensor, const bool requires_grad, const bool is_leaf) {
+            tensor.shape = {};
+            tensor.ndim = 0;
+            tensor.size = 1;
+            tensor.strides = {};
+            tensor.requires_grad = requires_grad;
+            tensor.is_contiguous = true;
+            tensor.is_leaf = is_leaf;
+        }
+
+        std::shared_ptr<float[]> flattenNestedPylist(py::list& data) {
             std::vector<float> flat_vector;
             std::function<void(py::list)> flatten = 
                 [&](py::list l) {
@@ -14,6 +24,13 @@ namespace utils {
                     if (py::isinstance<py::list>(item)) {
                         flatten(py::cast<py::list>(item));
                     } else {
+                        if (!py::isinstance<py::int_>(item) && !py::isinstance<py::float_>(item)) {
+                            auto input_type = item.get_type();
+                            py::gil_scoped_acquire acquire;
+                            throw py::type_error(
+                                py::str("new(): invalid input type {}").format(input_type)
+                            );
+                        }
                         flat_vector.push_back(py::cast<float>(item));
                     }
                 }
@@ -25,14 +42,15 @@ namespace utils {
             return result;
         }
 
-        std::vector<int> getShape(py::list data) {
+        std::vector<int> getShape(py::list& data) {
             std::vector<int> shape;
             if (data.empty()) {
                 return shape;
             }   
             shape.push_back(static_cast<int>(data.size()));
             if (!data.empty() && py::isinstance<py::list>(data[0])) {
-                std::vector<int> nested_shape = getShape(py::cast<py::list>(data[0]));
+                py::list nested_list = py::cast<py::list>(data[0]);
+                std::vector<int> nested_shape = getShape(nested_list);
                 shape.insert(shape.end(), nested_shape.begin(), nested_shape.end());
             }
             return shape;

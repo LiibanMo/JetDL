@@ -52,9 +52,9 @@ Tensor c_matvec(const Tensor& a, const Tensor& b) {
     const int DATA2_MAT_SIZE = N * BLOCK_N_COLS;
     const int RESULT_MAT_SIZE = DATA1_MAT_SIZE * BLOCK_N_COLS;
 
-    std::unique_ptr<float[]> result_matrix(new float[RESULT_MAT_SIZE]());
-    std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
-    std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
+    std::unique_ptr<float[]> result_matrix = std::make_unique<float[]>(RESULT_MAT_SIZE);
+    std::unique_ptr<float[]> data1_matrix = std::make_unique<float[]>(DATA1_MAT_SIZE);
+    std::unique_ptr<float[]> data2_matrix = std::make_unique<float[]>(DATA2_MAT_SIZE);
 
     result_tensor._data = std::shared_ptr<float[]>(new float[result_tensor.size]());
 
@@ -100,9 +100,9 @@ Tensor c_vecmat(const Tensor& a, const Tensor& b) {
     const int DATA2_MAT_SIZE = BATCH_SIZE * N * DATA2_COLS;
     const int RESULT_MAT_SIZE = BLOCK_N_ROWS * DATA2_COLS;
     
-    std::unique_ptr<float[]> result_matrix(new float[RESULT_MAT_SIZE]());
-    std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
-    std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
+    std::unique_ptr<float[]> result_matrix = std::make_unique<float[]>(RESULT_MAT_SIZE);
+    std::unique_ptr<float[]> data1_matrix = std::make_unique<float[]>(DATA1_MAT_SIZE);
+    std::unique_ptr<float[]> data2_matrix = std::make_unique<float[]>(DATA2_MAT_SIZE);
 
     result_tensor._data = std::shared_ptr<float[]>(new float[result_tensor.size]());
 
@@ -161,8 +161,8 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
 
     // ------------------------------------------
     std::unique_ptr<float[]> result_matrix (new float[RESULT_MAT_SIZE]());
-    std::unique_ptr<float[]> data1_matrix(new float[DATA1_MAT_SIZE]());
-    std::unique_ptr<float[]> data2_matrix(new float[DATA2_MAT_SIZE]());
+    std::unique_ptr<float[]> data1_matrix = std::make_unique<float[]>(DATA1_MAT_SIZE);
+    std::unique_ptr<float[]> data2_matrix = std::make_unique<float[]>(DATA2_MAT_SIZE);
 
     /*
     Pads the rows of the first matrix with 0s until multiple of BLOCK_N_ROWS and

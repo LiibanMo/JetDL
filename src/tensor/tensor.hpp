@@ -9,8 +9,8 @@ namespace py = pybind11;
 
 class Tensor {
     public:
-        Tensor(py::list data, const bool requires_grad);
-        Tensor(const float data, const bool requires_grad);
+        Tensor(py::list& data, bool requires_grad);
+        Tensor(const float data, bool requires_grad);
         Tensor();
         ~Tensor() = default;
 

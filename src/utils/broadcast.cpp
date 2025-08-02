@@ -12,8 +12,8 @@ namespace utils {
             const int max_ndim = this->max_ndim;
             
             IntPtrs stridesPtrs;
-            stridesPtrs.ptr1 = std::unique_ptr<int[]>(new int[max_ndim]());
-            stridesPtrs.ptr2 = std::unique_ptr<int[]>(new int[max_ndim]());
+            stridesPtrs.ptr1 = std::make_unique<int[]>(max_ndim);
+            stridesPtrs.ptr2 = std::make_unique<int[]>(max_ndim);
             
             std::vector<int> stridesA = utils::metadata::getStrides(shape1);
             std::vector<int> stridesB = utils::metadata::getStrides(shape2);
