@@ -2,10 +2,6 @@
 #include "auxillary.hpp"
 #include "metadata.hpp"
 
-#include <cstdlib>
-#include <stdexcept>
-#include <vector>
-
 namespace utils {
 
     namespace broadcast {
@@ -16,11 +12,8 @@ namespace utils {
             const int max_ndim = this->max_ndim;
             
             IntPtrs stridesPtrs;
-            stridesPtrs.ptr1 = (int*)std::calloc(max_ndim, sizeof(int)); 
-            stridesPtrs.ptr2 = (int*)std::calloc(max_ndim, sizeof(int)); 
-            if (!stridesPtrs.ptr1 || !stridesPtrs.ptr2) {
-                throw std::runtime_error("Memory allocation failed.\n");
-            }
+            stridesPtrs.ptr1 = std::make_unique<int[]>(max_ndim);
+            stridesPtrs.ptr2 = std::make_unique<int[]>(max_ndim);
             
             std::vector<int> stridesA = utils::metadata::getStrides(shape1);
             std::vector<int> stridesB = utils::metadata::getStrides(shape2);

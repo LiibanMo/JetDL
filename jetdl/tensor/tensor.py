@@ -1,46 +1,95 @@
 from typing import Union
 
-from .._Cpp import Tensor as TensorBase
+from .._Cpp import TensorBase
 
-numeric = Union[int, float]
-
+Numeric = Union[list[Union[int, float]], int, float]
 
 class Tensor(TensorBase):
-    def __init__(self, data: list[numeric], requires_grad: bool) -> None:
+    def __init__(self: "Tensor", data: "Numeric", requires_grad: bool) -> None:
+        if not isinstance(data, (list, int, float)):
+            raise TypeError(f"new(): invalid input type '{type(data)}'")
         super().__init__(data, requires_grad)
 
-    def __add__(a: "Tensor", b: "Tensor") -> "Tensor": 
+    def __add__(self: "Tensor", other: Union[int, float, "Tensor"]) -> "Tensor":
+        if isinstance(other, (int, float)):
+            operand = Tensor(other, False)
+        else:
+            operand = other
+
         from ..math import add
 
-        return add(a, b)
+        return add(self, operand)
     
-    def __sub__(a: "Tensor", b: "Tensor") -> "Tensor":
+    def __sub__(self: "Tensor", other: Union[int, float, "Tensor"]) -> "Tensor":
+        if isinstance(other, (int, float)):
+            operand = Tensor(other, False)
+        else:
+            operand = other
+        
         from ..math import sub
 
-        return sub(a, b)
+        return sub(self, operand)
     
-    def __mul__(a: "Tensor", b: "Tensor") -> "Tensor":
+    def __mul__(self: "Tensor", other: Union[int, float, "Tensor"]) -> "Tensor":
+        if isinstance(other, (int, float)):
+            operand = Tensor(other, False)
+        else:
+            operand = other
+        
         from ..math import mul
 
-        return mul(a, b)
+        return mul(self, operand)
     
-    def __truediv__(a: "Tensor", b: "Tensor") -> "Tensor":
+    def __truediv__(self: "Tensor", other: Union[int, float, "Tensor"]) -> "Tensor":
+        if isinstance(other, (int, float)):
+            operand = Tensor(other, False)
+        else:
+            operand = other
+        
         from ..math import div
 
-        return div(a, b)
-    
-    def __matmul__(a: "Tensor", b: "Tensor") -> "Tensor":
+        return div(self, operand)
+
+    def __radd__(self: "Tensor", other: Union[int, float]) -> "Tensor":
+        return self + other
+
+    def __rsub__(self: "Tensor", other: Union[int, float]) -> "Tensor":
+        operand = Tensor(other, False)
+        from ..math import sub
+        return sub(operand, self)
+
+    def __rmul__(self: "Tensor", other: Union[int, float]) -> "Tensor":
+        return self * other
+
+    def __rtruediv__(self: "Tensor", other: Union[int, float]) -> "Tensor":
+        operand = Tensor(other, False)
+        from ..math import div
+        return div(operand, self)
+
+    def __matmul__(self: "Tensor", other: "Tensor") -> "Tensor":
         from ..linalg import matmul
 
-        return matmul(a, b)
+        return matmul(self, other)
+
+    @property
+    def T(self: "Tensor") -> "Tensor":
+        from ..linalg import transpose
+
+        return transpose(self)
+    
+    @property
+    def mT(self: "Tensor") -> "Tensor":
+        from ..linalg import matrix_transpose
+
+        return matrix_transpose(self)
 
 
-def tensor(data: list[numeric], requires_grad: bool = True) -> Tensor:
+def tensor(data: "Numeric", requires_grad: bool = False) -> Tensor:
     """
     Initialize a Tensor object with the given data and gradient tracking setting.
 
     Args:
-        data (list[numeric]): Input data as a nested list structure. Can contain integers or floats.
+        data (NumericList): Input data as a nested list structure. Can contain integers or floats.
                              The data will be flattened and stored internally.
         requires_grad (bool): Whether to track gradients for this tensor during backpropagation.
                             Defaults to False.

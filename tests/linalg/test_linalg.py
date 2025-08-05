@@ -133,3 +133,60 @@ def test_incorrect_batch_matmul(shape1, shape2):
     with pytest.raises(ValueError) as err:
         j3 = jetdl.matmul(j1, j2)
     assert "could not be broadcasted" in str(err.value)
+
+@pytest.mark.parametrize("shape", [
+    (5,),
+    (2, 3),
+    (1, 2, 3),
+    (1, 2, 3, 4),
+    (1, 2, 3, 4, 5),
+    (6, 5, 4, 3, 2, 1),
+])
+def test_transpose(shape):
+    data = generate_random_data(shape)
+    flattened_data = torch.flatten(torch.tensor(data)).tolist()
+
+    j_tensor = jetdl.tensor(data)
+    jetdl_transposed = j_tensor.T
+    
+    expected_shape = tuple(reversed(shape))
+
+    assert jetdl_transposed.shape == expected_shape, f"Expected shapes to match: (jetdl) {jetdl_transposed.shape} vs (actual) {expected_shape}"
+    assert jetdl_transposed._data == pytest.approx(flattened_data, ERR), f"Expected data to be close: {jetdl_transposed.data} vs {flattened_data}"
+    assert jetdl_transposed.is_contiguous == False
+
+@pytest.mark.parametrize("shape", [
+    (2, 3),
+    (1, 2, 3),
+    (1, 2, 3, 4),
+    (1, 2, 3, 4, 5),
+    (6, 5, 4, 3, 2, 1),
+])
+def test_matrix_transpose(shape):
+    data = generate_random_data(shape)
+    flattened_data = torch.flatten(torch.tensor(data)).tolist()
+
+    j_tensor = jetdl.tensor(data)
+    jetdl_matrix_transposed = j_tensor.mT
+
+    expected_shape = list(shape).copy()
+    expected_shape[-1], expected_shape[-2] = expected_shape[-2], expected_shape[-1]
+
+    assert jetdl_matrix_transposed.shape == tuple(expected_shape), f"Expected shapes to match: (jetdl) {jetdl_matrix_transposed.shape} vs (actual) {tuple(expected_shape)}"
+    assert jetdl_matrix_transposed._data == pytest.approx(flattened_data, ERR), f"Expected data to be close: {jetdl_matrix_transposed.data} vs {flattened_data}"
+    assert jetdl_matrix_transposed.is_contiguous == False
+
+@pytest.mark.parametrize("shape", [
+    (5),
+    (5,),
+])
+def test_incorrect_matrix_transpose(shape):
+    data = generate_random_data(shape)
+    j_tensor = jetdl.tensor(data)
+    t_tensor = torch.tensor(data)
+    
+    assert j_tensor.shape == t_tensor.shape
+    assert j_tensor.ndim == t_tensor.ndim
+    with pytest.raises(RuntimeError) as err:
+        _ = j_tensor.mT
+    assert "only supports matrices or batches of matrices" in str(err.value)
