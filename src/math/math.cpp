@@ -2,7 +2,7 @@
 #include "ops/ops.hpp"
 
 namespace math {    
-    
+
     Tensor add(const Tensor& a, const Tensor& b) {
         const std::string op = "ADD";
         if (a.ndim > 0 && b.ndim > 0) {

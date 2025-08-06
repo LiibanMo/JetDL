@@ -19,6 +19,9 @@ class Tensor(TensorBase):
         from ..math import add
 
         return add(self, operand)
+
+    def __radd__(self: "Tensor", other: Union[int, float]) -> "Tensor":
+        return self + other
     
     def __sub__(self: "Tensor", other: Union[int, float, "Tensor"]) -> "Tensor":
         if isinstance(other, (int, float)):
@@ -29,6 +32,11 @@ class Tensor(TensorBase):
         from ..math import sub
 
         return sub(self, operand)
+
+    def __rsub__(self: "Tensor", other: Union[int, float]) -> "Tensor":
+        operand = Tensor(other, False)
+        from ..math import sub
+        return sub(operand, self)
     
     def __mul__(self: "Tensor", other: Union[int, float, "Tensor"]) -> "Tensor":
         if isinstance(other, (int, float)):
@@ -39,6 +47,9 @@ class Tensor(TensorBase):
         from ..math import mul
 
         return mul(self, operand)
+
+    def __rmul__(self: "Tensor", other: Union[int, float]) -> "Tensor":
+        return self * other
     
     def __truediv__(self: "Tensor", other: Union[int, float, "Tensor"]) -> "Tensor":
         if isinstance(other, (int, float)):
@@ -49,17 +60,6 @@ class Tensor(TensorBase):
         from ..math import div
 
         return div(self, operand)
-
-    def __radd__(self: "Tensor", other: Union[int, float]) -> "Tensor":
-        return self + other
-
-    def __rsub__(self: "Tensor", other: Union[int, float]) -> "Tensor":
-        operand = Tensor(other, False)
-        from ..math import sub
-        return sub(operand, self)
-
-    def __rmul__(self: "Tensor", other: Union[int, float]) -> "Tensor":
-        return self * other
 
     def __rtruediv__(self: "Tensor", other: Union[int, float]) -> "Tensor":
         operand = Tensor(other, False)
