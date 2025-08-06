@@ -1,6 +1,6 @@
 #pragma once
 
-#include "autograd/utils/utils.hpp"
+#include "autograd/function.hpp"
 
 class AddBackward : Function {
     public:
