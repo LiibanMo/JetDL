@@ -1,5 +1,7 @@
 #pragma once
 
+#include "autograd/function.hpp"
+
 #include <memory>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
@@ -19,7 +21,11 @@ class Tensor {
         int ndim;
         int size;
         std::vector<int> strides;
+
         bool requires_grad;
+        std::shared_ptr<Function> grad_fn;
+        std::shared_ptr<Tensor> grad;
+        
         bool is_contiguous;
         bool is_leaf;
 };

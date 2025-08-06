@@ -1,3 +1,4 @@
+numpy==2.3.2
 pybind11==2.13.6
 pytest==8.4.1
 scikit_build_core==0.11.4
