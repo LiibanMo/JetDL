@@ -5,14 +5,9 @@
 PYBIND11_MODULE(_Cpp, m) {
     bind_Tensor_class(m);
        
-    linalg::bind_dot(m);
-    linalg::bind_matmul(m);
-    linalg::bind_T(m);
-    linalg::bind_mT(m);
+    linalg::bind_submodule(m);
 
-    math::bind_add(m);
-    math::bind_sub(m);
-    math::bind_mul(m);
-    math::bind_div(m);
+    math::ops::bind_submodule(m);
+    math::function::bind_submodule(m);
     
 }

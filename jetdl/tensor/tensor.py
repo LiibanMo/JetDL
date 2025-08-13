@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 from .._Cpp import TensorBase
 
@@ -83,6 +83,10 @@ class Tensor(TensorBase):
 
         return matrix_transpose(self)
 
+    def sum(self: "Tensor", axes: Optional[Union[list[int], tuple[int], int]] = None) -> "Tensor":
+        from ..math import sum
+
+        return sum(self, axes)
 
 def tensor(data: "Numeric", requires_grad: bool = False) -> Tensor:
     """

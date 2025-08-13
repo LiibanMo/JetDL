@@ -1,5 +1,6 @@
 #include "matmul.hpp"
 #include "kernel.hpp"
+#include "utils/auxiliary.hpp"
 #include "utils/check.hpp"
 #include "utils/broadcast.hpp"
 #include "utils/metadata.hpp"
@@ -7,7 +8,7 @@
 
 Tensor c_dot(const Tensor& a, const Tensor& b) {
     // (N) @ (N)
-    utils::check::dotConditions(a.shape, b.shape);
+    utils::check::dot_conditions(a.shape, b.shape);
 
     Tensor result_tensor = Tensor();
 
@@ -29,24 +30,24 @@ Tensor c_dot(const Tensor& a, const Tensor& b) {
 
 Tensor c_matvec(const Tensor& a, const Tensor& b) {
     // (..., M, N) @ (N)
-    utils::check::matvecConditions(a.shape, b.shape);
+    utils::check::matvec_conditions(a.shape, b.shape);
 
     Tensor result_tensor = Tensor();
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, true); // matmul == true
 
     // ----- Assigning metadata -----
-    result_tensor.shape = BroadcastUtils.getResultShape();
-    result_tensor.ndim = utils::metadata::getNumDim(result_tensor.shape);
-    result_tensor.size = utils::metadata::getSize(result_tensor.shape);
-    result_tensor.strides = utils::metadata::getStrides(result_tensor.shape);
+    result_tensor.shape = BroadcastUtils.get_result_shape();
+    result_tensor.ndim = utils::metadata::get_ndim(result_tensor.shape);
+    result_tensor.size = utils::metadata::get_size(result_tensor.shape);
+    result_tensor.strides = utils::metadata::get_strides(result_tensor.shape);
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
     // ------------------------------
 
     const int M = a.shape[a.ndim-2];
     const int N = b.shape[0];
 
-    const int DATA1_ROWS = utils::factorCeilingFunc(M, BLOCK_N_ROWS);
-    const int BATCH_SIZE = utils::broadcast::getBatchSize(a.shape);
+    const int DATA1_ROWS = utils::factor_ceiling_func(M, BLOCK_N_ROWS);
+    const int BATCH_SIZE = utils::broadcast::get_batch_size(a.shape);
 
     const int DATA1_MAT_SIZE = DATA1_ROWS * N;
     const int DATA2_MAT_SIZE = N * BLOCK_N_COLS;
@@ -77,24 +78,24 @@ Tensor c_matvec(const Tensor& a, const Tensor& b) {
 
 Tensor c_vecmat(const Tensor& a, const Tensor& b) {
     // (N) @ (..., N, P)
-    utils::check::vecmatConditions(a.shape, b.shape);
+    utils::check::vecmat_conditions(a.shape, b.shape);
 
     Tensor result_tensor = Tensor();
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, true); // matmul == true
 
     // ----- Assigning metadata -----
-    result_tensor.shape = BroadcastUtils.getResultShape();
-    result_tensor.ndim = utils::metadata::getNumDim(result_tensor.shape);
-    result_tensor.size = utils::metadata::getSize(result_tensor.shape);
-    result_tensor.strides = utils::metadata::getStrides(result_tensor.shape);
+    result_tensor.shape = BroadcastUtils.get_result_shape();
+    result_tensor.ndim = utils::metadata::get_ndim(result_tensor.shape);
+    result_tensor.size = utils::metadata::get_size(result_tensor.shape);
+    result_tensor.strides = utils::metadata::get_strides(result_tensor.shape);
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
     // ------------------------------
 
     const int N = a.shape[0];
     const int P = b.shape[b.ndim-1];
 
-    const int DATA2_COLS = utils::factorCeilingFunc(P, BLOCK_N_COLS);
-    const int BATCH_SIZE = utils::broadcast::getBatchSize(b.shape);
+    const int DATA2_COLS = utils::factor_ceiling_func(P, BLOCK_N_COLS);
+    const int BATCH_SIZE = utils::broadcast::get_batch_size(b.shape);
 
     const int DATA1_MAT_SIZE = BLOCK_N_ROWS * N;
     const int DATA2_MAT_SIZE = BATCH_SIZE * N * DATA2_COLS;
@@ -122,16 +123,16 @@ Tensor c_vecmat(const Tensor& a, const Tensor& b) {
 
 Tensor c_matmul(const Tensor& a, const Tensor& b) {
     // a.shape = (..., M, N), b.shape = (..., N, P)
-    utils::check::matmulConditions(a.shape, b.shape);
+    utils::check::matmul_conditions(a.shape, b.shape);
 
     Tensor result_tensor = Tensor();
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, true); // matmul == true
     
     // ----- Assigning metadata -----
-    result_tensor.shape = BroadcastUtils.getResultShape();
-    result_tensor.ndim = utils::metadata::getNumDim(result_tensor.shape);
-    result_tensor.size = utils::metadata::getSize(result_tensor.shape);
-    result_tensor.strides = utils::metadata::getStrides(result_tensor.shape);
+    result_tensor.shape = BroadcastUtils.get_result_shape();
+    result_tensor.ndim = utils::metadata::get_ndim(result_tensor.shape);
+    result_tensor.size = utils::metadata::get_size(result_tensor.shape);
+    result_tensor.strides = utils::metadata::get_strides(result_tensor.shape);
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
     // ------------------------------
     
@@ -141,10 +142,10 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     
     const int max_ndim = result_tensor.ndim;
     
-    const int BATCH_SIZE = utils::broadcast::getBatchSize(result_tensor.shape);
+    const int BATCH_SIZE = utils::broadcast::get_batch_size(result_tensor.shape);
     
-    const int DATA1_ROWS = utils::factorCeilingFunc(M, BLOCK_N_ROWS);
-    const int DATA2_COLS = utils::factorCeilingFunc(P, BLOCK_N_COLS);
+    const int DATA1_ROWS = utils::factor_ceiling_func(M, BLOCK_N_ROWS);
+    const int DATA2_COLS = utils::factor_ceiling_func(P, BLOCK_N_COLS);
     
     const int DATA1_MAT_SIZE = DATA1_ROWS * N;
     const int DATA2_MAT_SIZE = N * DATA2_COLS;
@@ -152,12 +153,12 @@ Tensor c_matmul(const Tensor& a, const Tensor& b) {
     
     const int NDIM_BATCH = (max_ndim > 2) ? max_ndim - 2 : 1;
 
-    utils::IntPtrs stridesPtrs = BroadcastUtils.getBroadcastStrides(); 
+    utils::IntPtrs stridesPtrs = BroadcastUtils.get_broadcast_strides(); 
 
     std::unique_ptr<int[]> stridesA = std::move(stridesPtrs.ptr1);
-    std::unique_ptr<int[]> idxs1 = utils::populateLinearIdxs(result_tensor.shape, stridesA.get(), 2);
+    std::unique_ptr<int[]> idxs1 = utils::populate_linear_idxs(result_tensor.shape, stridesA.get(), 2);
     std::unique_ptr<int[]> stridesB = std::move(stridesPtrs.ptr2);
-    std::unique_ptr<int[]> idxs2 = utils::populateLinearIdxs(result_tensor.shape, stridesB.get(), 2);
+    std::unique_ptr<int[]> idxs2 = utils::populate_linear_idxs(result_tensor.shape, stridesB.get(), 2);
 
     // ------------------------------------------
     std::unique_ptr<float[]> result_matrix (new float[RESULT_MAT_SIZE]());

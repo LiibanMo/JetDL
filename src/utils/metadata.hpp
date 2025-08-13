@@ -11,12 +11,11 @@ namespace utils {
 
     namespace metadata {
 
-        void initialiseScalarTensor(Tensor& tensor, const bool requires_grad, const bool is_leaf);
-        std::shared_ptr<float[]> flattenNestedPylist(py::list& data);
-        std::vector<int> getShape(py::list& data);
-        const int getNumDim(const std::vector<int>& shape);
-        std::vector<int> getStrides(const std::vector<int>& shape);
-        const int getSize(const std::vector<int>& shape);
+        std::shared_ptr<float[]> flatten_nested_pylist(py::list& data);
+        std::vector<int> get_shape(py::list& data);
+        const int get_ndim(const std::vector<int>& shape);
+        std::vector<int> get_strides(const std::vector<int>& shape);
+        const int get_size(const std::vector<int>& shape);
 
     }
 

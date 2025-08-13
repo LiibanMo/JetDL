@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 Numeric = Union[list[Union[int, float]], int, float]
 
@@ -22,5 +22,7 @@ class Tensor:
 
     @property
     def mT(self: "Tensor") -> "Tensor": ...
+
+    def sum(self: "Tensor", axes: Optional[Union[list[int], tuple[int], int]] = None) -> "Tensor": ...
 
 def tensor(data: Numeric, requires_grad: bool = False) -> Tensor: ...

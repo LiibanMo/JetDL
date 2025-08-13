@@ -5,9 +5,14 @@ from .ops import (
     div,
 )
 
+from .function import (
+    sum,
+)
+
 __all__ = [
     "add",
     "sub",
     "mul",
     "div",
+    "sum",
 ]

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "auxillary.hpp"
+#include "auxiliary.hpp"
 
 namespace utils {
 
@@ -24,18 +24,18 @@ namespace utils {
                     this->matmul = matmul;
                 };
 
-                IntPtrs getBroadcastStrides();
+                IntPtrs get_broadcast_strides();
 
-                std::vector<int> getResultShape();
+                std::vector<int> get_result_shape();
 
         };
             
-        static inline int getBatchSize(std::vector<int> shape) {
-            int BATCH_SIZE = 1;
+        static inline int get_batch_size(std::vector<int> shape) {
+            int batch_size = 1;
             for (int i = shape.size()-3; i >= 0; i--) {
-                BATCH_SIZE *= shape[i];
+                batch_size *= shape[i];
             }
-            return BATCH_SIZE;
+            return batch_size;
         }
 
     }

@@ -1,6 +1,10 @@
 #include "check.hpp"
+#include "utils/auxiliary.hpp"
 
+#include <algorithm>
 #include <pybind11/pybind11.h>
+#include <stdexcept>
+#include <vector>
 
 namespace py = pybind11;
 
@@ -8,7 +12,33 @@ namespace utils {
 
     namespace check {
 
-        void opsBroadcastConditions(const std::vector<int> shape1, const std::vector<int> shape2) {
+        void axis_conditions(const std::vector<int>& shape, const std::vector<int>& axes) {
+            const int ndim = shape.size();
+            for (int axis : axes) {
+                py::gil_scoped_acquire acquire;
+                if (axis >= ndim || axis < -ndim) {
+                    throw py::index_error(
+                        py::str(
+                            "dimension out of range (got {}, which is outside of [{},{}])"
+                        )
+                        .format(axis, -ndim, ndim-1)
+                    );
+                }
+                const std::vector<int> updated_axes = utils::make_axes_positive(axes, ndim);
+                const int freq = std::count(updated_axes.begin(), updated_axes.end(), axis);
+                if (freq > 1) {
+                    throw std::runtime_error(
+                        py::str(
+                            "dim {} appears multiple times in the list of axes"
+                        )
+                        .format(axis)
+                    );
+                }
+            }
+
+        }
+
+        void ops_broadcast_conditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
             const int ndim1 = shape1.size();
             const int ndim2 = shape2.size();
             const int max_ndim = std::max(ndim1, ndim2);
@@ -29,7 +59,7 @@ namespace utils {
             }
         }
 
-        void dotConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+        void dot_conditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
             // (N) @ (N)
             const int ndim1 = shape1.size();
             const int ndim2 = shape2.size();
@@ -49,7 +79,7 @@ namespace utils {
             }
         }
 
-        void matvecConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+        void matvec_conditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
             // (..., M, N) @ (N)
             const int ndim1 = shape1.size(); 
             const int ndim2 = shape2.size(); // == 1
@@ -70,7 +100,7 @@ namespace utils {
             }
         }
 
-        void vecmatConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+        void vecmat_conditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
             // (N) @ (..., N, P)
             const int ndim1 = shape1.size(); // == 1
             const int ndim2 = shape2.size();
@@ -90,7 +120,7 @@ namespace utils {
             }
         }
 
-        void matmulConditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+        void matmul_conditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
             // (..., M, N) @ (..., N, P)
             const int ndim1 = shape1.size();
             const int ndim2 = shape2.size();

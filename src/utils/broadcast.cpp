@@ -1,12 +1,12 @@
 #include "broadcast.hpp"
-#include "auxillary.hpp"
+#include "auxiliary.hpp"
 #include "metadata.hpp"
 
 namespace utils {
 
     namespace broadcast {
 
-        IntPtrs BroadcastingUtilsObject::getBroadcastStrides() {
+        IntPtrs BroadcastingUtilsObject::get_broadcast_strides() {
             const int ndim1 = this->ndim1;
             const int ndim2 = this->ndim2;
             const int max_ndim = this->max_ndim;
@@ -15,8 +15,8 @@ namespace utils {
             stridesPtrs.ptr1 = std::make_unique<int[]>(max_ndim);
             stridesPtrs.ptr2 = std::make_unique<int[]>(max_ndim);
             
-            std::vector<int> stridesA = utils::metadata::getStrides(shape1);
-            std::vector<int> stridesB = utils::metadata::getStrides(shape2);
+            std::vector<int> stridesA = utils::metadata::get_strides(shape1);
+            std::vector<int> stridesB = utils::metadata::get_strides(shape2);
 
             const int offset = matmul ? 2 : 0;
 
@@ -34,7 +34,7 @@ namespace utils {
             return stridesPtrs;
         }
 
-        std::vector<int> BroadcastingUtilsObject::getResultShape() {
+        std::vector<int> BroadcastingUtilsObject::get_result_shape() {
             const int ndim1 = this->ndim1;
             const int ndim2 = this->ndim2;
             const int max_ndim = this->max_ndim;
