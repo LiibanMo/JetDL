@@ -1,6 +1,6 @@
 #include "ops.hpp"
 #include "kernel.hpp"
-#include "utils/auxillary.hpp"
+#include "utils/auxiliary.hpp"
 #include "utils/broadcast.hpp"
 #include "utils/check.hpp"
 #include "utils/metadata.hpp"
@@ -46,33 +46,33 @@ void register_basic_ops_on_scalars() {
 }
 
 Tensor c_ops(const Tensor& a, const Tensor& b, const std::string op) {
-    utils::check::opsBroadcastConditions(a.shape, b.shape);
+    utils::check::ops_broadcast_conditions(a.shape, b.shape);
 
     Tensor result_tensor = Tensor();
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, false);
 
     // ----- Assigning metadata -----
-    result_tensor.shape = BroadcastUtils.getResultShape();
-    result_tensor.ndim = utils::metadata::getNumDim(result_tensor.shape);
-    result_tensor.size = utils::metadata::getSize(result_tensor.shape);
-    result_tensor.strides = utils::metadata::getStrides(result_tensor.shape);
+    result_tensor.shape = BroadcastUtils.get_result_shape();
+    result_tensor.ndim = utils::metadata::get_ndim(result_tensor.shape);
+    result_tensor.size = utils::metadata::get_size(result_tensor.shape);
+    result_tensor.strides = utils::metadata::get_strides(result_tensor.shape);
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
     // ------------------------------
 
     const int MAX_NDIM = result_tensor.ndim;
 
-    utils::IntPtrs strides = BroadcastUtils.getBroadcastStrides();
+    utils::IntPtrs strides = BroadcastUtils.get_broadcast_strides();
 
     std::unique_ptr<int[]> stridesA = std::move(strides.ptr1);
-    std::unique_ptr<int[]> idxsA = utils::populateLinearIdxs(result_tensor.shape, stridesA.get(), 1);
+    std::unique_ptr<int[]> idxsA = utils::populate_linear_idxs(result_tensor.shape, stridesA.get(), 1);
     std::unique_ptr<int[]> stridesB = std::move(strides.ptr2);
-    std::unique_ptr<int[]> idxsB = utils::populateLinearIdxs(result_tensor.shape, stridesB.get(), 1);
+    std::unique_ptr<int[]> idxsB = utils::populate_linear_idxs(result_tensor.shape, stridesB.get(), 1);
 
     const int NA = a.shape[a.ndim-1];
     const int NB = b.shape[b.ndim-1];
     const int N = (NA > NB) ? NA : NB;
 
-    const int DATA_VEC_SIZE = utils::factorCeilingFunc(N, BLOCK_N_COLS);
+    const int DATA_VEC_SIZE = utils::factor_ceiling_func(N, BLOCK_N_COLS);
 
     std::unique_ptr<float[]> result_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
     std::unique_ptr<float[]> data1_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
@@ -124,7 +124,7 @@ Tensor c_ops_scalar_a(const float a, const Tensor& b, const std::string op) {
 
     const int N = b.shape[b.ndim-1];
 
-    const int DATA_VEC_SIZE = utils::factorCeilingFunc(N, BLOCK_N_COLS);
+    const int DATA_VEC_SIZE = utils::factor_ceiling_func(N, BLOCK_N_COLS);
     const int TOTAL_NUM_ROWS = result_tensor.size / N;
 
     std::unique_ptr<float[]> result_ptr = std::make_unique<float[]>(DATA_VEC_SIZE);
@@ -160,7 +160,7 @@ Tensor c_ops_scalar_b(const Tensor& a, const float b, const std::string op) {
     
     const int N = a.shape[a.ndim-1];
 
-    const int DATA_VEC_SIZE = utils::factorCeilingFunc(N, BLOCK_N_COLS);
+    const int DATA_VEC_SIZE = utils::factor_ceiling_func(N, BLOCK_N_COLS);
     const int TOTAL_NUM_ROWS = result_tensor.size / N;
 
     std::unique_ptr<float[]> result_ptr = std::make_unique<float[]>(DATA_VEC_SIZE);

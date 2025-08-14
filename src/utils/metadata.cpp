@@ -6,17 +6,7 @@ namespace utils {
 
     namespace metadata {
 
-        void initialiseScalarTensor(Tensor& tensor, const bool requires_grad, const bool is_leaf) {
-            tensor.shape = {};
-            tensor.ndim = 0;
-            tensor.size = 1;
-            tensor.strides = {};
-            tensor.requires_grad = requires_grad;
-            tensor.is_contiguous = true;
-            tensor.is_leaf = is_leaf;
-        }
-
-        std::shared_ptr<float[]> flattenNestedPylist(py::list& data) {
+        std::shared_ptr<float[]> flatten_nested_pylist(py::list& data) {
             std::vector<float> flat_vector;
             std::function<void(py::list)> flatten = 
                 [&](py::list l) {
@@ -42,7 +32,7 @@ namespace utils {
             return result;
         }
 
-        std::vector<int> getShape(py::list& data) {
+        std::vector<int> get_shape(py::list& data) {
             std::vector<int> shape;
             if (data.empty()) {
                 return shape;
@@ -50,17 +40,17 @@ namespace utils {
             shape.push_back(static_cast<int>(data.size()));
             if (!data.empty() && py::isinstance<py::list>(data[0])) {
                 py::list nested_list = py::cast<py::list>(data[0]);
-                std::vector<int> nested_shape = getShape(nested_list);
+                std::vector<int> nested_shape = get_shape(nested_list);
                 shape.insert(shape.end(), nested_shape.begin(), nested_shape.end());
             }
             return shape;
         }
 
-        const int getNumDim(const std::vector<int>& shape) {
+        const int get_ndim(const std::vector<int>& shape) {
             return shape.size();
         }
 
-        std::vector<int> getStrides(const std::vector<int>& shape) {
+        std::vector<int> get_strides(const std::vector<int>& shape) {
             const int ndim = shape.size();
             std::vector<int> strides (ndim, 1);
             for (int i = ndim-2; i >= 0; i--) {
@@ -69,7 +59,7 @@ namespace utils {
             return strides;
         }
 
-        const int getSize(const std::vector<int>& shape) {
+        const int get_size(const std::vector<int>& shape) {
             const int size = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
             return size;
         }

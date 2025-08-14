@@ -1,21 +1,10 @@
-from .linalg import dot, matmul, matrix_transpose, transpose
-from .math import add, sub, mul, div
-from .tensor import Tensor, tensor
+from .linalg import *
+from .math import *
+from .tensor import *
 
 __all__ = [
-    #linalg
-    "dot",
-    "matmul",
-    "matrix_transpose",
-    "transpose",
-
-    #math
-    "add",
-    "sub",
-    "mul",
-    "div",
-
     #tensor
     "Tensor",
     "tensor",
-]
+
+] + linalg.__all__ + math.__all__

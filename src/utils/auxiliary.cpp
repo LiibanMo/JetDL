@@ -1,4 +1,4 @@
-#include "auxillary.hpp"
+#include "auxiliary.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -6,7 +6,7 @@
 
 namespace utils {
 
-    std::unique_ptr<int[]> populateLinearIdxs(std::vector<int> shape, int* strides, const int offset) {
+    std::unique_ptr<int[]> populate_linear_idxs(std::vector<int> shape, int* strides, const int offset) {
         const int ndim = shape.size();
         const int size = std::accumulate(shape.begin(), shape.end() - offset, 1, std::multiplies<int>());
         
@@ -33,6 +33,18 @@ namespace utils {
             }
         }
         return lin_idxs;
+    }
+
+    std::vector<int> make_axes_positive(const std::vector<int>& axes, const int ndim) {
+        std::vector<int> result_axes = std::vector<int>(axes.size(), 0);
+        for (int i = 0; i < axes.size(); i++) {
+            if (axes[i] < 0) {
+                result_axes[i] = axes[i] + ndim; 
+            } else {
+                result_axes[i] = axes[i];
+            }
+        }
+        return result_axes;
     }
 
 }
