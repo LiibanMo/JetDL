@@ -6,33 +6,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
-file(GLOB_RECURSE AUTOGRAD_SOURCES
-    "autograd/*.cpp"
-)
-
-file(GLOB_RECURSE LINALG_SOURCES 
-    "linalg/*.cpp"
-)
-
-file (GLOB_RECURSE MATH_SOURCES
-    "math/*.cpp"
-)
-
-file (GLOB_RECURSE TENSOR_SOURCES
-    "tensor/*.cpp"
-)
-
-file(GLOB UTILS_SOURCES
-    "utils/*.cpp"
+file(GLOB_RECURSE CPP_FILES
+    "*.cpp"
 )
 
 pybind11_add_module(_Cpp 
-    bindings.cpp
-    ${AUTOGRAD_SOURCES}
-    ${LINALG_SOURCES}
-    ${MATH_SOURCES}
-    ${TENSOR_SOURCES}
-    ${UTILS_SOURCES}
+    ${CPP_FILES}
 )
 
 set_target_properties(_Cpp PROPERTIES

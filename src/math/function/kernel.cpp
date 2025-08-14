@@ -1,8 +1,4 @@
 #include "kernel.hpp"
-#include "math/function/reduction.hpp"
-
-#ifdef __ARM_NEON__
-#include <arm_neon.h>
 
 void c_total_sum_cpu(const float* src, float* dest, const int size) {
     for (int i = 0; i < size; i++) {
@@ -15,5 +11,3 @@ void c_sum_cpu(const float* src, float* dest, const int* dest_idxs, const int si
         dest[dest_idxs[i]] += src[i];
     }
 }   
-
-#endif
