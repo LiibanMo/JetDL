@@ -32,9 +32,8 @@ def test_non_broadcast_addition(shape1, shape2, operation):
 
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
-    result_tensor = torch.tensor(j3._data).reshape(j3.shape)
-    assert_object = PyTestAsserts(result_tensor, expected_tensor)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j3, expected_tensor)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 @pytest.mark.parametrize("operation", operations_strs)
@@ -44,9 +43,8 @@ def test_broadcast_addition(shape1, shape2, operation):
 
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
-    result_tensor = torch.tensor(j3._data).reshape(j3.shape)
-    assert_object = PyTestAsserts(result_tensor, expected_tensor)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j3, expected_tensor)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 @pytest.mark.parametrize("operation", operations_strs)
@@ -65,9 +63,8 @@ def test_scalar_tensor_operations(shape, operation):
     t_tensor = torch.tensor(tensor_data)
     expected_tensor = torch_op(t_scalar, t_tensor)
 
-    result_tensor = torch.tensor(j_result._data).reshape(j_result.shape)
-    assert_object = PyTestAsserts(result_tensor, expected_tensor)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j_result, expected_tensor)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 @pytest.mark.parametrize("operation", operations_strs)
@@ -86,7 +83,6 @@ def test_tensor_scalar_operations(shape, operation):
     t_scalar = torch.tensor(scalar_data)
     expected_tensor = torch_op(t_tensor, t_scalar)
 
-    result_tensor = torch.tensor(j_result._data).reshape(j_result.shape)
-    assert_object = PyTestAsserts(result_tensor, expected_tensor)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j_result, expected_tensor)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()

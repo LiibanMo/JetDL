@@ -16,6 +16,7 @@ namespace utils {
         const int get_ndim(const std::vector<int>& shape);
         std::vector<int> get_strides(const std::vector<int>& shape);
         const int get_size(const std::vector<int>& shape);
+        void assign_basic_metadata(Tensor& mutable_tensor, const std::vector<int>& shape);
 
     }
 

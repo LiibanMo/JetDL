@@ -4,4 +4,6 @@
 
 namespace py = pybind11;
 
-void bind_tensor_class(py::module_& m);
+namespace routines {
+    void bind_submodule(py::module_& m);
+}

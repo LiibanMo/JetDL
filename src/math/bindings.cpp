@@ -24,8 +24,11 @@ namespace math {
     namespace function {
 
         void bind_submodule(py::module_& m) {
+            
             m.def("c_total_sum", &math::function::total_sum, py::call_guard<py::gil_scoped_release>());
+            
             m.def("c_sum_w_axes", &math::function::sum_w_axes, py::call_guard<py::gil_scoped_release>());
+        
         }
 
     }

@@ -4,10 +4,10 @@
 
 namespace math {
     namespace ops {
-        Tensor add(const Tensor& a, const Tensor& b);
-        Tensor sub(const Tensor& a, const Tensor& b);
-        Tensor mul(const Tensor& a, const Tensor& b);
-        Tensor div(const Tensor& a, const Tensor& b);
+        Tensor add(Tensor& a, Tensor& b);
+        Tensor sub(Tensor& a, Tensor& b);
+        Tensor mul(Tensor& a, Tensor& b);
+        Tensor div(Tensor& a, Tensor& b);
     }
     namespace function {
         Tensor total_sum(const Tensor& tensor);

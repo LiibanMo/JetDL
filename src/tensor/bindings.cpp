@@ -5,7 +5,7 @@
 
 namespace py = pybind11;
 
-void bind_Tensor_class(py::module_& m) {
+void bind_tensor_class(py::module_& m) {
     py::class_<Tensor>(m, "TensorBase")
         .def(py::init<py::list&, bool>(),
             py::arg("data"),
@@ -33,5 +33,6 @@ void bind_Tensor_class(py::module_& m) {
         .def_readonly("grad_fn", &Tensor::grad_fn)
         .def_readonly("grad", &Tensor::grad)
 
-        .def_readonly("is_contiguous", &Tensor::is_contiguous);
+        .def_readonly("is_contiguous", &Tensor::is_contiguous)
+        .def_readonly("is_leaf", &Tensor::is_leaf);
 }

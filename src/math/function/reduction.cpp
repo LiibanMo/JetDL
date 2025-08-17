@@ -7,19 +7,15 @@
 #include "utils/reduction.hpp"
 
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 Tensor c_total_sum(const Tensor& tensor) {
     Tensor result_tensor = Tensor();
 
     // ----- Assigning metadata -----
-    result_tensor.shape = {};
-    result_tensor.ndim = 0;
-    result_tensor.size = 1;
-    result_tensor.strides = {};
+    utils::metadata::assign_basic_metadata(result_tensor, {});
     result_tensor.requires_grad = tensor.requires_grad;
-    result_tensor.is_contiguous = true;
-    result_tensor.is_leaf = false;
     // ------------------------------
 
     result_tensor._data = std::make_shared<float[]>(result_tensor.size);
@@ -36,13 +32,8 @@ Tensor c_sum_w_axes(const Tensor& tensor, const std::vector<int>& input_axes) {
     Tensor result_tensor = Tensor();
 
     // ----- Assigning metadata -----
-    result_tensor.shape = utils::reduction::get_shape(tensor.shape, axes);
-    result_tensor.ndim = utils::metadata::get_ndim(result_tensor.shape);
-    result_tensor.size = utils::metadata::get_size(result_tensor.shape);
-    result_tensor.strides = utils::metadata::get_strides(result_tensor.shape);
+    utils::metadata::assign_basic_metadata(result_tensor, utils::reduction::get_shape(tensor.shape, axes));
     result_tensor.requires_grad = tensor.requires_grad;
-    result_tensor.is_contiguous = true;
-    result_tensor.is_leaf = false;
     // ------------------------------
 
     result_tensor._data = std::make_shared<float[]>(result_tensor.size);
@@ -54,4 +45,24 @@ Tensor c_sum_w_axes(const Tensor& tensor, const std::vector<int>& input_axes) {
     c_sum_cpu(tensor._data.get(), result_tensor._data.get(), dest_idxs.get(), tensor.size);
 
     return result_tensor;
+}
+
+Tensor c_sum_to_size(const Tensor& tensor, const std::vector<int>& shape) { 
+    if (tensor.ndim < shape.size()) {
+        throw std::runtime_error("cannot sum to a size greater than the original tensor.");
+    }
+
+    utils::check::ops_broadcast_conditions(tensor.shape, shape);
+
+    std::vector<int> axes = std::vector<int> ();
+
+    for (int i = tensor.ndim-1; i >= 0; i--) {
+        const int shape_idx = i - tensor.ndim + shape.size();
+
+        if (shape[shape_idx] != tensor.shape[i] && shape[shape_idx] == 1) {
+            axes.push_back(tensor.shape[i]);
+        }
+    }
+
+    return c_sum_w_axes(tensor, axes);
 }

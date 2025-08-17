@@ -13,10 +13,7 @@ Tensor c_dot(const Tensor& a, const Tensor& b) {
     Tensor result_tensor = Tensor();
 
     // ----- Assigning metadata -----
-    result_tensor.shape = {};
-    result_tensor.ndim = 0;
-    result_tensor.size = 1;
-    result_tensor.strides = {1};
+    utils::metadata::assign_basic_metadata(result_tensor, {});
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
     // ------------------------------
 

@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from .._Cpp import TensorBase
+from .._Cpp import TensorBase, c_backward
 
 Numeric = Union[list[Union[int, float]], int, float]
 
@@ -87,6 +87,10 @@ class Tensor(TensorBase):
         from ..math import sum
 
         return sum(self, axes)
+    
+    def backward(self, input_grad: Optional["Tensor"]) -> None:
+        from ..autograd import backward
+        backward(self, input_grad)
 
 def tensor(data: "Numeric", requires_grad: bool = False) -> Tensor:
     """

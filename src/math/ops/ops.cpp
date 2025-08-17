@@ -1,9 +1,14 @@
 #include "ops.hpp"
+#include "autograd/function.hpp"
 #include "kernel.hpp"
+
+#include "tensor/tensor.hpp"
 #include "utils/auxiliary.hpp"
 #include "utils/broadcast.hpp"
 #include "utils/check.hpp"
 #include "utils/metadata.hpp"
+
+#include "autograd/math/ops.hpp"
 
 #include <memory>
 
@@ -11,9 +16,11 @@
 
 using BinaryOperation = std::function<void(const float*, const float*, float*, const int)>;
 using BinaryOperationScalars = std::function<void(const float, const float, float&)>;
+using BinaryOperationGradFn = std::function<void(Tensor&, Tensor&, Tensor&)>;
 
 std::unordered_map<std::string, BinaryOperation> registered_operations;
 std::unordered_map<std::string, BinaryOperationScalars>  registered_operations_on_scalars;
+std::unordered_map<std::string, BinaryOperationGradFn> register_grad_fns;
 
 void register_basic_ops() {
     registered_operations["ADD"] = [] (const float* a, const float* b, float* c, const int N) {
@@ -45,18 +52,35 @@ void register_basic_ops_on_scalars() {
     };
 }
 
-Tensor c_ops(const Tensor& a, const Tensor& b, const std::string op) {
+void register_basic_ops_grad_fn() {
+    register_grad_fns["ADD"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<AddBackward>(a, b));
+    };
+    register_grad_fns["SUB"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<SubBackward>(a, b));
+    };
+    register_grad_fns["MUL"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<MulBackward>(a, b));
+    };
+    register_grad_fns["DIV"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<DivBackward>(a, b));
+    };
+}
+
+Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     utils::check::ops_broadcast_conditions(a.shape, b.shape);
 
     Tensor result_tensor = Tensor();
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, false);
 
     // ----- Assigning metadata -----
-    result_tensor.shape = BroadcastUtils.get_result_shape();
-    result_tensor.ndim = utils::metadata::get_ndim(result_tensor.shape);
-    result_tensor.size = utils::metadata::get_size(result_tensor.shape);
-    result_tensor.strides = utils::metadata::get_strides(result_tensor.shape);
-    result_tensor.requires_grad = a.requires_grad || b.requires_grad;
+    utils::metadata::assign_basic_metadata(result_tensor, BroadcastUtils.get_result_shape());
+    if (result_tensor.requires_grad) {
+        result_tensor.is_leaf = false;
+        register_basic_ops_grad_fn();
+        auto it = register_grad_fns.find(op);
+        it->second(a, b, result_tensor);
+    }
     // ------------------------------
 
     const int MAX_NDIM = result_tensor.ndim;
@@ -111,15 +135,19 @@ Tensor c_ops(const Tensor& a, const Tensor& b, const std::string op) {
     return result_tensor;
 }
 
-Tensor c_ops_scalar_a(const float a, const Tensor& b, const std::string op) {
+Tensor c_ops_scalar_a(Tensor& a, Tensor& b, const std::string op) {
     Tensor result_tensor = Tensor();
+    const float scalar = a._data[0];
 
-    // ----- Assigning metadata -----
-    result_tensor.shape = b.shape;
-    result_tensor.ndim = b.ndim;
-    result_tensor.size = b.size;
-    result_tensor.strides = b.strides;
+    // ----- Assigning metadata ----- 
+    utils::metadata::assign_basic_metadata(result_tensor, b.shape);
     result_tensor.requires_grad = b.requires_grad;
+    if (result_tensor.requires_grad) {
+        result_tensor.is_leaf = false;
+        register_basic_ops_grad_fn();
+        auto it = register_grad_fns.find(op);
+        it->second(a, b, result_tensor);
+    }
     // ------------------------------
 
     const int N = b.shape[b.ndim-1];
@@ -131,7 +159,7 @@ Tensor c_ops_scalar_a(const float a, const Tensor& b, const std::string op) {
     std::unique_ptr<float[]> data_a_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
     std::unique_ptr<float[]> data_b_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
 
-    std::fill(data_a_vec.get(), data_a_vec.get() + DATA_VEC_SIZE, a);
+    std::fill(data_a_vec.get(), data_a_vec.get() + DATA_VEC_SIZE, scalar);
 
     register_basic_ops();
     auto it = registered_operations.find(op);
@@ -147,15 +175,19 @@ Tensor c_ops_scalar_a(const float a, const Tensor& b, const std::string op) {
     return result_tensor;
 }
 
-Tensor c_ops_scalar_b(const Tensor& a, const float b, const std::string op) {
+Tensor c_ops_scalar_b(Tensor& a, Tensor& b, const std::string op) {
     Tensor result_tensor = Tensor();
+    const float scalar = b._data[0];
     
     // ----- Assigning metadata -----
-    result_tensor.shape = a.shape;
-    result_tensor.ndim = a.ndim;
-    result_tensor.size = a.size;
-    result_tensor.strides = a.strides;
+    utils::metadata::assign_basic_metadata(result_tensor, a.shape);
     result_tensor.requires_grad = a.requires_grad;
+    if (result_tensor.requires_grad) {
+        result_tensor.is_leaf = false;
+        register_basic_ops_grad_fn();
+        auto it = register_grad_fns.find(op);
+        it->second(a, b, result_tensor);
+    }
     // ------------------------------
     
     const int N = a.shape[a.ndim-1];
@@ -167,7 +199,7 @@ Tensor c_ops_scalar_b(const Tensor& a, const float b, const std::string op) {
     std::unique_ptr<float[]> data_a_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
     std::unique_ptr<float[]> data_b_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
 
-    std::fill(data_b_vec.get(), data_b_vec.get() + N, b);
+    std::fill(data_b_vec.get(), data_b_vec.get() + N, scalar);
 
     register_basic_ops();
     auto it = registered_operations.find(op);
@@ -183,17 +215,18 @@ Tensor c_ops_scalar_b(const Tensor& a, const float b, const std::string op) {
     return result_tensor;
 }
 
-Tensor c_ops_scalars(const Tensor& a, const Tensor& b, const std::string op) {
+Tensor c_ops_scalars(Tensor& a, Tensor& b, const std::string op) {
     Tensor result_tensor = Tensor();
     
     // ----- Assigning metadata -----
-    result_tensor.shape = {};
-    result_tensor.ndim = 0;
-    result_tensor.size = 1;
-    result_tensor.strides = {};
+    utils::metadata::assign_basic_metadata(result_tensor, {});
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
-    result_tensor.is_contiguous = true;
-    result_tensor.is_leaf = false;
+    if (result_tensor.requires_grad) {
+        result_tensor.is_leaf = false;
+        register_basic_ops_grad_fn();
+        auto it = register_grad_fns.find(op);
+        it->second(a, b, result_tensor);
+    }
     // ------------------------------
     
     register_basic_ops_on_scalars();

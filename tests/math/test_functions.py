@@ -35,10 +35,8 @@ def test_sum(shape, axis):
     j_result = jetdl.sum(j_tensor, axes=axis)
     t_result = torch.sum(t_tensor, dim=axis)
 
-    result_tensor = torch.tensor(j_result._data).reshape(j_result.shape)
-    
-    assert_object = PyTestAsserts(result_tensor, t_result)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j_result, t_result)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -65,10 +63,8 @@ def test_sum_multiple_axes(shape, axes):
     j_result = jetdl.sum(j_tensor, axes=axes)
     t_result = torch.sum(t_tensor, dim=axes)
 
-    result_tensor = torch.tensor(j_result._data).reshape(j_result.shape)
-
-    assert_object = PyTestAsserts(result_tensor, t_result)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j_result, t_result)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 

@@ -51,6 +51,9 @@ namespace utils {
         }
 
         std::vector<int> get_strides(const std::vector<int>& shape) {
+            if (shape.empty()) {
+                return std::vector<int>{};
+            }
             const int ndim = shape.size();
             std::vector<int> strides (ndim, 1);
             for (int i = ndim-2; i >= 0; i--) {
@@ -62,6 +65,13 @@ namespace utils {
         const int get_size(const std::vector<int>& shape) {
             const int size = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
             return size;
+        }
+
+        void assign_basic_metadata(Tensor& mutable_tensor, const std::vector<int>& shape) {
+            mutable_tensor.shape = shape;
+            mutable_tensor.ndim = get_ndim(shape);
+            mutable_tensor.size = get_size(shape);
+            mutable_tensor.strides = get_strides(shape);
         }
 
     } 

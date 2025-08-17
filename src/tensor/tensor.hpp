@@ -11,21 +11,25 @@ namespace py = pybind11;
 
 class Tensor {
     public:
-        Tensor(py::list& data, bool requires_grad);
-        Tensor(const float data, bool requires_grad);
-        Tensor();
-        ~Tensor() = default;
-
+        // basic metadata {
         std::shared_ptr<float[]> _data;
         std::vector<int> shape;
         int ndim;
         int size;
         std::vector<int> strides;
+        // }
+
+        bool is_contiguous;
+        bool is_leaf;
 
         bool requires_grad;
         std::shared_ptr<Function> grad_fn;
         std::shared_ptr<Tensor> grad;
-        
-        bool is_contiguous;
-        bool is_leaf;
+
+        Tensor(py::list& data, bool requires_grad);
+        Tensor(const float data, bool requires_grad);
+        Tensor();
+        ~Tensor() = default;
+
+        Tensor copy();
 };

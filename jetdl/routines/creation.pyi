@@ -1,0 +1,3 @@
+from typing import Union
+
+def ones(shape: Union[int, list[int], tuple[int]], requires_grad:bool = True): ...

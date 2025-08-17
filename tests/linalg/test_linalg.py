@@ -48,11 +48,10 @@ def test_dot(shape1, shape2):
 
     t1 = torch.tensor(data1)
     t2 = torch.tensor(data2)
-    expected_tensor = torch.dot(t1, t2)
+    t3 = torch.dot(t1, t2)
 
-    result_tensor = torch.tensor(j3._data).reshape(j3.shape)
-    assert_object = PyTestAsserts(result_tensor, expected_tensor)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j3, t3)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -99,11 +98,10 @@ def test_matmul(shape1, shape2):
 
     t1 = torch.tensor(data1)
     t2 = torch.tensor(data2)
-    expected_tensor = torch.matmul(t1, t2)
+    t3 = torch.matmul(t1, t2)
 
-    result_tensor = torch.tensor(j3._data).reshape(j3.shape)
-    assert_object = PyTestAsserts(result_tensor, expected_tensor)
-    assert assert_object.check_shapes(), assert_object.shapes_error_output()
+    assert_object = PyTestAsserts(j3, t3)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -144,16 +142,15 @@ def test_incorrect_batch_matmul(shape1, shape2):
 ])
 def test_transpose(shape):
     data = generate_random_data(shape)
-    flattened_data = torch.flatten(torch.tensor(data)).tolist()
 
     j_tensor = jetdl.tensor(data)
     jetdl_transposed = j_tensor.T
     
-    expected_shape = tuple(reversed(shape))
+    t_tensor = torch.tensor(data)
+    torch_transposed = t_tensor.permute(*torch.arange(t_tensor.ndim - 1, -1, -1))
 
-    assert jetdl_transposed.shape == expected_shape, f"Expected shapes to match: (jetdl) {jetdl_transposed.shape} vs (actual) {expected_shape}"
-    assert jetdl_transposed._data == pytest.approx(flattened_data, ERR), f"Expected data to be close: {jetdl_transposed.data} vs {flattened_data}"
-    assert jetdl_transposed.is_contiguous == False
+    assert_object = PyTestAsserts(jetdl_transposed, torch_transposed)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
 
 @pytest.mark.parametrize("shape", [
     (2, 3),
@@ -164,19 +161,18 @@ def test_transpose(shape):
 ])
 def test_matrix_transpose(shape):
     data = generate_random_data(shape)
-    flattened_data = torch.flatten(torch.tensor(data)).tolist()
 
     j_tensor = jetdl.tensor(data)
     jetdl_matrix_transposed = j_tensor.mT
 
-    expected_shape = list(shape).copy()
-    expected_shape[-1], expected_shape[-2] = expected_shape[-2], expected_shape[-1]
+    t_tensor = torch.tensor(data)
+    torch_matrix_transposed = t_tensor.mT
 
-    assert jetdl_matrix_transposed.shape == tuple(expected_shape), f"Expected shapes to match: (jetdl) {jetdl_matrix_transposed.shape} vs (actual) {tuple(expected_shape)}"
-    assert jetdl_matrix_transposed._data == pytest.approx(flattened_data, ERR), f"Expected data to be close: {jetdl_matrix_transposed.data} vs {flattened_data}"
-    assert jetdl_matrix_transposed.is_contiguous == False
+    assert_object = PyTestAsserts(jetdl_matrix_transposed, torch_matrix_transposed)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
 
 @pytest.mark.parametrize("shape", [
+    (),
     (5),
     (5,),
 ])
@@ -185,8 +181,9 @@ def test_incorrect_matrix_transpose(shape):
     j_tensor = jetdl.tensor(data)
     t_tensor = torch.tensor(data)
     
-    assert j_tensor.shape == t_tensor.shape
-    assert j_tensor.ndim == t_tensor.ndim
+    assert_object = PyTestAsserts(j_tensor, t_tensor)
+    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+
     with pytest.raises(RuntimeError) as err:
         _ = j_tensor.mT
     assert "only supports matrices or batches of matrices" in str(err.value)

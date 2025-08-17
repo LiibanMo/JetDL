@@ -11,8 +11,8 @@ enum NodeState {
     UNVISITED // Node has not entered stack yet   
 };
 
-std::vector<Function> topological_sort(const Function& node);
+std::vector<std::shared_ptr<Function>> topological_sort(std::shared_ptr<Function> node);
 
 namespace autograd {
-    void backward(const Tensor& input_grad);
+    void backward(Tensor& input_tensor, Tensor& input_grad);
 }

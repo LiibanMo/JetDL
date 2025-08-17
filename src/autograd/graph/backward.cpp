@@ -7,29 +7,22 @@
 #include <stdexcept>
 #include <unordered_map>
 
-namespace std {
-    template <>
-    struct hash<Function> {
-        std::size_t operator()(const Function& fn) const {
-            return std::hash<std::shared_ptr<void>>()(fn._unique_identity_ptr);
-        }
-    };
-}
+#include <iostream> // DEV
 
-std::vector<Function> topological_sort(Function& node) {
-    std::vector<Function> graph = {};
-    std::unordered_map<Function, NodeState> node_states;
-    std::stack<Function> stack;
+std::vector<std::shared_ptr<Function>> topological_sort(std::shared_ptr<Function> node) {
+    std::vector<std::shared_ptr<Function>> graph = {};
+    std::unordered_map<std::shared_ptr<Function>, NodeState> node_states;
+    std::stack<std::shared_ptr<Function>> stack;
     stack.push(node);
     
     while (!stack.empty()) {
-        Function current_node = stack.top();
+        std::shared_ptr<Function> current_node = stack.top();
         node_states[current_node] = VISITING;
         
-        Function unvisited_child;
+        std::shared_ptr<Function> unvisited_child;
         bool all_child_node_visited = true;
 
-        for (Function& fn : current_node.next_function) {
+        for (std::shared_ptr<Function>& fn : current_node->next_function) {
             if (node_states.find(fn) == node_states.end()) {
                 all_child_node_visited = false;
                 unvisited_child = fn;
@@ -55,8 +48,15 @@ std::vector<Function> topological_sort(Function& node) {
     return graph;
 }
 
-void autograd::backward(const Tensor& input_grad) {
-    if (input_grad.grad_fn) {
-        const std::vector<Function> graph = topological_sort(*input_grad.grad_fn);
+
+namespace autograd {
+
+    void backward(Tensor& input_tensor, Tensor& input_grad) {
+        input_grad.grad = std::shared_ptr<Tensor>(&input_grad);
+        std::vector<std::shared_ptr<Function>> result_graph = topological_sort(input_grad.grad_fn);
+        for (std::shared_ptr<Function>& fn : result_graph) {
+            std::cout << fn << "\n";
+        }
     }
+
 }
