@@ -1,18 +1,14 @@
 #include "ops.hpp"
-#include "autograd/function.hpp"
 #include "kernel.hpp"
 
 #include "tensor/tensor.hpp"
+#include "autograd/function.hpp"
+#include "autograd/math/ops.hpp"
+
 #include "utils/auxiliary.hpp"
 #include "utils/broadcast.hpp"
 #include "utils/check.hpp"
 #include "utils/metadata.hpp"
-
-#include "autograd/math/ops.hpp"
-
-#include <memory>
-
-#include <unordered_map>
 
 using BinaryOperation = std::function<void(const float*, const float*, float*, const int)>;
 using BinaryOperationScalars = std::function<void(const float, const float, float&)>;
@@ -199,7 +195,7 @@ Tensor c_ops_scalar_b(Tensor& a, Tensor& b, const std::string op) {
     std::unique_ptr<float[]> data_a_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
     std::unique_ptr<float[]> data_b_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
 
-    std::fill(data_b_vec.get(), data_b_vec.get() + N, scalar);
+    std::fill(data_b_vec.get(), data_b_vec.get() + DATA_VEC_SIZE, scalar);
 
     register_basic_ops();
     auto it = registered_operations.find(op);

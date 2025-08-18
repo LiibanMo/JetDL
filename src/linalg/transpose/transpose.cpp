@@ -30,6 +30,7 @@ Tensor c_matrix_transpose(const Tensor& tensor) {
             ).format(tensor.ndim)
         );
     } 
+    
 
     Tensor result_tensor = Tensor();
 

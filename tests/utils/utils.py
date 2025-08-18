@@ -88,14 +88,19 @@ class PyTestAsserts:
     def basic_metadata_error_output(self) -> str:
         if not self.check_shapes():
             return self.shapes_error_output()
+        
         elif not self.check_ndims():
             return self.ndim_error_output()
+        
         elif not self.check_sizes():
             return self.size_error_output()
+        
         elif not self.check_strides():
             return self.strides_error_output()
+        
         elif not self.check_is_contiguous():
             return self.is_contiguous_error_output()
+        
         elif not self.check_is_leaf():
             return self.is_leaf_error_output()
 

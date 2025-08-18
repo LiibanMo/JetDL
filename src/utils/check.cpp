@@ -39,22 +39,24 @@ namespace utils {
         }
 
         void ops_broadcast_conditions(const std::vector<int>& shape1, const std::vector<int>& shape2) {
-            const int ndim1 = shape1.size();
-            const int ndim2 = shape2.size();
-            const int max_ndim = std::max(ndim1, ndim2);
-
-            for (int i = max_ndim-1; i >= 0; i--) {
-                const int idx1 = i - max_ndim + ndim1;
-                const int idx2 = i - max_ndim + ndim2;
-
-                const int dim1 = (idx1 < 0) ? 1 : shape1[idx1];
-                const int dim2 = (idx2 < 0) ? 1 : shape2[idx2];
-
-                if (dim1 != dim2 && dim1 != 1 && dim2 != 1) {
-                    py::gil_scoped_acquire acquire;
-                    throw py::value_error(
-                        py::str("operands could not be broadcasted together.")
-                    );
+            if (!std::equal(shape1.begin(), shape2.end(), shape1.begin(), shape2.end())) {
+                const int ndim1 = shape1.size();
+                const int ndim2 = shape2.size();
+                const int max_ndim = std::max(ndim1, ndim2);
+                
+                for (int i = max_ndim-1; i >= 0; i--) {
+                    const int idx1 = i - max_ndim + ndim1;
+                    const int idx2 = i - max_ndim + ndim2;
+                    
+                    const int dim1 = (idx1 < 0) ? 1 : shape1[idx1];
+                    const int dim2 = (idx2 < 0) ? 1 : shape2[idx2];
+                    
+                    if (dim1 != dim2 && dim1 != 1 && dim2 != 1) {
+                        py::gil_scoped_acquire acquire;
+                        throw py::value_error(
+                            py::str("operands could not be broadcasted together.")
+                        );
+                    }
                 }
             }
         }
