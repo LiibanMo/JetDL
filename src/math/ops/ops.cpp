@@ -113,6 +113,7 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
             std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
             std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
+            std::cout << "LOOK AT ME!\n";
         }
     } else if (NA < NB && NA == 1) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
@@ -130,7 +131,6 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
         }
     } 
     
-    std::cout << "LOOK AT ME!\n";
 
     return result_tensor;
 }
