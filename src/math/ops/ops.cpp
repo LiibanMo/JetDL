@@ -3,12 +3,14 @@
 
 #include "tensor/tensor.hpp"
 #include "autograd/function.hpp"
-// #include "autograd/math/ops.hpp"
+#include "autograd/math/ops.hpp"
 
 #include "utils/auxiliary.hpp"
 #include "utils/broadcast.hpp"
 #include "utils/check.hpp"
 #include "utils/metadata.hpp"
+
+#include <iostream>
 
 using BinaryOperation = std::function<void(const float*, const float*, float*, const int)>;
 using BinaryOperationScalars = std::function<void(const float, const float, float&)>;
@@ -48,22 +50,23 @@ void register_basic_ops_on_scalars() {
     };
 }
 
-// void register_basic_ops_grad_fn() {
-//     register_grad_fns["ADD"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-//         result_tensor.grad_fn = std::make_shared<AddBackward>(a, b);
-//     };
-//     register_grad_fns["SUB"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-//         result_tensor.grad_fn = std::make_shared<SubBackward>(a, b);
-//     };
-//     register_grad_fns["MUL"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-//         result_tensor.grad_fn = std::make_shared<MulBackward>(a, b);
-//     };
-//     register_grad_fns["DIV"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-//         result_tensor.grad_fn = std::make_shared<DivBackward>(a, b);
-//     };
-// }
+void register_basic_ops_grad_fn() {
+    register_grad_fns["ADD"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::make_shared<AddBackward>(a, b);
+    };
+    register_grad_fns["SUB"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::make_shared<SubBackward>(a, b);
+    };
+    register_grad_fns["MUL"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::make_shared<MulBackward>(a, b);
+    };
+    register_grad_fns["DIV"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
+        result_tensor.grad_fn = std::make_shared<DivBackward>(a, b);
+    };
+}
 
 Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
+    std::cout << "LOOK AT ME!\n";
     utils::check::ops_broadcast_conditions(a.shape, b.shape);
 
     Tensor result_tensor = Tensor();
@@ -73,7 +76,7 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     utils::metadata::assign_basic_metadata(result_tensor, BroadcastUtils.get_result_shape());
     if (result_tensor.requires_grad) {
         result_tensor.is_leaf = false;
-        // register_basic_ops_grad_fn();
+        register_basic_ops_grad_fn();
         auto it = register_grad_fns.find(op);
         it->second(a, b, result_tensor);
     }
@@ -104,6 +107,7 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     auto it = registered_operations.find(op);
 
     result_tensor._data = std::make_shared<float[]>(result_tensor.size);
+
 
     if (NA == NB) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
@@ -140,7 +144,7 @@ Tensor c_ops_scalar_a(Tensor& a, Tensor& b, const std::string op) {
     result_tensor.requires_grad = b.requires_grad;
     if (result_tensor.requires_grad) {
         result_tensor.is_leaf = false;
-        // register_basic_ops_grad_fn();
+        register_basic_ops_grad_fn();
         auto it = register_grad_fns.find(op);
         it->second(a, b, result_tensor);
     }
@@ -180,7 +184,7 @@ Tensor c_ops_scalar_b(Tensor& a, Tensor& b, const std::string op) {
     result_tensor.requires_grad = a.requires_grad;
     if (result_tensor.requires_grad) {
         result_tensor.is_leaf = false;
-        // register_basic_ops_grad_fn();
+        register_basic_ops_grad_fn();
         auto it = register_grad_fns.find(op);
         it->second(a, b, result_tensor);
     }
@@ -219,7 +223,7 @@ Tensor c_ops_scalars(Tensor& a, Tensor& b, const std::string op) {
     result_tensor.requires_grad = a.requires_grad || b.requires_grad;
     if (result_tensor.requires_grad) {
         result_tensor.is_leaf = false;
-        // register_basic_ops_grad_fn();
+        register_basic_ops_grad_fn();
         auto it = register_grad_fns.find(op);
         it->second(a, b, result_tensor);
     }
