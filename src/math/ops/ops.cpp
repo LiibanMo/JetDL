@@ -66,12 +66,11 @@ void register_basic_ops_grad_fn() {
 }
 
 Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
-    std::cout << "LOOK AT ME!\n";
     utils::check::ops_broadcast_conditions(a.shape, b.shape);
-
+    
     Tensor result_tensor = Tensor();
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, false);
-
+    
     // ----- Assigning metadata -----
     utils::metadata::assign_basic_metadata(result_tensor, BroadcastUtils.get_result_shape());
     if (result_tensor.requires_grad) {
@@ -81,33 +80,34 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
         it->second(a, b, result_tensor);
     }
     // ------------------------------
-
+    
     const int MAX_NDIM = result_tensor.ndim;
-
+    
     utils::IntPtrs strides = BroadcastUtils.get_broadcast_strides();
-
+    
     std::unique_ptr<int[]> stridesA = std::move(strides.ptr1);
     std::unique_ptr<int[]> idxsA = utils::populate_linear_idxs(result_tensor.shape, stridesA.get(), 1);
     std::unique_ptr<int[]> stridesB = std::move(strides.ptr2);
     std::unique_ptr<int[]> idxsB = utils::populate_linear_idxs(result_tensor.shape, stridesB.get(), 1);
-
+    
     const int NA = a.shape[a.ndim-1];
     const int NB = b.shape[b.ndim-1];
     const int N = (NA > NB) ? NA : NB;
-
+    
     const int DATA_VEC_SIZE = utils::factor_ceiling_func(N, BLOCK_N_COLS);
-
+    
     std::unique_ptr<float[]> result_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
     std::unique_ptr<float[]> data1_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
     std::unique_ptr<float[]> data2_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
-
+    
     const int TOTAL_NUM_ROWS = result_tensor.size / result_tensor.shape[MAX_NDIM-1];
     
     register_basic_ops();
     auto it = registered_operations.find(op);
-
+    
     result_tensor._data = std::make_shared<float[]>(result_tensor.size);
-
+    
+    std::cout << "LOOK AT ME!\n";
 
     if (NA == NB) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
