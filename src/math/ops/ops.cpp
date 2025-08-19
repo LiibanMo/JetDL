@@ -120,8 +120,8 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
                 data1_vec[i] = a._data[idxsA[row] + i];
                 data2_vec[i] = b._data[idxsB[row] + i];
             }
-            std::cout << "LOOK AT ME!!!\n";
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
+            std::cout << "LOOK AT ME!!!\n";
             // std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
             for (int i = 0; i < N; i++) {
                 result_tensor._data[N * row + i] = result_vec[i];
