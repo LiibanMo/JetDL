@@ -72,7 +72,8 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, false);
     
     // ----- Assigning metadata -----
-    utils::metadata::assign_basic_metadata(result_tensor, BroadcastUtils.get_result_shape());
+    const std::vector<int> shape = BroadcastUtils.get_result_shape();
+    utils::metadata::assign_basic_metadata(result_tensor, shape);
     if (result_tensor.requires_grad) {
         result_tensor.is_leaf = false;
         register_basic_ops_grad_fn();
