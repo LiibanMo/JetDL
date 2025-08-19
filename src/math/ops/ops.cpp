@@ -111,9 +111,9 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
             std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
             std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
-            std::cout << "LOOK AT ME!\n";
-            it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
+            it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), N);
             std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
+            std::cout <<"LOOK AT ME!!!\n";
         }
     } else if (NA < NB && NA == 1) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
