@@ -1,14 +1,5 @@
 #include "backward.hpp"
 
-#include <algorithm>
-#include <cstddef>
-#include <memory>
-#include <stack>
-#include <stdexcept>
-#include <unordered_map>
-
-#include <iostream> // DEV
-
 std::vector<std::shared_ptr<Function>> topological_sort(std::shared_ptr<Function> node) {
     std::vector<std::shared_ptr<Function>> graph = {};
     std::unordered_map<std::shared_ptr<Function>, NodeState> node_states;
@@ -55,7 +46,7 @@ namespace autograd {
         input_grad.grad = std::shared_ptr<Tensor>(&input_grad);
         std::vector<std::shared_ptr<Function>> result_graph = topological_sort(input_grad.grad_fn);
         for (std::shared_ptr<Function>& fn : result_graph) {
-            std::cout << fn << "\n";
+            
         }
     }
 

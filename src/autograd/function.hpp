@@ -15,11 +15,9 @@ class Function {
         std::vector<std::shared_ptr<Function>> next_function;
 
         Function();
-        virtual ~Function() = default;
+        ~Function() = default;
 
         bool operator==(const Function& other) const {
             return this->_unique_identity_ptr == other._unique_identity_ptr;
         }
-
-        virtual void apply(std::shared_ptr<Tensor> incoming_gradient) = 0;
 };

@@ -50,16 +50,16 @@ void register_basic_ops_on_scalars() {
 
 void register_basic_ops_grad_fn() {
     register_grad_fns["ADD"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<AddBackward>(a, b));
+        result_tensor.grad_fn = std::make_shared<AddBackward>(a, b);
     };
     register_grad_fns["SUB"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<SubBackward>(a, b));
+        result_tensor.grad_fn = std::make_shared<SubBackward>(a, b);
     };
     register_grad_fns["MUL"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<MulBackward>(a, b));
+        result_tensor.grad_fn = std::make_shared<MulBackward>(a, b);
     };
     register_grad_fns["DIV"] = [] (Tensor& a, Tensor& b, Tensor& result_tensor) {
-        result_tensor.grad_fn = std::static_pointer_cast<Function>(std::make_shared<DivBackward>(a, b));
+        result_tensor.grad_fn = std::make_shared<DivBackward>(a, b);
     };
 }
 
