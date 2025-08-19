@@ -114,25 +114,45 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     
     if (NA == NB) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
-            std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
-            std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
+            // std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
+            // std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
+            for (int i = 0; i < N; i++) {
+                data1_vec[i] = a._data[idxsA[row] + i];
+                data2_vec[i] = b._data[idxsB[row] + i];
+            }
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
-            std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
+            // std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
+            for (int i = 0; i < N; i++) {
+                result_tensor._data[N * row + i] = result_vec[i];
+            }
         }
     } else if (NA < NB && NA == 1) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
-            std::fill(data1_vec.get(), data1_vec.get() + N, a._data[idxsA[row]]);
-            std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
+            // std::fill(data1_vec.get(), data1_vec.get() + N, a._data[idxsA[row]]);
+            // std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
+            for (int i = 0; i < N; i++) {
+                data1_vec[i] = a._data[idxsA[row]];
+                data2_vec[i] = b._data[idxsB[row] + i];
+            }
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
-            std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
-            std::cout << "LOOK AT ME!\n";
+            // std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
+            for (int i = 0; i < N; i++) {
+                result_tensor._data[N * row + i] = result_vec[i];
+            }
         }
     } else if (NA > NB && NB == 1) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
-            std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
-            std::fill(data2_vec.get(), data2_vec.get() + N, b._data[idxsB[row]]);
+            // std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
+            // std::fill(data2_vec.get(), data2_vec.get() + N, b._data[idxsB[row]]);
+            for (int i = 0; i < N; i++) {
+                data1_vec[i] = a._data[idxsA[row] + i];
+                data2_vec[i] = b._data[idxsB[row]];
+            }
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
-            std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
+            // std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
+            for (int i = 0; i < N; i++) {
+                result_tensor._data[N * row + i] = result_vec[i];
+            }
         }
     } 
     
