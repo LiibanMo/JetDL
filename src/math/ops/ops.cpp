@@ -72,8 +72,7 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     utils::broadcast::BroadcastingUtilsObject BroadcastUtils(a.shape, b.shape, false);
     
     // ----- Assigning metadata -----
-    const std::vector<int> shape = BroadcastUtils.get_result_shape();
-    utils::metadata::assign_basic_metadata(result_tensor, shape);
+    utils::metadata::assign_basic_metadata(result_tensor, BroadcastUtils.get_result_shape());
     if (result_tensor.requires_grad) {
         result_tensor.is_leaf = false;
         register_basic_ops_grad_fn();
@@ -121,6 +120,7 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
                 data1_vec[i] = a._data[idxsA[row] + i];
                 data2_vec[i] = b._data[idxsB[row] + i];
             }
+            std::cout << "LOOK AT ME!!!\n";
             it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
             // std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
             for (int i = 0; i < N; i++) {
