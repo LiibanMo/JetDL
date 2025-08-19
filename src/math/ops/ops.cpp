@@ -107,8 +107,6 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     
     result_tensor._data = std::make_shared<float[]>(result_tensor.size);
     
-    std::cout << "LOOK AT ME!\n";
-
     if (NA == NB) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
             std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
@@ -131,6 +129,8 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
             std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
         }
     } 
+    
+    std::cout << "LOOK AT ME!\n";
 
     return result_tensor;
 }
