@@ -97,8 +97,13 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
     const int DATA_VEC_SIZE = utils::factor_ceiling_func(N, BLOCK_N_COLS);
     
     std::unique_ptr<float[]> result_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
+    std::fill(result_vec.get(), result_vec.get() + DATA_VEC_SIZE, 0.0f);
+
     std::unique_ptr<float[]> data1_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
+    std::fill(data1_vec.get(), data1_vec.get() + DATA_VEC_SIZE, 0.0f);
+    
     std::unique_ptr<float[]> data2_vec = std::make_unique<float[]>(DATA_VEC_SIZE);
+    std::fill(data2_vec.get(), data2_vec.get() + DATA_VEC_SIZE, 0.0f);
     
     const int TOTAL_NUM_ROWS = result_tensor.size / result_tensor.shape[MAX_NDIM-1];
     
@@ -111,9 +116,9 @@ Tensor c_ops(Tensor& a, Tensor& b, const std::string op) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
             std::copy(a._data.get() + idxsA[row], a._data.get() + idxsA[row] + NA, data1_vec.get());
             std::copy(b._data.get() + idxsB[row], b._data.get() + idxsB[row] + NB, data2_vec.get());
-            it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), N);
+            it->second(data1_vec.get(), data2_vec.get(), result_vec.get(), DATA_VEC_SIZE);
             std::copy(result_vec.get(), result_vec.get() + N, result_tensor._data.get() + row * N);
-            std::cout <<"LOOK AT ME!!!\n";
+            std::cout << "LOOK AT ME!\n";
         }
     } else if (NA < NB && NA == 1) {
         for (int row = 0; row < TOTAL_NUM_ROWS; row++) {
