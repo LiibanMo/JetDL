@@ -1,3 +1,0 @@
-from ..tensor import Tensor
-
-def backward(input_tensor: "Tensor", input_grad: "Tensor"): ...

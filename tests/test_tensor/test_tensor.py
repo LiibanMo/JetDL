@@ -23,10 +23,20 @@ def test_tensor_metadata(shape):
     data = generate_random_data(shape)
 
     # Create jetdl and torch tensors
-    jetdl_tensor = jetdl.tensor(data)
+    jetdl_tensor = jetdl.Tensor(data)
     torch_tensor = torch.tensor(data)
 
     # Compare metadata
     assert_object = PyTestAsserts(jetdl_tensor, torch_tensor)
     assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
+
+@pytest.mark.parametrize("data", [
+    ([{2, 3}, {4, 5}]),
+    ([{1, 2, 3}, (5, 6, 7)]),
+    ([set([1, 2]), set([3, 4])]),
+])
+def test_tensor_incorrect_inputs_dtype(data):
+    with pytest.raises(RuntimeError) as err:
+        jetdl_tensor = jetdl.Tensor(data)
+    assert "could not infer dtype" in str(err.value)
