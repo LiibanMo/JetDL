@@ -13,7 +13,7 @@ Tensor* create_tensor(const float* _data, const size_t* shape, const size_t ndim
     }
     
     utils_metadata_assign_basics(new_tensor, shape, ndim);
-
+    
     new_tensor->_data = (float*)malloc(new_tensor->size * sizeof(float));
     if (!new_tensor->_data) {
         fprintf(stderr, "Memory allocation failed.\n");

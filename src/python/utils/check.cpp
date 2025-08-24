@@ -64,7 +64,10 @@ void utils_check_ops_shapes(const size_t* shapeA, const size_t ndimA, const size
     }
 }
 
-void utils_check_dot_shapes(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB) {
+void utils_check_dot_shapes(const std::vector<size_t>& shapeA, const std::vector<size_t>& shapeB) {
+    const size_t ndimA = shapeA.size();
+    const size_t ndimB = shapeB.size();
+    
     if (!(ndimA == 1 && ndimB == 1)) {
         fprintf(stderr, "dot (C++): Wrong error checking used.");
         return;

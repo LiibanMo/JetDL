@@ -40,8 +40,6 @@ void utils_metadata_assign_basics(Tensor* mutable_tensor, const size_t* shape, c
             return;
         } 
         memcpy(mutable_tensor->shape, shape, ndim * sizeof(size_t));
-    } else {
-        mutable_tensor->shape = NULL;
     }
 
     mutable_tensor->ndim = ndim;

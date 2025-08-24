@@ -1,8 +1,7 @@
 #include "auxiliary.h"
 #include "metadata.h"
 
-#include <cstddef>
-#include <cstring>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 

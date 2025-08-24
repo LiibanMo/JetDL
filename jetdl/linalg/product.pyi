@@ -1,0 +1,3 @@
+from ..tensor import Tensor
+
+def dot(a: Tensor, b: Tensor) -> Tensor: ...

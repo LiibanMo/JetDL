@@ -2,11 +2,12 @@
 #include "auxiliary.h"
 #include "metadata.h"
 
-#include <cstddef>
 #include <stdlib.h>
 #include <stdio.h>
 
-size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB, const bool matmul) {
+size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB, const OpType optype) {
+    if (optype == DOT) return NULL;
+    
     const size_t max_ndim = UTILS_GET_MAX(ndimA, ndimB);
 
     size_t* broadcasted_stridesA = (size_t*)calloc(max_ndim, sizeof(size_t));
@@ -28,7 +29,7 @@ size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, c
     size_t* stridesA = utils_metadata_get_strides(shapeA, ndimA);
     size_t* stridesB = utils_metadata_get_strides(shapeB, ndimB);
 
-    const size_t offset = matmul ? 2 : 0;
+    const size_t offset = (optype == MATMUL) ? 2 : 0;
 
     for (size_t i = max_ndim - offset - 1; i >= 0; i--) {
         const size_t idxA = i - max_ndim + ndimA;
@@ -49,7 +50,9 @@ size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, c
     return broadcasted_strides_ptrs;
 }
 
-size_t* utils_broadcast_get_result_shape(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB, const bool matmul) {
+size_t* utils_broadcast_get_result_shape(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB, const OpType optype) {
+    if (optype == DOT) return NULL;
+
     const int max_ndim = UTILS_GET_MAX(ndimA, ndimB);
 
     size_t* result_shape = (size_t*)malloc(max_ndim * sizeof(size_t));
@@ -59,7 +62,7 @@ size_t* utils_broadcast_get_result_shape(const size_t* shapeA, const size_t ndim
     }
 
     int offset = 0;
-    if (matmul) {
+    if (optype == MATMUL) {
         result_shape[max_ndim-2] = shapeA[ndimA-2];
         result_shape[max_ndim-1] = shapeB[ndimB-1];
         offset = 2;
@@ -75,13 +78,16 @@ size_t* utils_broadcast_get_result_shape(const size_t* shapeA, const size_t ndim
         result_shape[i] = UTILS_GET_MAX(dimA, dimB);
     }
 
-    // Assumes only one operand can be a vector
-    if (matmul) {
+    if (optype == MATMUL) {
         if (ndimA == 1) {
-            
+            size_t** ptr = &result_shape;
+            utils_erase_at_idx((void**)ptr, max_ndim-2, max_ndim, sizeof(size_t));
         } else if (ndimB == 1) {
             size_t** ptr = &result_shape;
-            utils_erase_at_idx(reinterpret_cast<void**>(&result_shape), max_ndim-1, max_ndim, sizeof(size_t));
+            utils_erase_at_idx((void**)ptr, max_ndim-1, max_ndim, sizeof(size_t));
+        } else if (ndimA == 1 && ndimB == 1) {
+            fprintf(stderr, "utils_broadcast_get_result_shape: both ndims cannot be 1.");
+            return NULL;
         }
     }
     
