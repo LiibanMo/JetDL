@@ -29,7 +29,7 @@ shapes_and_axes = [
 def test_sum(shape, axis):
     data = generate_random_data(shape)
 
-    j_tensor = jetdl.tensor(data)
+    j_tensor = jetdl._tensor(data)
     t_tensor = torch.tensor(data, dtype=torch.float32)
 
     j_result = jetdl.sum(j_tensor, axes=axis)
@@ -57,7 +57,7 @@ shapes_and_multiple_axes = [
 def test_sum_multiple_axes(shape, axes):
     data = generate_random_data(shape)
 
-    j_tensor = jetdl.tensor(data)
+    j_tensor = jetdl._tensor(data)
     t_tensor = torch.tensor(data, dtype=torch.float32)
 
     j_result = jetdl.sum(j_tensor, axes=axes)
@@ -82,7 +82,7 @@ shapes_and_oob_axes = [ # out of bounds
 @pytest.mark.parametrize("shape, axes", shapes_and_oob_axes, ids=generate_shape_ids)
 def test_sum_invalid_axes(shape, axes):
     data = generate_random_data(shape)
-    j_tensor = jetdl.tensor(data)
+    j_tensor = jetdl._tensor(data)
 
     with pytest.raises(IndexError):
         jetdl.sum(j_tensor, axes=axes)
@@ -99,7 +99,7 @@ shapes_and_oob_axes = [ # duplicates
 @pytest.mark.parametrize("shape, axes", shapes_and_oob_axes, ids=generate_shape_ids)
 def test_sum_invalid_axes(shape, axes):
     data = generate_random_data(shape)
-    j_tensor = jetdl.tensor(data)
+    j_tensor = jetdl._tensor(data)
 
     with pytest.raises(RuntimeError):
         jetdl.sum(j_tensor, axes=axes)

@@ -4,9 +4,7 @@
 
 #include <arm_neon.h>
 
-void c_matmul_cpu(
-    float* a, float* b, float* c, const int x, const int y, const int l, const int r, const int p, const int n
-) {
+void c_matmul_cpu(float* a, float* b, float* c, const size_t x, const size_t y, const size_t p, const size_t n) {
     // (m, n) @ (n, p) = (m, p)
     float32x4_t t00 = vdupq_n_f32(0.0f);
     float32x4_t t01 = vdupq_n_f32(0.0f);
@@ -26,7 +24,7 @@ void c_matmul_cpu(
     float32x4_t t50 = vdupq_n_f32(0.0f);
     float32x4_t t51 = vdupq_n_f32(0.0f);
 
-    for (int k = l; k < r; k++) {
+    for (int k = 0; k < n; k++) {
         float32x4_t b0 = vld1q_f32(&b[k * p + y]);
         float32x4_t b1 = vld1q_f32(&b[k * p + y + 4]);
 
@@ -78,7 +76,7 @@ void c_matmul_cpu(
 #include <cblas.h>
 
 void c_matmul_cpu(
-    float* a, float* b, float* c, const int x, const int y, const int l, const int r, const int p, const int n
+    float* a, float* b, float* c, const size_t x, const size_t y, const size_t p, const size_t n
 ) {
     const float alpha = 1.0f;
     const float beta = 0.0f;

@@ -11,17 +11,13 @@ size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, c
     const size_t max_ndim = UTILS_GET_MAX(ndimA, ndimB);
 
     size_t* broadcasted_stridesA = (size_t*)calloc(max_ndim, sizeof(size_t));
+    UTILS_CHECK_ALLOC_FAILURE(broadcasted_stridesA, stderr, alloc_failure);
+
     size_t* broadcasted_stridesB = (size_t*)calloc(max_ndim, sizeof(size_t));
-    if (!broadcasted_stridesA || !broadcasted_stridesB) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
+    UTILS_CHECK_ALLOC_FAILURE(broadcasted_stridesB, stderr, alloc_failure);
 
     size_t** broadcasted_strides_ptrs = (size_t**)malloc(2 * sizeof(size_t*));
-    if (!broadcasted_strides_ptrs) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
+    UTILS_CHECK_ALLOC_FAILURE(broadcasted_strides_ptrs, stderr, alloc_failure);
 
     broadcasted_strides_ptrs[0] = broadcasted_stridesA;
     broadcasted_strides_ptrs[1] = broadcasted_stridesB;
@@ -31,9 +27,9 @@ size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, c
 
     const size_t offset = (optype == MATMUL) ? 2 : 0;
 
-    for (size_t i = max_ndim - offset - 1; i >= 0; i--) {
-        const size_t idxA = i - max_ndim + ndimA;
-        const size_t idxB = i - max_ndim + ndimB;
+    for (int i = max_ndim - offset - 1; i >= 0; i--) {
+        const int idxA = i - max_ndim + ndimA;
+        const int idxB = i - max_ndim + ndimB;
 
         const size_t dimA = (idxA < 0) ? 1 : shapeA[idxA];
         const size_t dimB = (idxB < 0) ? 1 : shapeB[idxB];
@@ -42,12 +38,16 @@ size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, c
         broadcasted_stridesB[i] = (dimB == 1 && dimB < dimA) ? 0 : stridesB[idxB];
     }
 
-    free(stridesA);
-    stridesA = NULL;
-    free(stridesB);
-    stridesB = NULL;
+    UTILS_FREE(stridesA);
+    UTILS_FREE(stridesB);
 
     return broadcasted_strides_ptrs;
+
+    alloc_failure:
+        if (broadcasted_stridesA) UTILS_FREE(broadcasted_stridesA);
+        if (broadcasted_stridesB) UTILS_FREE(broadcasted_stridesB);
+        if (broadcasted_strides_ptrs) UTILS_FREE(broadcasted_strides_ptrs);
+        return NULL;
 }
 
 size_t* utils_broadcast_get_result_shape(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB, const OpType optype) {
@@ -56,10 +56,7 @@ size_t* utils_broadcast_get_result_shape(const size_t* shapeA, const size_t ndim
     const int max_ndim = UTILS_GET_MAX(ndimA, ndimB);
 
     size_t* result_shape = (size_t*)malloc(max_ndim * sizeof(size_t));
-    if (!result_shape) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
+    UTILS_CHECK_ALLOC_FAILURE(result_shape, stderr, alloc_failure);
 
     int offset = 0;
     if (optype == MATMUL) {
@@ -92,16 +89,15 @@ size_t* utils_broadcast_get_result_shape(const size_t* shapeA, const size_t ndim
     }
     
     return result_shape;
+
+    alloc_failure:
+        if (result_shape) UTILS_FREE(result_shape);
+        return NULL;
 }
 
 size_t utils_broadcast_get_batch_size(const size_t* shape, const size_t ndim) {
-    if (ndim < 3) {
-        fprintf(stderr, "ndim is less than 3; no batch dimensions.");
-        return 0;
-    }
     size_t batch_size = 1;
-    for (size_t i = 2; i < ndim; ++i) {
-        batch_size *= shape[i];
-    }
+    if (ndim == 2) return batch_size;
+    for (size_t i = 0; i < ndim-2; ++i) batch_size *= shape[i];
     return batch_size;
 }

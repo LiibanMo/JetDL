@@ -5,7 +5,6 @@ import torch
 
 from ..utils import PyTestAsserts, generate_random_data
 
-
 @pytest.mark.parametrize("shape", [
     (),
     (5,),

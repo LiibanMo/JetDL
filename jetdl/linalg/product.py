@@ -1,7 +1,8 @@
-from .._C.utils import c_utils_check_dot_shapes
-from .._C.linalg import c_dot
-from ..tensor import Tensor
+from .._C.linalg import c_dot, c_matmul
+from .._tensor import Tensor
 
 def dot(a: Tensor, b: Tensor) -> Tensor:
-    c_utils_check_dot_shapes(a.shape, b.shape)
     return c_dot(a, b)
+
+def matmul(a: Tensor, b: Tensor) -> Tensor:
+    return c_matmul(a, b)

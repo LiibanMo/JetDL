@@ -19,18 +19,38 @@ set_target_properties(_C PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/jetdl
 )
 
+# target_compile_options(_C PRIVATE
+#     $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+#     $<$<COMPILE_LANGUAGE:C>:-std=c99>
+#     $<$<COMPILE_LANGUAGE:CXX>:-O3>
+#     $<$<COMPILE_LANGUAGE:CXX>:-ffast-math>
+# )
 target_compile_options(_C PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
     $<$<COMPILE_LANGUAGE:C>:-std=c99>
-    $<$<COMPILE_LANGUAGE:CXX>:-O3>
-    $<$<COMPILE_LANGUAGE:CXX>:-ffast-math>
+    $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
 )
 
-target_compile_options(_C PRIVATE
-    -fPIC
-    -DNDEBUG
-    -march=native
-)
+option(ENABLE_DEBUG ON)
+if(ENABLE_DEBUG)
+    target_compile_options(_C PRIVATE
+        -O0
+        -g
+        -no-omit-frame-pointer
+        -fsanitize=address
+    )
+else()
+    target_compile_options(_C PRIVATE
+        -O3
+        -DNDEBUG
+        -march=native
+    )
+endif()
+
+# target_compile_options(_C PRIVATE
+#     -fPIC
+#     -DNDEBUG
+#     -march=native
+# )
 
 target_include_directories(_C PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

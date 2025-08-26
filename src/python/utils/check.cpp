@@ -5,7 +5,9 @@
 
 namespace py = pybind11;
 
-void utils_check_axes(const size_t* shape, const size_t ndim, const int* axes, const size_t axes_ndim) {
+void utils_check_axes(
+    const size_t* shape, const size_t ndim, const int* axes, const size_t axes_ndim
+) {
     for (size_t i = 0; i < axes_ndim; i++) {
         const int axis = axes[i];
 
@@ -41,7 +43,9 @@ void utils_check_axes(const size_t* shape, const size_t ndim, const int* axes, c
     updated_axes = NULL;
 }
 
-void utils_check_ops_shapes(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB) {
+void utils_check_ops_shapes(
+    const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB
+) {
     if (ndimA != ndimB || memcmp(shapeA, shapeB, ndimA)) {
         const size_t max_ndim = UTILS_GET_MAX(ndimA, ndimB);
         
@@ -64,10 +68,9 @@ void utils_check_ops_shapes(const size_t* shapeA, const size_t ndimA, const size
     }
 }
 
-void utils_check_dot_shapes(const std::vector<size_t>& shapeA, const std::vector<size_t>& shapeB) {
-    const size_t ndimA = shapeA.size();
-    const size_t ndimB = shapeB.size();
-    
+void utils_check_dot_shapes(
+    const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB
+) {
     if (!(ndimA == 1 && ndimB == 1)) {
         fprintf(stderr, "dot (C++): Wrong error checking used.");
         return;
@@ -85,7 +88,9 @@ void utils_check_dot_shapes(const std::vector<size_t>& shapeA, const std::vector
     }
 }
 
-void utils_check_vecmat_shapes(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB) {
+void utils_check_vecmat_shapes(
+    const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB
+) {
     // (N) @ (..., N, P)
     if (!(ndimA == 1 && ndimB > 1)) {
         fprintf(stderr, "vecmat (C++): Wrong error checking used.");
@@ -104,7 +109,9 @@ void utils_check_vecmat_shapes(const size_t* shapeA, const size_t ndimA, const s
     }
 }
 
-void utils_check_matvec_shapes(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB) {
+void utils_check_matvec_shapes(
+    const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB
+) {
     // (..., M, N) @ (N)
     if (!(ndimA > 1 && ndimB == 1)) {
         throw std::runtime_error("matvec (C++): Wrong error checking used.");
@@ -124,7 +131,9 @@ void utils_check_matvec_shapes(const size_t* shapeA, const size_t ndimA, const s
     }
 }
 
-void utils_check_matmul_shapes(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB) {
+void utils_check_matmul_shapes(
+    const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB
+) {
     // (..., M, N) @ (..., N, P)
     if (!(ndimA >= 2 && ndimB >= 2)) {
         fprintf(stderr, "matmul (C++): Wrong error checking used.");

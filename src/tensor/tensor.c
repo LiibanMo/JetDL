@@ -1,4 +1,5 @@
 #include "tensor.h"
+#include "utils/auxiliary.h"
 #include "utils/metadata.h"
 
 #include <stdlib.h>
@@ -86,18 +87,8 @@ Tensor* copy_tensor(const Tensor* src, Tensor* dest) {
 }
 
 void destroy_tensor(Tensor* tensor) {
-    if (tensor->_data) {
-        free(tensor->_data);
-        tensor->_data = NULL;
-    }
-    
-    if (tensor->shape) {
-        free(tensor->shape);
-        tensor->shape = NULL;
-    }
-
-    if (tensor->strides) {
-        free(tensor->strides);
-        tensor->strides = NULL;
-    }
+    if (tensor->_data) UTILS_FREE(tensor->_data);
+    if (tensor->shape) UTILS_FREE(tensor->shape);
+    if (tensor->strides) UTILS_FREE(tensor->strides);
+    if (tensor) UTILS_FREE(tensor);
 }

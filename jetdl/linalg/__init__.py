@@ -1,5 +1,9 @@
-from .product import dot
+from .product import (
+    dot,
+    matmul,
+)
 
 __all__ = [
-    "dot"
+    "dot",
+    "matmul",
 ]

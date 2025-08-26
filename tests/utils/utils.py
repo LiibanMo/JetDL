@@ -98,4 +98,4 @@ class PyTestAsserts:
         return torch.allclose(j_torch_version, self.t, err)
 
     def results_error_output(self) -> str:
-        return f"Expected tensors to be close: {self.j} vs {self.t}"
+        return f"Expected tensors to be close: {self.j._data} vs {self.t}"

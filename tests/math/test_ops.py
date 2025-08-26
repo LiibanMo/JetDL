@@ -55,8 +55,8 @@ def test_scalar_tensor_operations(shape, operation):
 
     jetdl_op, torch_op = operation_registry[operation]
 
-    j_scalar = jetdl.tensor(scalar_data)
-    j_tensor = jetdl.tensor(tensor_data)
+    j_scalar = jetdl._tensor(scalar_data)
+    j_tensor = jetdl._tensor(tensor_data)
     j_result = jetdl_op(j_scalar, j_tensor)
 
     t_scalar = torch.tensor(scalar_data)
@@ -75,8 +75,8 @@ def test_tensor_scalar_operations(shape, operation):
 
     jetdl_op, torch_op = operation_registry[operation]
 
-    j_tensor = jetdl.tensor(tensor_data)
-    j_scalar = jetdl.tensor(scalar_data)
+    j_tensor = jetdl._tensor(tensor_data)
+    j_scalar = jetdl._tensor(scalar_data)
     j_result = jetdl_op(j_tensor, j_scalar)
 
     t_tensor = torch.tensor(tensor_data)
