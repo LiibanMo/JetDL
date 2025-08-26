@@ -41,6 +41,9 @@ extern "C" {
     void utils_erase_at_idx(
         void** input_ptr, const size_t idx, const size_t N, const size_t type_size
     );
+    void utils_reverse(
+        void** input_ptr, const size_t START, const size_t END, const size_t type_size
+    ); 
 
 #ifdef __cplusplus
 }

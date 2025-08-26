@@ -6,4 +6,7 @@ void bind_linalg_submodule(py::module_& m) {
 
     linalg.def("c_dot", &linalg_dot);
     linalg.def("c_matmul", &linalg_matmul);
+    
+    linalg.def("c_T", &linalg_T);
+    linalg.def("c_mT", &linalg_mT);
 }

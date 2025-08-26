@@ -5,10 +5,10 @@ on:
     branches:
       - main
       - dev
+      - dev2
   pull_request:
     branches:
       - main
-      - dev
 
 jobs:
   test:

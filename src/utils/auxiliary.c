@@ -1,8 +1,8 @@
 #include "auxiliary.h"
 
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 size_t utils_get_count(
     const void* data, const void* input, const size_t N, const size_t type_size
@@ -103,4 +103,26 @@ void utils_erase_at_idx(
 
     *input_ptr = temp_ptr;
     temp_ptr = NULL;
+}
+
+void utils_reverse(void** input_ptr, const size_t START, const size_t END, const size_t type_size) {
+    if (END < START) {
+        fprintf(stderr, "END < START\n");
+        return;
+    } else if (END == START) {
+        return;
+    }
+
+    char* start_ptr = (char*)*input_ptr + START * type_size;
+    char* end_ptr = (char*)*input_ptr + (END - 1) * type_size;
+
+    char temp_value[type_size];
+    while (start_ptr < end_ptr) {
+        memcpy(temp_value, start_ptr, type_size);
+        memcpy(start_ptr, end_ptr, type_size);
+        memcpy(end_ptr, temp_value, type_size);
+
+        start_ptr += type_size;
+        end_ptr -= type_size;
+    }
 }

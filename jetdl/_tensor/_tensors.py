@@ -11,6 +11,16 @@ class Tensor(TensorBase):
         from ..linalg import matmul
         return matmul(self, other)
     
+    @property
+    def T(self: "Tensor") -> "Tensor":
+        from ..linalg import transpose
+        return transpose(self)
+    
+    @property
+    def mT(self: "Tensor") -> "Tensor":
+        from ..linalg import matrix_transpose
+        return matrix_transpose(self)
+    
 def tensor(data: ArrayLike) -> Tensor:
     """Creates and returns a new Tensor from the given data.
     Args:
