@@ -4,21 +4,21 @@
 #include <stdio.h>
 #include <string.h>
 
+void utils_fill(void* dest, const void* input, const size_t N, const size_t type_size) {
+    char* dest_ptr = (char*)dest;
+    for (size_t i = 0; i < N; i++) memcpy(dest_ptr + i * type_size, input, type_size);
+}
+
 size_t utils_get_count(
     const void* data, const void* input, const size_t N, const size_t type_size
 ) {
     size_t count = 0;
-
     const char* temp_data_ptr = (char*)data;
-
     for (size_t i = 0; i < N; i++) {
         if (memcmp(temp_data_ptr + i * type_size, input, type_size) == 0) {
             count++;
         }
     }
-
-    temp_data_ptr = NULL;
-
     return count;
 }
 
@@ -61,22 +61,17 @@ size_t* utils_populate_linear_idxs(
         return NULL;
 }
 
-size_t* utils_make_axes_positive(
-    const int* axes, const size_t axes_ndim, const size_t ndim
-) {
-    size_t* result_axes = (size_t*)malloc(axes_ndim * sizeof(size_t));
-    UTILS_CHECK_ALLOC_FAILURE(result_axes, stderr, alloc_failure);
-
-    for (int i = 0; i < axes_ndim; i++) {
-        if (axes[i] < 0) result_axes[i] = axes[i] + ndim; 
-        else result_axes[i] = axes[i];
-    }
-
-    return result_axes;
-
-    alloc_failure:
-        if(result_axes) UTILS_FREE(result_axes);
+size_t* utils_make_axes_positive(const int* axes, const size_t naxes, const size_t ndim) {
+    size_t* updated_axes = (size_t*)malloc(naxes * sizeof(size_t));
+    if (!updated_axes) {
+        fprintf(stderr, "Memory allocation failed.\n");
         return NULL;
+    }
+    for (size_t i = 0; i < naxes; i++) {
+        if (axes[i] < 0) updated_axes[i] = axes[i] + ndim; 
+        else updated_axes[i] = axes[i];
+    }
+    return updated_axes;
 }
 
 void utils_erase_at_idx(
@@ -125,4 +120,31 @@ void utils_reverse(void** input_ptr, const size_t START, const size_t END, const
         start_ptr += type_size;
         end_ptr -= type_size;
     }
+}
+
+int utils_compare_ints(const void* ptrA, const void* ptrB) {
+    int a = *(int*)ptrA;
+    int b = *(int*)ptrB;
+
+    if (a > b) return 1;
+    if (a < b) return -1;
+    return 0;
+}
+
+int utils_compare_size_t(const void* ptrA, const void* ptrB) {
+    size_t a = *(size_t*)ptrA;
+    size_t b = *(size_t*)ptrB;
+
+    if (a > b) return 1;
+    if (a < b) return -1;
+    return 0; 
+}
+
+int utils_compare_float(const void* ptrA, const void* ptrB) {
+    float a = *(float*)ptrA;
+    float b = *(float*)ptrB;
+
+    if (a > b) return 1;
+    if (a < b) return -1;
+    return 0;
 }

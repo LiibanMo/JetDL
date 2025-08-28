@@ -1,6 +1,8 @@
 from ._tensor import *
 from .linalg import *
+from .math import *
 
 __all__ = []
 __all__.extend(_tensor.__all__)
 __all__.extend(linalg.__all__)
+__all__.extend(math.__all__)

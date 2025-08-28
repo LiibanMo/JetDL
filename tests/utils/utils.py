@@ -12,26 +12,26 @@ def generate_random_data(shape1, shape2=None):
 def generate_shape_ids(shapes) -> str:
     return f" {shapes} "
 
-# def obtain_result_tensors(data1, data2, operation:str):
-#     jetdl_op, torch_op = operation_registry[operation]
+def obtain_result_tensors(data1, data2, operation:str):
+    jetdl_op, torch_op = operation_registry[operation]
 
-#     j1 = jetdl.tensor(data1)
-#     j2 = jetdl.tensor(data2)
-#     j3 = jetdl_op(j1, j2)
+    j1 = jetdl.tensor(data1)
+    j2 = jetdl.tensor(data2)
+    j3 = jetdl_op(j1, j2)
 
-#     t1 = torch.tensor(data1)
-#     t2 = torch.tensor(data2)
-#     expected_tensor = torch_op(t1, t2)
+    t1 = torch.tensor(data1)
+    t2 = torch.tensor(data2)
+    expected_tensor = torch_op(t1, t2)
 
-#     return j3, expected_tensor
+    return j3, expected_tensor
 
-# operation_registry = {
-#     "ADD": (jetdl.add, torch.add),
-#     "SUB": (jetdl.sub, torch.sub),
-#     "MUL": (jetdl.mul, torch.mul),
-#     "DIV": (jetdl.div, torch.div),
-#     "MATMUL": (jetdl.matmul, torch.matmul),
-# }
+operation_registry = {
+    "ADD": (jetdl.add, torch.add),
+    "SUB": (jetdl.sub, torch.sub),
+    "MUL": (jetdl.mul, torch.mul),
+    "DIV": (jetdl.div, torch.div),
+    "MATMUL": (jetdl.matmul, torch.matmul),
+}
 
 class PyTestAsserts:
     def __init__(self, result, expected):

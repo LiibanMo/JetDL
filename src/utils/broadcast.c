@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-size_t** utils_broadcast_get_strides(const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB, const OpType optype) {
+size_t** utils_broadcast_get_strides(
+    const size_t* shapeA, const size_t ndimA, const size_t* shapeB, const size_t ndimB, const OpType optype
+) {
     if (optype == DOT) return NULL;
     
     const size_t max_ndim = UTILS_GET_MAX(ndimA, ndimB);

@@ -1,46 +1,44 @@
 #include "check.h"
 #include "utils/auxiliary.h"
 
+#include <cstddef>
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
 void utils_check_axes(
-    const size_t* shape, const size_t ndim, const int* axes, const size_t axes_ndim
+    const size_t* shape, const size_t ndim, const int* axes, const size_t naxes
 ) {
-    for (size_t i = 0; i < axes_ndim; i++) {
+    for (size_t i = 0; i < naxes; i++) {
         const int axis = axes[i];
 
         py::gil_scoped_acquire acquire;
-
-        if (axis >= ndim || axis < -ndim) {
+        if (axis >= (int)ndim || axis < -(int)ndim) {
             throw py::index_error(
                 py::str(
                     "dimension out of range (got {}, which is outside of [{},{}])"
                 )
-                .format(axis, -ndim, ndim-1)
+                .format(axis, -(int)ndim, (int)ndim-1)
             );
         }
     }
 
-    size_t* updated_axes = utils_make_axes_positive(axes, axes_ndim, ndim);
-    for (size_t i = 0; i < ndim; i++) {
-        size_t axis = updated_axes[i];
+    size_t* updated_axes = utils_make_axes_positive(axes, naxes, ndim);
 
-        const size_t freq = utils_get_count(updated_axes, &axis, ndim, sizeof(size_t));
-
+    for (size_t i = 0; i < naxes; i++) {
+        int updated_axis = updated_axes[i];
+        const size_t freq = utils_get_count(updated_axes, &updated_axis, naxes, sizeof(size_t));
         if (freq > 1) {
             throw std::runtime_error(
                 py::str(
                     "dim {} appears multiple times in the list of axes"
                 )
-                .format(axis)
+                .format(updated_axis)
             );
         }
     }
 
-    free(updated_axes);
-    updated_axes = NULL;
+    UTILS_FREE(updated_axes);
 }
 
 void utils_check_ops_shapes(
