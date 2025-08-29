@@ -12,7 +12,7 @@
 
 Tensor* c_linalg_dot(const Tensor* a, const Tensor* b) {
     // (N) @ (N)
-    const size_t* shape = utils_broadcast_get_result_shape(
+    size_t* shape = utils_broadcast_get_result_shape(
         a->shape, a->ndim, b->shape, b->ndim, DOT
     );
 
@@ -34,7 +34,7 @@ Tensor* c_linalg_dot(const Tensor* a, const Tensor* b) {
 
 Tensor* c_linalg_matvec(const Tensor* a, const Tensor* b) {
     // (..., M, N) @ (N)
-    const size_t* shape = utils_broadcast_get_result_shape(
+    size_t* shape = utils_broadcast_get_result_shape(
         a->shape, a->ndim, b->shape, b->ndim, MATMUL
     );
     
@@ -93,7 +93,7 @@ Tensor* c_linalg_matvec(const Tensor* a, const Tensor* b) {
 
 Tensor* c_linalg_vecmat(const Tensor* a, const Tensor* b) {
     // (N) @ (..., N, P)
-    const size_t* shape = utils_broadcast_get_result_shape(
+    size_t* shape = utils_broadcast_get_result_shape(
         a->shape, a->ndim, b->shape, b->ndim, MATMUL
     );
 
@@ -151,7 +151,7 @@ Tensor* c_linalg_vecmat(const Tensor* a, const Tensor* b) {
 
 Tensor* c_linalg_matmul(const Tensor* a, const Tensor* b) {
     // (..., M, N) @ (..., N, P)
-    const size_t* shape = utils_broadcast_get_result_shape(
+    size_t* shape = utils_broadcast_get_result_shape(
         a->shape, a->ndim, b->shape, b->ndim, MATMUL
     );
 
@@ -178,10 +178,6 @@ Tensor* c_linalg_matmul(const Tensor* a, const Tensor* b) {
 
     size_t* idxsA = utils_populate_linear_idxs(shape, stridesA, ndim, MATMUL);
     size_t* idxsB = utils_populate_linear_idxs(shape, stridesB, ndim, MATMUL);
-
-    UTILS_FREE(stridesA);
-    UTILS_FREE(stridesB);
-    UTILS_FREE(strides_ptrs);
 
     float* result_matrix = (float*)calloc(RESULT_MAT_SIZE, sizeof(float));
     UTILS_CHECK_ALLOC_FAILURE(result_matrix, stderr, alloc_failure);

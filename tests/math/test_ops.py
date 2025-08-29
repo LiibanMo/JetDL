@@ -58,10 +58,14 @@ def test_scalar_tensor_operations(shape, operation):
     j_scalar = jetdl.tensor(scalar_data)
     j_tensor = jetdl.tensor(tensor_data)
     j_result = jetdl_op(j_scalar, j_tensor)
+    print(f"j_result = {j_result._data}")
+    print(f"j_result_shape = {j_result.shape}")
 
     t_scalar = torch.tensor(scalar_data)
     t_tensor = torch.tensor(tensor_data)
     expected_tensor = torch_op(t_scalar, t_tensor)
+    print(f"expected_tensor = {expected_tensor}")
+    print(f"expected_tensor = {expected_tensor.shape}")
 
     assert_object = PyTestAsserts(j_result, expected_tensor)
     assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()

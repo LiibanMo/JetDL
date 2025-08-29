@@ -25,8 +25,8 @@ Tensor* c_math_sum_over_axes(const Tensor* a, const int* axes, const size_t naxe
 
     const size_t ndim = a->ndim - naxes;
 
-    const size_t* shape = utils_reduction_get_shape(a->shape, a->ndim, updated_axes, naxes);
-
+    size_t* shape = utils_reduction_get_shape(a->shape, a->ndim, updated_axes, naxes);
+    
     const size_t RESULT_DATA_SIZE = utils_metadata_get_size(shape, ndim);
     float* result_data = (float*)calloc(RESULT_DATA_SIZE, sizeof(float));
     if (!result_data) {

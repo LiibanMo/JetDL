@@ -3,32 +3,37 @@
 #include "tensor/tensor.h"
 #include "tensor/python/utils.h"
 
+#include <memory>
+#include <new>
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
-Tensor init_tensor(const py::object& data) {
+Tensor* init_tensor(const py::object& data) {
     float* _data = NULL;
     if (python_utils_is_num(data)) {
         _data = (float*)malloc(sizeof(float));
         if (!_data) throw std::bad_alloc();
         *_data = py::cast<float>(data);
+        return create_tensor(_data, NULL, 0);
+
     } else if (python_utils_is_pylist(data)) {
         python_utils_check_data_consistency(data);
         _data = python_utils_flatten_list(data);
-    } else if (!python_utils_is_num(data)) {
+        size_t ndim = python_utils_get_ndim(data);
+        size_t* shape = python_utils_get_shape(data, ndim); 
+        return create_tensor(_data, shape, ndim);
+
+    } else {
         throw std::runtime_error(python_utils_dtype_error_message(data));
     }
-
-    size_t ndim = python_utils_get_ndim(data);
-    size_t* shape = python_utils_get_shape(data, ndim); 
-
-    return *create_tensor(_data, shape, ndim);
 }
 
 void bind_tensor_submodule(py::module_& m) {
-    py::class_<Tensor>(m, "TensorBase")
+    py::class_<Tensor, std::unique_ptr<Tensor, TensorDeleter>>(m, "TensorBase")
         .def(py::init([](const py::object& data) {
-            return init_tensor(data);
+            Tensor* tensor_ptr = init_tensor(data);
+            if (!tensor_ptr) throw std::bad_alloc();
+            return std::unique_ptr<Tensor, TensorDeleter>(tensor_ptr);
         }))
         .def_property_readonly("_data", [](Tensor& self) {
             std::vector<float> _data = std::vector<float>(self.size, 0.0f);

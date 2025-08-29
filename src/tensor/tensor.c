@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-Tensor* create_tensor(const float* _data, const size_t* shape, const size_t ndim) {
+Tensor* create_tensor(float* _data, size_t* shape, const size_t ndim) {
     Tensor* new_tensor = (Tensor*)malloc(sizeof(Tensor));
     if (!new_tensor) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -15,12 +15,17 @@ Tensor* create_tensor(const float* _data, const size_t* shape, const size_t ndim
     
     utils_metadata_assign_basics(new_tensor, shape, ndim);
     
-    new_tensor->_data = (float*)malloc(new_tensor->size * sizeof(float));
-    if (!new_tensor->_data) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
+    // new_tensor->_data = (float*)malloc(new_tensor->size * sizeof(float));
+    // if (!new_tensor->_data) {
+    //     fprintf(stderr, "Memory allocation failed.\n");
+    //     return NULL;
+    // }
+    new_tensor->_data = NULL;
+    if (_data) {
+        new_tensor->_data = _data;
+        _data = NULL;
     }
-    memcpy(new_tensor->_data, _data, new_tensor->size * sizeof(float));
+    // memcpy(new_tensor->_data, _data, new_tensor->size * sizeof(float));
 
     return new_tensor;
 }

@@ -25,7 +25,11 @@ size_t utils_get_count(
 size_t* utils_populate_linear_idxs(
     const size_t* shape, const size_t* strides, const size_t ndim, const OpType optype
 ) {
-    const size_t offset = (optype == MATMUL) ? 2 : 0;
+    size_t offset;
+    if (optype == MATMUL) offset = 2;
+    else if (optype == ARITHMETIC) offset = 1;
+    else offset = 0;
+
     const size_t batch_ndim = ndim - offset;
 
     size_t size = 1;

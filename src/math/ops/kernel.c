@@ -1,5 +1,69 @@
 #include "kernel.h"
 
+void c_add_a_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = *a + b[i];
+    }
+}
+
+void c_add_b_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = a[i] + *b;
+    }
+}
+
+void c_add_scalars_cpu(const float* a, const float* b, float* c) {
+    *c = *a + *b;
+}
+
+void c_sub_a_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = *a - b[i];
+    }
+}
+
+void c_sub_b_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = a[i] - *b;
+    }
+}
+
+void c_sub_scalars_cpu(const float* a, const float* b, float* c) {
+    *c = *a - *b;
+}
+
+void c_mul_b_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = a[i] * *b;
+    }
+}
+
+void c_mul_a_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = *a * b[i];
+    }
+}
+
+void c_mul_scalars_cpu(const float* a, const float* b, float* c) {
+    *c = *a * *b;
+}
+
+void c_div_a_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = *a / b[i];
+    }
+}
+
+void c_div_b_scalar_cpu(const float* a, const float* b, float* c, const size_t N) {
+    for (size_t i = 0; i < N; i++) {
+        c[i] = a[i] / *b;
+    }
+}
+
+void c_div_scalars_cpu(const float* a, const float* b, float* c) {
+    *c = *a / *b;
+}
+
 #if defined(__ARM_NEON__)
 
 #include <arm_neon.h>

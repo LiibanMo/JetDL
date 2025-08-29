@@ -17,7 +17,7 @@ typedef struct {
     bool is_contiguous;
 } Tensor;
 
-Tensor* create_tensor(const float* _data, const size_t* shape, const size_t ndim);
+Tensor* create_tensor(float* _data, size_t* shape, const size_t ndim);
 Tensor* copy_tensor(const Tensor* src, Tensor* dest);
 void destroy_tensor(Tensor* tensor);
 

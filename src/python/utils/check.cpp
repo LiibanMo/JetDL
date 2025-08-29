@@ -26,7 +26,7 @@ void utils_check_axes(
     size_t* updated_axes = utils_make_axes_positive(axes, naxes, ndim);
 
     for (size_t i = 0; i < naxes; i++) {
-        int updated_axis = updated_axes[i];
+        size_t updated_axis = updated_axes[i];
         const size_t freq = utils_get_count(updated_axes, &updated_axis, naxes, sizeof(size_t));
         if (freq > 1) {
             throw std::runtime_error(

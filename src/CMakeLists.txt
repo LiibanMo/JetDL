@@ -30,7 +30,7 @@ target_compile_options(_C PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
 )
 
-option(ENABLE_DEBUG ON)
+option(ENABLE_DEBUG OFF)
 if(ENABLE_DEBUG)
     target_compile_options(_C PRIVATE
         -O0
