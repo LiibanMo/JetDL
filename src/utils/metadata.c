@@ -32,17 +32,9 @@ size_t* utils_metadata_get_strides(const size_t* shape, const size_t ndim) {
 
 void utils_metadata_assign_basics(Tensor* mutable_tensor, size_t* shape, const size_t ndim) {
     mutable_tensor->shape = NULL;
-    if (ndim > 0) {
-        // mutable_tensor->shape = (size_t*)malloc(ndim * sizeof(size_t));
-        // if (!mutable_tensor->shape && ndim > 0) {
-        //     fprintf(stderr, "Memory allocation failed.\n");
-        //     return;
-        // } 
-        if (shape) {
-            mutable_tensor->shape = shape;
-            shape = NULL;
-        }
-        // memcpy(mutable_tensor->shape, shape, ndim * sizeof(size_t));
+    if (ndim > 0 && shape) {
+        mutable_tensor->shape = shape;
+        shape = NULL;
     }
 
     mutable_tensor->ndim = ndim;

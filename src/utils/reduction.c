@@ -12,11 +12,11 @@ size_t* utils_reduction_get_shape(
     UTILS_CHECK_ALLOC_FAILURE(result_shape, stderr, alloc_failure);
     
     size_t* result_shape_ptr = result_shape;
-    const size_t* axes_ptr = axes;
+    size_t axes_idx = 0;
 
     for (size_t i = 0; i < ndim; i++) {
-        if (i == *axes_ptr) {
-            axes_ptr++;
+        if (axes_idx < naxes && i == axes[axes_idx]) {
+            axes_idx++;
         } else {
             *result_shape_ptr = shape[i];
             result_shape_ptr++;
