@@ -41,7 +41,7 @@ size_t* utils_reduction_get_dest_strides(
     size_t result_strides_idx = 0;
 
     for (size_t i = 0; i < original_ndim; i++) {
-        if (i == axes[axes_idx]) {
+        if (axes_idx < naxes && i == axes[axes_idx]) {
             reduction_strides[i] = 0;
             axes_idx++;
         } else {
