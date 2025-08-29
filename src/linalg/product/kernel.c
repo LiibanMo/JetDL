@@ -81,7 +81,7 @@ void c_matmul_cpu(
     const float alpha = 1.0f;
     const float beta = 0.0f;
     
-    const int k = r - l;    
+    const int k = n;    
     
     cblas_sgemm(
         CblasRowMajor,    
