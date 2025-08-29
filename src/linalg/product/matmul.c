@@ -11,25 +11,17 @@
 #include <string.h>
 
 Tensor* c_linalg_dot(const Tensor* a, const Tensor* b) {
-    // (N) @ (N)
-    size_t* shape = utils_broadcast_get_result_shape(
-        a->shape, a->ndim, b->shape, b->ndim, DOT
-    );
-
-    const size_t ndim = 0;
-
     float* result_data = (float*)calloc(1, sizeof(float));
-    UTILS_CHECK_ALLOC_FAILURE(result_data, stderr, alloc_failure);
-
-    for (size_t i = 0; i < a->size; i++) {
-        *result_data += a->_data[i] * b->_data[i];
+    if (!result_data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
     }
 
-    return create_tensor(result_data, shape, ndim);
+    for (size_t i = 0; i < a->size; i++) {
+        result_data[0] += a->_data[i] * b->_data[i];
+    }
 
-    alloc_failure:
-        if (result_data) UTILS_FREE(result_data);
-        return NULL;
+    return create_tensor(result_data, NULL, 0);
 } 
 
 Tensor* c_linalg_matvec(const Tensor* a, const Tensor* b) {
@@ -112,7 +104,7 @@ Tensor* c_linalg_vecmat(const Tensor* a, const Tensor* b) {
     float* result_matrix = (float*)calloc(RESULT_MAT_SIZE, sizeof(float));
     UTILS_CHECK_ALLOC_FAILURE(result_matrix, stderr, alloc_failure);
 
-    float* data1_matrix = (float*)calloc(RESULT_MAT_SIZE, sizeof(float));
+    float* data1_matrix = (float*)calloc(DATA1_MAT_SIZE, sizeof(float));
     UTILS_CHECK_ALLOC_FAILURE(data1_matrix, stderr, alloc_failure);
 
     float* data2_matrix = (float*)calloc(DATA2_MAT_SIZE, sizeof(float));
