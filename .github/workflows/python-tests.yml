@@ -47,6 +47,7 @@ jobs:
       - name: Install build dependencies (MacOS)
         if: runner.os == 'MacOS'
         run: |
+          brew uninstall cmake
           brew install llvm openblas cmake
   
       - name: Install dependencies
