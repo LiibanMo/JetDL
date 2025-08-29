@@ -2,6 +2,7 @@
 
 #include "tensor/tensor.h"
 
+#include <memory.h>
 #include <vector>
 
 std::unique_ptr<Tensor, decltype(&destroy_tensor)> math_ops(
