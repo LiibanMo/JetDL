@@ -35,17 +35,67 @@ operation_registry = {
 
 class PyTestAsserts:
     def __init__(self, result, expected):
-        self.j = result  # jetdl
-        self.t = expected  # torch
+        self.j: jetdl.Tensor = result  
+        self.t: torch.Tensor = expected  
 
     def check_shapes(self) -> bool:
         return self.j.shape == self.t.shape
+    
+    def check_ndims(self) -> bool:
+        return self.j.ndim == self.t.ndim
+    
+    def check_sizes(self) -> bool:
+        return self.j.size == self.t.numel()
+    
+    def check_strides(self) -> bool:
+        return self.j.strides == self.t.stride()
+    
+    def check_is_contiguous(self) -> bool:
+        return self.j.is_contiguous == self.t.is_contiguous()
+    
+    def check_basic_metadata(self) -> bool:
+        return (
+            self.check_shapes() and 
+            self.check_ndims() and 
+            self.check_sizes() and 
+            self.check_strides() and
+            self.check_is_contiguous()
+        )
 
     def shapes_error_output(self) -> str:
         return f"Expected shapes to match: {self.j.shape} vs {self.t.shape}"
+    
+    def ndim_error_output(self) -> str:
+        return f"Expected ndim to match: {self.j.ndim} vs {self.t.ndim}"
+   
+    def size_error_output(self) -> str:
+        return f"Expected sizes to match: {self.j.size} vs {self.t.numel()}"
+   
+    def strides_error_output(self) -> str:
+        return f"Expected strides to match: {self.j.strides} vs {self.t.stride()}"
+    
+    def is_contiguous_error_output(self) -> str:
+        return f"Expected is_contiguous to match: {self.j.is_contiguous} vs {self.t.is_contiguous()}"
+
+    def basic_metadata_error_output(self) -> str:
+        if not self.check_shapes():
+            return self.shapes_error_output()
+        
+        elif not self.check_ndims():
+            return self.ndim_error_output()
+        
+        elif not self.check_sizes():
+            return self.size_error_output()
+        
+        elif not self.check_strides():
+            return self.strides_error_output()
+        
+        elif not self.check_is_contiguous():
+            return self.is_contiguous_error_output()
 
     def check_results(self, err:float=ERR) -> bool:
-        return torch.allclose(self.j, self.t, err)
+        j_torch_version = torch.tensor(self.j._data).reshape(self.j.shape)
+        return torch.allclose(j_torch_version, self.t, err)
 
     def results_error_output(self) -> str:
-        return f"Expected tensors to be close: {self.j} vs {self.t}"
+        return f"Expected tensors to be close: {self.j._data} vs {self.t}"

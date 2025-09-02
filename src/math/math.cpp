@@ -1,76 +1,105 @@
-#include "math.hpp"
-#include "ops/ops.hpp"
-#include "function/reduction.hpp"
+#include "math.h"
+#include "math/functions/reduction.h"
+#include "math/ops/arith.h"
+#include "python/utils/check.h"
+#include "tensor/python/bindings.h"
+#include "tensor/tensor.h"
+#include "utils/auxiliary.h"
 
-#include <vector>
+#include <memory>
+#include <stdexcept>
+#include <stdlib.h>
 
-namespace math {    
+std::unique_ptr<Tensor, TensorDeleter>
+math_ops(const Tensor &a, const Tensor &b, const std::string op) {
+  utils_check_ops_shapes(a.shape, a.ndim, b.shape, b.ndim);
+  if (op == "ADD") {
+    if (a.ndim > 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops(&a, &b, ADD);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
 
-    namespace ops {
+    } else if (a.ndim == 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops_a_scalar(&a, &b, ADD);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
 
-        Tensor add(const Tensor& a, const Tensor& b) {
-            const std::string op = "ADD";
-            if (a.ndim > 0 && b.ndim > 0) {
-                return c_ops(a, b, op);
-            } else if (a.ndim == 0 && b.ndim > 0) {
-                return c_ops_scalar_a(a._data[0], b, op);
-            } else if (a.ndim > 0 && b.ndim == 0) {
-                return c_ops_scalar_b(a, b._data[0], op);
-            } else {
-                return c_ops_scalars(a, b, op);
-            }
-        }
+    } else if (a.ndim > 0 && b.ndim == 0) {
+      Tensor *result_tensor = c_math_ops_b_scalar(&a, &b, ADD);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
 
-        Tensor sub(const Tensor& a, const Tensor& b) {
-            const std::string op = "SUB";
-            if (a.ndim > 0 && b.ndim > 0) {
-                return c_ops(a, b, op);
-            } else if (a.ndim == 0 && b.ndim > 0) {
-                return c_ops_scalar_a(a._data[0], b, op);
-            } else if (a.ndim > 0 && b.ndim == 0) {
-                return c_ops_scalar_b(a, b._data[0], op);
-            } else {
-                return c_ops_scalars(a, b, op);
-            }
-        }
-
-        Tensor mul(const Tensor& a, const Tensor& b) {
-            const std::string op = "MUL";
-            if (a.ndim > 0 && b.ndim > 0) {
-                return c_ops(a, b, op);
-            } else if (a.ndim == 0 && b.ndim > 0) {
-                return c_ops_scalar_a(a._data[0], b, op);
-            } else if (a.ndim > 0 && b.ndim == 0) {
-                return c_ops_scalar_b(a, b._data[0], op);
-            } else {
-                return c_ops_scalars(a, b, op);
-            }
-        }
-
-        Tensor div(const Tensor& a, const Tensor& b) {
-            const std::string op = "DIV";
-            if (a.ndim > 0 && b.ndim > 0) {
-                return c_ops(a, b, op);
-            } else if (a.ndim == 0 && b.ndim > 0) {
-                return c_ops_scalar_a(a._data[0], b, op);
-            } else if (a.ndim > 0 && b.ndim == 0) {
-                return c_ops_scalar_b(a, b._data[0], op);
-            } else {
-                return c_ops_scalars(a, b, op);
-            }
-        }
-    
+    } else {
+      Tensor *result_tensor = c_math_ops_scalars(&a, &b, ADD);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
     }
 
-    namespace function {
+  } else if (op == "SUB") {
+    if (a.ndim > 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops(&a, &b, SUB);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
 
-        Tensor total_sum(const Tensor& tensor) {
-            return c_total_sum(tensor);
-        }
+    } else if (a.ndim == 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops_a_scalar(&a, &b, SUB);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
 
-        Tensor sum_w_axes(const Tensor& tensor, const std::vector<int>& axes) {
-            return c_sum_w_axes(tensor, axes);
-        }
+    } else if (a.ndim > 0 && b.ndim == 0) {
+      Tensor *result_tensor = c_math_ops_b_scalar(&a, &b, SUB);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
 
+    } else {
+      Tensor *result_tensor = c_math_ops_scalars(&a, &b, SUB);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
     }
+
+  } else if (op == "MUL") {
+    if (a.ndim > 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops(&a, &b, MUL);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+
+    } else if (a.ndim == 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops_a_scalar(&a, &b, MUL);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+
+    } else if (a.ndim > 0 && b.ndim == 0) {
+      Tensor *result_tensor = c_math_ops_b_scalar(&a, &b, MUL);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+
+    } else {
+      Tensor *result_tensor = c_math_ops_scalars(&a, &b, MUL);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+    }
+
+  } else if (op == "DIV") {
+    if (a.ndim > 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops(&a, &b, DIV);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+
+    } else if (a.ndim == 0 && b.ndim > 0) {
+      Tensor *result_tensor = c_math_ops_a_scalar(&a, &b, DIV);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+
+    } else if (a.ndim > 0 && b.ndim == 0) {
+      Tensor *result_tensor = c_math_ops_b_scalar(&a, &b, DIV);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+
+    } else {
+      Tensor *result_tensor = c_math_ops_scalars(&a, &b, DIV);
+      return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+    }
+
+  } else {
+    throw std::logic_error(
+        "ops can only of the following options: ADD, SUB, MUL, DIV.");
+  }
+}
+
+std::unique_ptr<Tensor, TensorDeleter> math_sum(const Tensor &a,
+                                                std::vector<int> &axes) {
+  if (axes.empty()) {
+    Tensor *result_tensor = c_math_total_sum(&a);
+    return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+
+  } else {
+    utils_check_axes(a.shape, a.ndim, axes.data(), axes.size());
+    Tensor *result_tensor = c_math_sum_over_axes(&a, axes.data(), axes.size());
+    return std::unique_ptr<Tensor, TensorDeleter>(result_tensor);
+  }
 }
