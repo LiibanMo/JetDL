@@ -1,8 +1,5 @@
-#include "routines/routines.h"
-#include "routines/creation/ones.h"
-#include "tensor/python/bindings.h"
-#include "tensor/tensor.h"
-#include <memory>
+#include "jetdl/routines.h"
+#include "jetdl/C/routines/creation.h"
 
 std::unique_ptr<Tensor, TensorDeleter>
 routines_ones(const std::vector<size_t> shape) {

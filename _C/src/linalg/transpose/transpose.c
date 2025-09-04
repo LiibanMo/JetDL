@@ -1,7 +1,5 @@
-#include "linalg/transpose/transpose.h"
-#include "tensor/tensor.h"
-#include "utils/auxiliary.h"
-
+#include "jetdl/C/linalg/transpose.h"
+#include "jetdl/utils/auxiliary.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

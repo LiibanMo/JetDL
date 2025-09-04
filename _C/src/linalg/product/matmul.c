@@ -1,11 +1,8 @@
-#include "linalg/product/matmul.h"
-#include "linalg/product/kernel.h"
-
-#include "tensor/tensor.h"
-#include "utils/auxiliary.h"
-#include "utils/broadcast.h"
-#include "utils/metadata.h"
-
+#include "jetdl/C/linalg/kernel.h"
+#include "jetdl/C/linalg/product.h"
+#include "jetdl/utils/auxiliary.h"
+#include "jetdl/utils/broadcast.h"
+#include "jetdl/utils/metadata.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

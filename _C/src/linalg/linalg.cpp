@@ -1,10 +1,7 @@
-#include "linalg/linalg.h"
-#include "linalg/product/matmul.h"
-#include "linalg/transpose/transpose.h"
-#include "python/utils/check.h"
-#include "tensor/python/bindings.h"
-#include "tensor/tensor.h"
-
+#include "jetdl/linalg.h"
+#include "jetdl/C/linalg/product.h"
+#include "jetdl/C/linalg/transpose.h"
+#include "jetdl/utils/check.h"
 #include <pybind11/pybind11.h>
 #include <stdexcept>
 #include <stdio.h>

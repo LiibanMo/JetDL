@@ -1,4 +1,4 @@
-#include "math/functions/kernel.h"
+#include "jetdl/C/math/kernel.h"
 
 void c_total_sum_cpu(float *dest, const float *src, const size_t N) {
   for (size_t i = 0; i < N; i++) {

@@ -1,9 +1,9 @@
-#include "math/functions/reduction.h"
-#include "math/functions/kernel.h"
-#include "tensor/tensor.h"
-#include "utils/auxiliary.h"
-#include "utils/metadata.h"
-#include "utils/reduction.h"
+#include "jetdl/C/math/reduction.h"
+#include "jetdl/C/math/kernel.h"
+#include "jetdl/tensor.h"
+#include "jetdl/utils/auxiliary.h"
+#include "jetdl/utils/metadata.h"
+#include "jetdl/utils/reduction.h"
 
 #include <stdio.h>
 #include <stdlib.h>

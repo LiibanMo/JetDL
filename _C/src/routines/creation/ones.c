@@ -1,8 +1,6 @@
-#include "routines/creation/ones.h"
-#include "tensor/tensor.h"
-#include "utils/auxiliary.h"
-#include "utils/metadata.h"
-
+#include "jetdl/C/routines/creation.h"
+#include "jetdl/utils/auxiliary.h"
+#include "jetdl/utils/metadata.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

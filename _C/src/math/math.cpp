@@ -1,12 +1,7 @@
-#include "math/math.h"
-#include "math/functions/reduction.h"
-#include "math/ops/arith.h"
-#include "python/utils/check.h"
-#include "tensor/python/bindings.h"
-#include "tensor/tensor.h"
-#include "utils/auxiliary.h"
-
-#include <memory>
+#include "jetdl/math.h"
+#include "jetdl/C/math/arith.h"
+#include "jetdl/C/math/reduction.h"
+#include "jetdl/utils/check.h"
 #include <stdexcept>
 #include <stdlib.h>
 

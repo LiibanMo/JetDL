@@ -27,7 +27,8 @@ else()
   target_compile_options(_C PRIVATE -O3 -DNDEBUG -march=native)
 endif()
 
-target_include_directories(_C PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_include_directories(_C PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_include_directories(_C PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../internal)
 
 # Include Directories and Link Libraries for BLAS
 

@@ -1,5 +1,5 @@
-#include "utils/metadata.h"
-#include "utils/auxiliary.h"
+#include "jetdl/utils/metadata.h"
+#include "jetdl/utils/auxiliary.h"
 
 #include <stdio.h>
 #include <stdlib.h>
