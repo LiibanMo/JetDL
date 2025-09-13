@@ -1,16 +1,18 @@
 #ifndef JETDL_MATH_H
 #define JETDL_MATH_H
 
-#include "jetdl/bindings.h"
 #include "jetdl/tensor.h"
 
-#include <memory>
-#include <vector>
+namespace jetdl {
+namespace math {
 
-std::unique_ptr<Tensor, TensorDeleter>
-math_ops(const Tensor &a, const Tensor &b, const std::string op);
+jetdl::Tensor add(const jetdl::Tensor& a, const jetdl::Tensor& b);
+jetdl::Tensor sub(const jetdl::Tensor& a, const jetdl::Tensor& b);
+jetdl::Tensor mul(const jetdl::Tensor& a, const jetdl::Tensor& b);
+jetdl::Tensor div(const jetdl::Tensor& a, const jetdl::Tensor& b);
+jetdl::Tensor sum(const jetdl::Tensor& a, const std::vector<int>& axes);
 
-std::unique_ptr<Tensor, TensorDeleter> math_sum(const Tensor &a,
-                                                std::vector<int> &axes);
+}  // namespace math
+}  // namespace jetdl
 
 #endif

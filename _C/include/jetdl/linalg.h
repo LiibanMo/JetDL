@@ -1,17 +1,19 @@
 #ifndef JETDL_LINALG_H
 #define JETDL_LINALG_H
 
-#include "jetdl/bindings.h"
 #include "jetdl/tensor.h"
 
-std::unique_ptr<Tensor, TensorDeleter> linalg_dot(const Tensor &a,
-                                                  const Tensor &b);
+namespace jetdl {
+namespace linalg {
 
-std::unique_ptr<Tensor, TensorDeleter> linalg_matmul(const Tensor &a,
-                                                     const Tensor &b);
+jetdl::Tensor dot(const jetdl::Tensor& a, const jetdl::Tensor& b);
 
-std::unique_ptr<Tensor, TensorDeleter> linalg_T(const Tensor &a);
+jetdl::Tensor matmul(const jetdl::Tensor& a, const jetdl::Tensor& b);
 
-std::unique_ptr<Tensor, TensorDeleter> linalg_mT(const Tensor &a);
+jetdl::Tensor T(const jetdl::Tensor& a);
 
+jetdl::Tensor mT(const jetdl::Tensor& a);
+
+}  // namespace linalg
+}  // namespace jetdl
 #endif

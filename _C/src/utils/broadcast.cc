@@ -1,0 +1,93 @@
+#include "jetdl/utils/broadcast.h"
+
+#include <algorithm>
+#include <vector>
+
+#include "jetdl/utils/metadata.h"
+
+namespace jetdl {
+namespace utils {
+
+std::pair<std::vector<size_t>, std::vector<size_t>> get_strides(
+    const std::vector<size_t>& shapeA, const std::vector<size_t>& shapeB,
+    OpType optype) {
+  if (optype == OpType::DOT) {
+    return {};
+  }
+
+  const size_t max_ndim = std::max(shapeA.size(), shapeB.size());
+
+  std::vector<size_t> broadcasted_stridesA(max_ndim, 0);
+  std::vector<size_t> broadcasted_stridesB(max_ndim, 0);
+
+  std::vector<size_t> stridesA = get_strides(shapeA);
+  std::vector<size_t> stridesB = get_strides(shapeB);
+
+  const size_t offset = (optype == OpType::MATMUL) ? 2 : 0;
+
+  for (int i = max_ndim - offset - 1; i >= 0; i--) {
+    const int idxA = i - max_ndim + shapeA.size();
+    const int idxB = i - max_ndim + shapeB.size();
+
+    const size_t dimA = (idxA < 0) ? 1 : shapeA[idxA];
+    const size_t dimB = (idxB < 0) ? 1 : shapeB[idxB];
+
+    broadcasted_stridesA[i] = (dimA == 1 && dimA < dimB) ? 0 : stridesA[idxA];
+    broadcasted_stridesB[i] = (dimB == 1 && dimB < dimA) ? 0 : stridesB[idxB];
+  }
+
+  return {broadcasted_stridesA, broadcasted_stridesB};
+}
+
+std::vector<size_t> get_result_shape(const std::vector<size_t>& shapeA,
+                                     const std::vector<size_t>& shapeB,
+                                     OpType optype) {
+  if (optype == OpType::DOT) {
+    return {};
+  }
+
+  const int max_ndim = std::max(shapeA.size(), shapeB.size());
+
+  std::vector<size_t> result_shape(max_ndim);
+
+  int offset = 0;
+  if (optype == OpType::MATMUL) {
+    result_shape[max_ndim - 2] = shapeA[shapeA.size() - 2];
+    result_shape[max_ndim - 1] = shapeB[shapeB.size() - 1];
+    offset = 2;
+  }
+
+  for (int i = max_ndim - offset - 1; i >= 0; i--) {
+    const int idxA = i - max_ndim + shapeA.size();
+    const int idxB = i - max_ndim + shapeB.size();
+
+    const int dimA = (idxA < 0) ? 1 : shapeA[idxA];
+    const int dimB = (idxB < 0) ? 1 : shapeB[idxB];
+
+    result_shape[i] = std::max(dimA, dimB);
+  }
+
+  if (optype == OpType::MATMUL) {
+    if (shapeA.size() == 1) {
+      result_shape.erase(result_shape.begin() + max_ndim - 2);
+    } else if (shapeB.size() == 1) {
+      result_shape.erase(result_shape.begin() + max_ndim - 1);
+    }
+  }
+
+  return result_shape;
+}
+
+size_t get_batch_size(const std::vector<size_t>& shape) {
+  size_t batch_size = 1;
+  if (shape.size() <= 2) {
+    return batch_size;
+  }
+  for (size_t i = 0; i < shape.size() - 2; ++i) {
+    batch_size *= shape[i];
+  }
+  return batch_size;
+}
+
+}  // namespace utils
+}  // namespace jetdl

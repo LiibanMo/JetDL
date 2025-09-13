@@ -1,0 +1,142 @@
+#include "jetdl/utils/check.h"
+
+#include <pybind11/pybind11.h>
+
+#include <stdexcept>
+#include <vector>
+
+#include "jetdl/utils/auxiliary.h"
+
+namespace py = pybind11;
+
+namespace jetdl {
+namespace utils {
+
+void check_axes(const std::vector<size_t>& shape,
+                const std::vector<int>& axes) {
+  for (int axis : axes) {
+    if (axis >= static_cast<int>(shape.size()) ||
+        axis < -static_cast<int>(shape.size())) {
+      py::gil_scoped_acquire acquire;
+      throw py::index_error(
+          py::str(
+              "dimension out of range (got {}, which is outside of [{},{}])")
+              .format(axis, -static_cast<int>(shape.size()),
+                      static_cast<int>(shape.size()) - 1));
+    }
+  }
+
+  std::vector<size_t> updated_axes = make_axes_positive(axes, shape.size());
+
+  for (size_t updated_axis : updated_axes) {
+    if (std::count(updated_axes.begin(), updated_axes.end(), updated_axis) >
+        1) {
+      py::gil_scoped_acquire acquire;
+      throw std::runtime_error(
+          py::str("dim {} appears multiple times in the list of axes")
+              .format(updated_axis));
+    }
+  }
+}
+
+void check_ops_shapes(const std::vector<size_t>& shapeA,
+                      const std::vector<size_t>& shapeB) {
+  if (shapeA.size() != shapeB.size() ||
+      !std::equal(shapeA.begin(), shapeA.end(), shapeB.begin())) {
+    const size_t max_ndim = std::max(shapeA.size(), shapeB.size());
+
+    for (int i = max_ndim - 1; i >= 0; i--) {
+      const int idxA = i - static_cast<int>(max_ndim) + shapeA.size();
+      const int idxB = i - static_cast<int>(max_ndim) + shapeB.size();
+
+      const size_t dimA = (idxA < 0) ? 1 : shapeA[idxA];
+      const size_t dimB = (idxB < 0) ? 1 : shapeB[idxB];
+
+      if (dimA != dimB && dimA != 1 && dimB != 1) {
+        py::gil_scoped_acquire acquire;
+        throw py::value_error(
+            py::str("operands could not be broadcasted together; incompatible "
+                    "shapes."));
+      }
+    }
+  }
+}
+
+void check_dot_shapes(const std::vector<size_t>& shapeA,
+                      const std::vector<size_t>& shapeB) {
+  if (!(shapeA.size() == 1 && shapeB.size() == 1)) {
+    throw std::runtime_error("dot (C++): Wrong error checking used.");
+  }
+
+  if (shapeA[0] != shapeB[0]) {
+    py::gil_scoped_acquire acquire;
+    throw py::value_error(
+        py::str("dot: Input operands have incompatible shapes; {} != {}")
+            .format(shapeA[0], shapeB[0]));
+  }
+}
+
+void check_vecmat_shapes(const std::vector<size_t>& shapeA,
+                         const std::vector<size_t>& shapeB) {
+  if (!(shapeA.size() == 1 && shapeB.size() > 1)) {
+    throw std::runtime_error("vecmat (C++): Wrong error checking used.");
+  }
+
+  const size_t N = shapeA[0];
+  if (shapeB[shapeB.size() - 2] != N) {
+    py::gil_scoped_acquire acquire;
+    throw py::value_error(
+        py::str("matmul: Input operands have incompatible shapes; {} != {}")
+            .format(N, shapeB[shapeB.size() - 2]));
+  }
+}
+
+void check_matvec_shapes(const std::vector<size_t>& shapeA,
+                         const std::vector<size_t>& shapeB) {
+  if (!(shapeA.size() > 1 && shapeB.size() == 1)) {
+    throw std::runtime_error("matvec (C++): Wrong error checking used.");
+  }
+
+  const size_t N = shapeB[0];
+
+  if (shapeA[shapeA.size() - 1] != N) {
+    py::gil_scoped_acquire acquire;
+    throw py::value_error(
+        py::str("matvec: Input operands have incompatible shapes; {} != {}")
+            .format(shapeA[shapeA.size() - 1], N));
+  }
+}
+
+void check_matmul_shapes(const std::vector<size_t>& shapeA,
+                         const std::vector<size_t>& shapeB) {
+  if (!(shapeA.size() >= 2 && shapeB.size() >= 2)) {
+    throw std::runtime_error("matmul (C++): Wrong error checking used.");
+  }
+
+  if (shapeA[shapeA.size() - 1] != shapeB[shapeB.size() - 2]) {
+    py::gil_scoped_acquire acquire;
+    throw py::value_error(
+        py::str("matmul: Input operands have incompatible shapes; {} != {}")
+            .format(shapeA[shapeA.size() - 1], shapeB[shapeB.size() - 2]));
+  }
+
+  const size_t max_ndim = std::max(shapeA.size(), shapeB.size());
+
+  for (int i = max_ndim - 3; i >= 0; i--) {
+    const int idxA = i - static_cast<int>(max_ndim) + shapeA.size();
+    const int idxB = i - static_cast<int>(max_ndim) + shapeB.size();
+
+    const size_t dimA = (idxA < 0) ? 1 : shapeA[idxA];
+    const size_t dimB = (idxB < 0) ? 1 : shapeB[idxB];
+
+    if (dimA != dimB && dimA != 1 && dimB != 1) {
+      py::gil_scoped_acquire acquire;
+      throw py::value_error(
+          py::str("operands could not be broadcasted together along batch "
+                  "dimensions"));
+    }
+  }
+}
+
+}  // namespace utils
+}  // namespace jetdl

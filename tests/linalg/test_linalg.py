@@ -51,7 +51,9 @@ def test_dot(shape1, shape2):
     t3 = torch.dot(t1, t2)
 
     assert_object = PyTestAsserts(j3, t3)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -101,7 +103,9 @@ def test_matmul(shape1, shape2):
     t3 = torch.matmul(t1, t2)
 
     assert_object = PyTestAsserts(j3, t3)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -132,33 +136,43 @@ def test_incorrect_batch_matmul(shape1, shape2):
         j3 = jetdl.matmul(j1, j2)
     assert "could not be broadcasted" in str(err.value)
 
-@pytest.mark.parametrize("shape", [
-    (5,),
-    (2, 3),
-    (1, 2, 3),
-    (1, 2, 3, 4),
-    (1, 2, 3, 4, 5),
-    (6, 5, 4, 3, 2, 1),
-])
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        (5,),
+        (2, 3),
+        (1, 2, 3),
+        (1, 2, 3, 4),
+        (1, 2, 3, 4, 5),
+        (6, 5, 4, 3, 2, 1),
+    ],
+)
 def test_transpose(shape):
     data = generate_random_data(shape)
 
     j_tensor = jetdl.tensor(data)
     jetdl_transposed = j_tensor.T
-    
+
     t_tensor = torch.tensor(data)
     torch_transposed = t_tensor.permute(*torch.arange(t_tensor.ndim - 1, -1, -1))
 
     assert_object = PyTestAsserts(jetdl_transposed, torch_transposed)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
 
-@pytest.mark.parametrize("shape", [
-    (2, 3),
-    (1, 2, 3),
-    (1, 2, 3, 4),
-    (1, 2, 3, 4, 5),
-    (6, 5, 4, 3, 2, 1),
-])
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        (2, 3),
+        (1, 2, 3),
+        (1, 2, 3, 4),
+        (1, 2, 3, 4, 5),
+        (6, 5, 4, 3, 2, 1),
+    ],
+)
 def test_matrix_transpose(shape):
     data = generate_random_data(shape)
 
@@ -169,20 +183,28 @@ def test_matrix_transpose(shape):
     torch_matrix_transposed = t_tensor.mT
 
     assert_object = PyTestAsserts(jetdl_matrix_transposed, torch_matrix_transposed)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
 
-@pytest.mark.parametrize("shape", [
-    (),
-    (5),
-    (5,),
-])
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        (),
+        (5),
+        (5,),
+    ],
+)
 def test_incorrect_matrix_transpose(shape):
     data = generate_random_data(shape)
     j_tensor = jetdl.tensor(data)
     t_tensor = torch.tensor(data)
-    
+
     assert_object = PyTestAsserts(j_tensor, t_tensor)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
 
     with pytest.raises(RuntimeError) as err:
         _ = j_tensor.mT

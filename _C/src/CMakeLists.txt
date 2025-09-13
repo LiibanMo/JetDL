@@ -9,15 +9,12 @@ find_package(
   REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
-file(GLOB_RECURSE C_FILES "*.c" "*.cpp")
+file(GLOB_RECURSE C_FILES "*.cc")
 
 pybind11_add_module(_C ${C_FILES})
 
 set_target_properties(_C PROPERTIES LIBRARY_OUTPUT_DIRECTORY
                                     ${CMAKE_SOURCE_DIR}/jetdl)
-
-target_compile_options(_C PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=c99>
-                                  $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
 
 option(ENABLE_DEBUG OFF)
 if(ENABLE_DEBUG)

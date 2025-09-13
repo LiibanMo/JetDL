@@ -1,15 +1,16 @@
-#ifndef AUTOGRAD_FUNCTION_H
-#define AUTOGRAD_FUNCTION_H
+#ifndef JETDL_AUTOGRAD_HPP
+#define JETDL_AUTOGRAD_HPP
 
-#include <stddef.h>
+#include "jetdl/tensor.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class Function {
+ public:
+  std::vector<std::shared_ptr<jetdl::Tensor>> prev_tensors;
+  std::weak_ptr<jetdl::Tensor> tensor;
 
-typedef struct Function Function;
+  virtual void apply(const jetdl::Tensor& tensor) const = 0;
 
-#ifdef __cplusplus
-}
-#endif
+  virtual ~Function() {};
+};
+
 #endif

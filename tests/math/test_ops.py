@@ -25,6 +25,7 @@ broadcast_shapes = [
 
 operations_strs = ["ADD", "SUB", "MUL", "DIV"]
 
+
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape1, shape2", non_broadcast_shapes, ids=generate_shape_ids)
 def test_non_broadcast_addition(shape1, shape2, operation):
@@ -33,8 +34,11 @@ def test_non_broadcast_addition(shape1, shape2, operation):
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
     assert_object = PyTestAsserts(j3, expected_tensor)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
+
 
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape1, shape2", broadcast_shapes, ids=generate_shape_ids)
@@ -44,8 +48,11 @@ def test_broadcast_addition(shape1, shape2, operation):
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
     assert_object = PyTestAsserts(j3, expected_tensor)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
+
 
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
@@ -68,8 +75,11 @@ def test_scalar_tensor_operations(shape, operation):
     print(f"expected_tensor = {expected_tensor.shape}")
 
     assert_object = PyTestAsserts(j_result, expected_tensor)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
+
 
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
@@ -88,5 +98,7 @@ def test_tensor_scalar_operations(shape, operation):
     expected_tensor = torch_op(t_tensor, t_scalar)
 
     assert_object = PyTestAsserts(j_result, expected_tensor)
-    assert assert_object.check_basic_metadata(), assert_object.basic_metadata_error_output()
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()

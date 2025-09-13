@@ -1,31 +1,57 @@
 #ifndef JETDL_TENSOR_H
 #define JETDL_TENSOR_H
 
-#include <stdbool.h>
-#include <stddef.h>
+#include <pybind11/pybind11.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace py = pybind11;
 
-typedef struct {
-  float *_data;
+class Function;
+
+namespace jetdl {
+
+class Tensor {
+ public:
+  std::shared_ptr<std::vector<float>> _data;
   size_t ndim;
-  size_t *shape;
+  std::vector<size_t> shape;
   size_t size;
-  size_t *strides;
+  std::vector<size_t> strides;
   bool is_contiguous;
-
   bool requires_grad;
-  void *grad_fn;
-} Tensor;
+  std::shared_ptr<Function> grad_fn;
+  std::shared_ptr<Tensor> grad;
 
-Tensor *create_tensor(float *_data, size_t *shape, const size_t ndim);
-Tensor *copy_tensor(const Tensor *src, Tensor *dest);
-void destroy_tensor(Tensor *tensor);
+  Tensor();
 
-#ifdef __cplusplus
-}
-#endif
+  Tensor(const py::object& data, const bool requires_grad = false);
+
+  Tensor(const std::shared_ptr<std::vector<float>>& data,
+         const std::vector<size_t>& shape, const bool requires_grad = false);
+
+  Tensor(const float& data, const bool requires_grad = false);
+
+  Tensor(const Tensor& other);
+
+  ~Tensor() = default;
+
+  Tensor view(const std::vector<size_t>& shape) const;
+
+  Tensor operator=(const Tensor& other);
+
+  Tensor operator+(const Tensor& other) const;
+  Tensor operator-(const Tensor& other) const;
+  Tensor operator*(const Tensor& other) const;
+  Tensor operator/(const Tensor& other) const;
+
+  Tensor matmul(const Tensor& other) const;
+  Tensor T() const;
+  Tensor mT() const;
+
+  Tensor sum(const std::vector<int>& axes) const;
+};
+
+Tensor tensor(const py::object& data, const bool requires_grad);
+
+}  // namespace jetdl
 
 #endif

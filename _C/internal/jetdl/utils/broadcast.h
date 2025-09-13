@@ -1,26 +1,25 @@
-#ifndef UTILS_BROADCAST_H
-#define UTILS_BROADCAST_H
+#ifndef JETDL_UTILS_BROADCAST_HPP
+#define JETDL_UTILS_BROADCAST_HPP
+
+#include <cstddef>
+#include <vector>
 
 #include "jetdl/utils/auxiliary.h"
 
-#include <stddef.h>
+namespace jetdl {
+namespace utils {
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+std::pair<std::vector<size_t>, std::vector<size_t>> get_strides(
+    const std::vector<size_t>& shapeA, const std::vector<size_t>& shapeB,
+    OpType optype);
 
-size_t **utils_broadcast_get_strides(const size_t *shapeA, const size_t ndimA,
-                                     const size_t *shapeB, const size_t ndimB,
-                                     const OpType optype);
-size_t *utils_broadcast_get_result_shape(const size_t *shapeA,
-                                         const size_t ndimA,
-                                         const size_t *shapeB,
-                                         const size_t ndimB,
-                                         const OpType optype);
-size_t utils_broadcast_get_batch_size(const size_t *shape, const size_t ndim);
+std::vector<size_t> get_result_shape(const std::vector<size_t>& shapeA,
+                                     const std::vector<size_t>& shapeB,
+                                     OpType optype);
 
-#if __cplusplus
-}
-#endif
+size_t get_batch_size(const std::vector<size_t>& shape);
+
+}  // namespace utils
+}  // namespace jetdl
 
 #endif
