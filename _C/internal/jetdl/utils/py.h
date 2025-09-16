@@ -29,7 +29,7 @@ size_t py_get_ndim(const py::object& data);
 std::vector<size_t> py_get_shape(const py::object& data, const size_t ndim);
 
 size_t py_get_size(const py::list& data);
-void py_populate_ptr(const py::list& data, float* ptr);
+void py_flatten_list_to_vec(const py::list& data, std::vector<float>& vec);
 std::shared_ptr<std::vector<float>> py_flatten_list(const py::list& data);
 
 }  // namespace utils

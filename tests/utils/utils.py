@@ -6,7 +6,7 @@ SEED = 123
 ERR = 1e-6
 
 
-def generate_random_data(shape1, shape2=None):
+def generate_random_data(shape1, shape2=None) -> list:
     if shape2 is None:
         return torch.rand(shape1).tolist()
     return torch.rand(shape1).tolist(), torch.rand(shape2).tolist()

@@ -1,30 +1,10 @@
 #include "jetdl/utils/auxiliary.h"
 
-#include <algorithm>
 #include <cstring>
 #include <vector>
 
 namespace jetdl {
 namespace utils {
-
-void fill(void* dest, const void* input, size_t N, size_t type_size) {
-  char* dest_ptr = static_cast<char*>(dest);
-  for (size_t i = 0; i < N; i++) {
-    std::memcpy(dest_ptr + i * type_size, input, type_size);
-  }
-}
-
-size_t get_count(const void* data, const void* input, size_t N,
-                 size_t type_size) {
-  size_t count = 0;
-  const char* temp_data_ptr = static_cast<const char*>(data);
-  for (size_t i = 0; i < N; i++) {
-    if (std::memcmp(temp_data_ptr + i * type_size, input, type_size) == 0) {
-      count++;
-    }
-  }
-  return count;
-}
 
 std::vector<size_t> populate_linear_idxs(const std::vector<size_t>& shape,
                                          const std::vector<size_t>& strides,
@@ -44,8 +24,8 @@ std::vector<size_t> populate_linear_idxs(const std::vector<size_t>& shape,
     size *= shape[i];
   }
 
-  std::vector<size_t> lin_idxs(size, 0);
-  std::vector<size_t> idx(shape.size(), 0);
+  auto lin_idxs = std::vector<size_t>(size, 0);
+  auto idx = std::vector<size_t>(shape.size(), 0);
 
   for (size_t i = 0; i < size; i++) {
     for (size_t j = 0; j < shape.size(); j++) {
@@ -76,20 +56,6 @@ std::vector<size_t> make_axes_positive(const std::vector<int>& axes,
     }
   }
   return updated_axes;
-}
-
-template <typename T>
-void erase_at_idx(std::vector<T>& vec, size_t idx) {
-  if (idx < vec.size()) {
-    vec.erase(vec.begin() + idx);
-  }
-}
-
-template <typename T>
-void reverse(std::vector<T>& vec, size_t start, size_t end) {
-  if (start < end && end <= vec.size()) {
-    std::reverse(vec.begin() + start, vec.begin() + end);
-  }
 }
 
 }  // namespace utils

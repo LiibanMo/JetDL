@@ -17,11 +17,11 @@ std::pair<std::vector<size_t>, std::vector<size_t>> get_strides(
 
   const size_t max_ndim = std::max(shapeA.size(), shapeB.size());
 
-  std::vector<size_t> broadcasted_stridesA(max_ndim, 0);
-  std::vector<size_t> broadcasted_stridesB(max_ndim, 0);
+  auto broadcasted_stridesA = std::vector<size_t>(max_ndim, 0);
+  auto broadcasted_stridesB = std::vector<size_t>(max_ndim, 0);
 
-  std::vector<size_t> stridesA = get_strides(shapeA);
-  std::vector<size_t> stridesB = get_strides(shapeB);
+  const std::vector<size_t>& stridesA = get_strides(shapeA);
+  const std::vector<size_t>& stridesB = get_strides(shapeB);
 
   const size_t offset = (optype == OpType::MATMUL) ? 2 : 0;
 
@@ -48,7 +48,7 @@ std::vector<size_t> get_result_shape(const std::vector<size_t>& shapeA,
 
   const int max_ndim = std::max(shapeA.size(), shapeB.size());
 
-  std::vector<size_t> result_shape(max_ndim);
+  auto result_shape = std::vector<size_t>(max_ndim, 0);
 
   int offset = 0;
   if (optype == OpType::MATMUL) {

@@ -24,7 +24,7 @@ std::vector<size_t> get_shape(const std::vector<size_t>& shape,
 std::vector<size_t> get_dest_strides(const std::vector<size_t>& original_shape,
                                      const std::vector<size_t>& result_strides,
                                      const std::vector<size_t>& axes) {
-  std::vector<size_t> reduction_strides(original_shape.size());
+  auto reduction_strides = std::vector<size_t>(original_shape.size(), 0);
 
   size_t axes_idx = 0;
   size_t result_strides_idx = 0;

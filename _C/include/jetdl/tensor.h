@@ -32,8 +32,6 @@ class Tensor {
 
   Tensor(const Tensor& other);
 
-  ~Tensor() = default;
-
   Tensor view(const std::vector<size_t>& shape) const;
 
   Tensor operator=(const Tensor& other);

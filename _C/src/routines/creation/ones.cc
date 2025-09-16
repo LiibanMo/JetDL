@@ -8,7 +8,7 @@ jetdl::Tensor _ones(const std::vector<size_t>& shape,
   const size_t size = jetdl::utils::get_size(shape);
   auto result_data = std::make_shared<std::vector<float>>(size);
 
-  std::fill_n((*result_data).begin(), size, 1.0f);
+  std::fill_n(result_data->begin(), size, 1.0f);
 
   return jetdl::Tensor(result_data, shape, requires_grad);
 }

@@ -29,18 +29,5 @@ std::vector<size_t> get_strides(const std::vector<size_t>& shape) {
   return strides;
 }
 
-std::vector<size_t> get_byte_strides(const std::vector<size_t>& shape) {
-  const size_t ndim = shape.size();
-  if (ndim == 0) {
-    return {};
-  }
-  auto byte_strides = std::vector<size_t>(ndim, 0);
-  byte_strides[ndim - 1] = sizeof(float);
-  for (int i = ndim - 2; i >= 0; i--) {
-    byte_strides[i] = byte_strides[i + 1] * shape[i + 1];
-  }
-  return byte_strides;
-}
-
 }  // namespace utils
 }  // namespace jetdl

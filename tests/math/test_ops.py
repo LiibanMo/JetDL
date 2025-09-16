@@ -28,7 +28,7 @@ operations_strs = ["ADD", "SUB", "MUL", "DIV"]
 
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape1, shape2", non_broadcast_shapes, ids=generate_shape_ids)
-def test_non_broadcast_addition(shape1, shape2, operation):
+def test_non_broadcast_arithmetic(shape1, shape2, operation):
     data1, data2 = generate_random_data(shape1, shape2)
 
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
@@ -42,7 +42,7 @@ def test_non_broadcast_addition(shape1, shape2, operation):
 
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape1, shape2", broadcast_shapes, ids=generate_shape_ids)
-def test_broadcast_addition(shape1, shape2, operation):
+def test_broadcast_arithmetic(shape1, shape2, operation):
     data1, data2 = generate_random_data(shape1, shape2)
 
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
@@ -56,7 +56,7 @@ def test_broadcast_addition(shape1, shape2, operation):
 
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
-def test_scalar_tensor_operations(shape, operation):
+def test_scalar_tensor_arithmetic(shape, operation):
     scalar_data = generate_random_data((), ())[0]  # Get a single scalar value
     tensor_data = generate_random_data(shape, shape)[0]
 
@@ -83,7 +83,7 @@ def test_scalar_tensor_operations(shape, operation):
 
 @pytest.mark.parametrize("operation", operations_strs)
 @pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
-def test_tensor_scalar_operations(shape, operation):
+def test_tensor_scalar_arithmetic(shape, operation):
     tensor_data = generate_random_data(shape, shape)[0]
     scalar_data = generate_random_data((), ())[0]  # Get a single scalar value
 

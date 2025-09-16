@@ -10,8 +10,6 @@ size_t get_size(const std::vector<size_t>& shape);
 
 std::vector<size_t> get_strides(const std::vector<size_t>& shape);
 
-std::vector<size_t> get_byte_strides(const std::vector<size_t>& shape);
-
 }  // namespace utils
 }  // namespace jetdl
 

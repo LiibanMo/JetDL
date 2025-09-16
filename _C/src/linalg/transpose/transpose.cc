@@ -17,6 +17,8 @@ jetdl::Tensor _linalg_T(const jetdl::Tensor& a) {
 
   if (std::equal(a.strides.begin(), a.strides.end(), strides.begin(),
                  strides.end())) {
+    result_tensor.is_contiguous = true;
+  } else {
     result_tensor.is_contiguous = false;
   }
 
@@ -43,6 +45,8 @@ jetdl::Tensor _linalg_mT(const jetdl::Tensor& a) {
 
   if (std::equal(a.strides.begin(), a.strides.end(), strides.begin(),
                  strides.end())) {
+    result_tensor.is_contiguous = true;
+  } else {
     result_tensor.is_contiguous = false;
   }
 

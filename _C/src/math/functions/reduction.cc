@@ -35,7 +35,7 @@ jetdl::Tensor _math_sum_over_axes(const jetdl::Tensor& a,
   const std::vector<size_t>& dest_idxs_vec = jetdl::utils::populate_linear_idxs(
       a.shape, dest_strides, jetdl::utils::OpType::REDUCTION);
 
-  c_sum_over_axes_cpu((*result_data).data(), (*a._data).data(),
+  c_sum_over_axes_cpu(result_data->data(), a._data->data(),
                       dest_idxs_vec.data(), a.size);
 
   return jetdl::Tensor(result_data, result_shape, a.requires_grad);

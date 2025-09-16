@@ -2,6 +2,7 @@
 
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include "jetdl/python/tensor/bindings.h"
 #include "jetdl/python/tensor/methods.h"
@@ -11,12 +12,13 @@ namespace py = pybind11;
 namespace {
 
 void bind_tensor_class_init(py::class_<jetdl::Tensor> py_tensor) {
-  py_tensor.def(py::init<py::object, bool>());
+  py_tensor.def(py::init<py::object, bool>(), py::arg("data"),
+                py::arg("requires_grad"));
 }
 
 void bind_tensor_class_metadata(py::class_<jetdl::Tensor> py_tensor) {
   py_tensor.def_property_readonly(
-      "_data", [](jetdl::Tensor& self) { return (*self._data); });
+      "_data", [](const jetdl::Tensor& self) { return (*self._data); });
   py_tensor.def_property_readonly("shape", [](const jetdl::Tensor& self) {
     return py::tuple(py::cast(self.shape));
   });

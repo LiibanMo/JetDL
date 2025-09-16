@@ -1,6 +1,7 @@
 #include "jetdl/linalg.h"
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include "jetdl/python/tensor/methods.h"
 #include "jetdl/tensor.h"
@@ -22,7 +23,7 @@ void bind_tensor_T_method(py::class_<jetdl::Tensor>& py_tensor) {
 
 void bind_tensor_mT_method(py::class_<jetdl::Tensor>& py_tensor) {
   py_tensor.def_property_readonly(
-      "T", [](const jetdl::Tensor& self) { return jetdl::linalg::mT(self); });
+      "mT", [](const jetdl::Tensor& self) { return jetdl::linalg::mT(self); });
 }
 
 }  // namespace

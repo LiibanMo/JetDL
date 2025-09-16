@@ -10,10 +10,9 @@ void py_check_data_consistency_step(const py::list& data) {
   if (data.size() <= 1) {
     return;
   }
-
   const auto first_item = data[0];
-  size_t first_item_size;
-  if (!jetdl::utils::py_is_list(first_item)) {
+  size_t first_item_size = 0;
+  if (py::isinstance<py::list>(first_item)) {
     first_item_size = py::cast<py::list>(first_item).size();
   } else if (jetdl::utils::py_is_num(first_item)) {
     first_item_size = 0;
@@ -23,8 +22,7 @@ void py_check_data_consistency_step(const py::list& data) {
 
   for (size_t i = 1; i < data.size(); i++) {
     const auto current_item = data[i];
-
-    size_t current_item_size;
+    size_t current_item_size = 0;
     if (jetdl::utils::py_is_list(current_item)) {
       current_item_size = py::cast<py::list>(current_item).size();
     } else if (jetdl::utils::py_is_num(current_item)) {
@@ -45,7 +43,7 @@ void py_check_data_consistency_step(const py::list& data) {
 void py_check_data_consistency(const py::list& data) {
   jetdl::utils::py_check_data_consistency_step(data);
   for (const auto& item : data) {
-    if (jetdl::utils::py_is_list(item)) {
+    if (py::isinstance<py::list>(item)) {
       py_check_data_consistency(py::cast<py::list>(item));
     }
   }
@@ -110,15 +108,13 @@ size_t py_get_size(const py::list& data) {
   return count;
 }
 
-void py_populate_ptr(const py::list& data, float* ptr) {
+void py_flatten_list_to_vec(const py::list& data, std::vector<float>& vec) {
   for (const auto& item : data) {
     if (jetdl::utils::py_is_list(item)) {
-      py_populate_ptr(py::cast<py::list>(item), ptr);
+      py_flatten_list_to_vec(py::cast<py::list>(item), vec);
     } else if (jetdl::utils::py_is_num(item)) {
-      *ptr = py::cast<float>(item);
-      ++ptr;
+      vec.push_back(py::cast<float>(item));
     } else {
-      py::gil_scoped_acquire acquire;
       throw py::type_error(py::str("init: incorrect data type present in input "
                                    "data; contains type {}.")
                                .format(py::type::of(item)));
@@ -129,9 +125,9 @@ void py_populate_ptr(const py::list& data, float* ptr) {
 std::shared_ptr<std::vector<float>> py_flatten_list(const py::list& data) {
   const size_t size = py_get_size(data);
 
-  auto data_ptr = std::make_shared<std::vector<float>>(size);
+  auto data_ptr = std::make_shared<std::vector<float>>();
 
-  jetdl::utils::py_populate_ptr(data, (*data_ptr).data());
+  jetdl::utils::py_flatten_list_to_vec(data, *data_ptr);
 
   return data_ptr;
 }

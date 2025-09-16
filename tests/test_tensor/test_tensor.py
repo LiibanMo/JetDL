@@ -26,7 +26,7 @@ def test_tensor_metadata(shape):
     data = generate_random_data(shape)
 
     # Create jetdl and torch tensors
-    jetdl_tensor = jetdl.Tensor(data)
+    jetdl_tensor = jetdl.tensor(data)
     torch_tensor = torch.tensor(data)
 
     # Compare metadata
@@ -47,5 +47,5 @@ def test_tensor_metadata(shape):
 )
 def test_tensor_incorrect_inputs_dtype(data):
     with pytest.raises(RuntimeError) as err:
-        jetdl_tensor = jetdl.Tensor(data)
+        jetdl_tensor = jetdl.tensor(data)
     assert "could not infer dtype" in str(err.value)

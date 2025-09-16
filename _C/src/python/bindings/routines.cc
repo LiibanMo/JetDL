@@ -1,6 +1,7 @@
 #include "jetdl/routines.h"
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include "jetdl/python/routines/bindings.h"
 

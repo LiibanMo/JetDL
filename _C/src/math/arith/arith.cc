@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "jetdl/math/kernel.h"
+#include "jetdl/utils/auxiliary.h"
 #include "jetdl/utils/broadcast.h"
 #include "jetdl/utils/metadata.h"
 
@@ -13,7 +14,7 @@ jetdl::Tensor _math_ops(const jetdl::Tensor& a, const jetdl::Tensor& b,
   const std::vector<size_t>& shape = jetdl::utils::get_result_shape(
       a.shape, b.shape, jetdl::utils::OpType::ARITHMETIC);
 
-  auto strides_pair = jetdl::utils::get_strides(
+  const auto& strides_pair = jetdl::utils::get_strides(
       a.shape, b.shape, jetdl::utils::OpType::ARITHMETIC);
   const std::vector<size_t>& stridesA = strides_pair.first;
   const std::vector<size_t>& stridesB = strides_pair.second;
@@ -27,7 +28,7 @@ jetdl::Tensor _math_ops(const jetdl::Tensor& a, const jetdl::Tensor& b,
   const size_t NB = b.shape[b.ndim - 1];
   const size_t N = std::max(NA, NB);
 
-  const size_t DATA_VEC_SIZE = (N + 7) & ~7;  // Next multiple of 8
+  const size_t DATA_VEC_SIZE = jetdl::utils::get_next_multiple(N, BLOCK_N_COLS);
 
   float* result_vec = new float[DATA_VEC_SIZE]();
   float* data1_vec = new float[DATA_VEC_SIZE]();
@@ -43,30 +44,30 @@ jetdl::Tensor _math_ops(const jetdl::Tensor& a, const jetdl::Tensor& b,
   if (arith_type == jetdl::utils::ArithType::DIV) kernel = c_div_cpu;
 
   const size_t total_num_rows = result_size / shape.back();
-
   if (NA == NB) {
     for (size_t row = 0; row < total_num_rows; row++) {
-      std::copy(data1_vec, data1_vec + N, (*a._data).begin() + idxsA[row]);
-      std::copy(data2_vec, data2_vec + N, (*b._data).begin() + idxsB[row]);
+      std::copy(a._data->begin() + idxsA[row],
+                a._data->begin() + idxsA[row] + N, data1_vec);
+      std::copy(b._data->begin() + idxsB[row],
+                b._data->begin() + idxsB[row] + N, data2_vec);
       kernel(data1_vec, data2_vec, result_vec, DATA_VEC_SIZE);
-      std::copy((*result_data).begin() + row * N,
-                (*result_data).begin() + (row + 1) * N, result_vec);
+      std::copy(result_vec, result_vec + N, result_data->begin() + row * N);
     }
   } else if (NA < NB && NA == 1) {
     for (size_t row = 0; row < total_num_rows; row++) {
-      std::fill_n(data1_vec, N, (*a._data)[0]);
-      std::copy(data2_vec, data2_vec + N, (*b._data).begin() + idxsB[row]);
+      std::fill_n(data1_vec, N, a._data->at(idxsA[row]));
+      std::copy(b._data->begin() + idxsB[row],
+                b._data->begin() + idxsB[row] + N, data2_vec);
       kernel(data1_vec, data2_vec, result_vec, DATA_VEC_SIZE);
-      std::copy((*result_data).begin() + row * N,
-                (*result_data).begin() + (row + 1) * N, result_vec);
+      std::copy(result_vec, result_vec + N, result_data->begin() + row * N);
     }
   } else if (NA > NB && NB == 1) {
     for (size_t row = 0; row < total_num_rows; row++) {
-      std::copy(data1_vec, data1_vec + N, (*a._data).begin() + idxsA[row]);
-      std::fill_n(data2_vec, N, (*b._data)[0]);
+      std::copy(a._data->begin() + idxsA[row],
+                a._data->begin() + idxsA[row] + N, data1_vec);
+      std::fill_n(data2_vec, N, b._data->at(idxsB[row]));
       kernel(data1_vec, data2_vec, result_vec, DATA_VEC_SIZE);
-      std::copy((*result_data).begin() + row * N,
-                (*result_data).begin() + (row + 1) * N, result_vec);
+      std::copy(result_vec, result_vec + N, result_data->begin() + row * N);
     }
   }
 
@@ -89,14 +90,13 @@ jetdl::Tensor _math_ops_a_scalar(const jetdl::Tensor& a, const jetdl::Tensor& b,
   if (arith_type == jetdl::utils::ArithType::MUL) kernel = c_mul_a_scalar_cpu;
   if (arith_type == jetdl::utils::ArithType::DIV) kernel = c_div_a_scalar_cpu;
 
-  kernel((*a._data).data(), (*b._data).data(), (*result_data).data(), b.size);
-
+  kernel(a._data->data(), b._data->data(), result_data->data(), b.size);
   return jetdl::Tensor(result_data, shape, a.requires_grad || b.requires_grad);
 }
 
 jetdl::Tensor _math_ops_b_scalar(const jetdl::Tensor& a, const jetdl::Tensor& b,
                                  jetdl::utils::ArithType arith_type) {
-  std::vector<size_t> shape = a.shape;
+  const std::vector<size_t>& shape = a.shape;
 
   auto result_data = std::make_shared<std::vector<float>>(a.size);
 
@@ -106,7 +106,7 @@ jetdl::Tensor _math_ops_b_scalar(const jetdl::Tensor& a, const jetdl::Tensor& b,
   if (arith_type == jetdl::utils::ArithType::MUL) kernel = c_mul_b_scalar_cpu;
   if (arith_type == jetdl::utils::ArithType::DIV) kernel = c_div_b_scalar_cpu;
 
-  kernel((*a._data).data(), (*b._data).data(), (*result_data).data(), b.size);
+  kernel(a._data->data(), b._data->data(), result_data->data(), a.size);
 
   return jetdl::Tensor(result_data, shape, a.requires_grad || b.requires_grad);
 }
@@ -121,7 +121,7 @@ jetdl::Tensor _math_ops_scalars(const jetdl::Tensor& a, const jetdl::Tensor& b,
   if (arith_type == jetdl::utils::ArithType::MUL) kernel = c_mul_scalars_cpu;
   if (arith_type == jetdl::utils::ArithType::DIV) kernel = c_div_scalars_cpu;
 
-  kernel((*a._data).data(), (*b._data).data(), (*result_data).data());
+  kernel(a._data->data(), b._data->data(), result_data->data());
 
   return jetdl::Tensor(result_data, {}, a.requires_grad || b.requires_grad);
 }

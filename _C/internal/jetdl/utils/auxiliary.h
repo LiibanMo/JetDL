@@ -11,10 +11,9 @@ enum class OpType { MATMUL, DOT, ARITHMETIC, REDUCTION };
 
 enum class ArithType { ADD, SUB, MUL, DIV };
 
-void fill(void* dest, const void* input, size_t N, size_t type_size);
-
-size_t get_count(const void* data, const void* input, size_t N,
-                 size_t type_size);
+inline long get_next_multiple(const long start, const long factor) {
+  return ((start + factor - 1) / factor) * factor;
+}
 
 std::vector<size_t> populate_linear_idxs(const std::vector<size_t>& shape,
                                          const std::vector<size_t>& strides,

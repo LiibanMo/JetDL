@@ -1,6 +1,5 @@
 #include <pybind11/pybind11.h>
 
-#include <cstring>
 #include <memory>
 
 #include "jetdl/tensor.h"
@@ -40,7 +39,8 @@ Tensor::Tensor(const py::object& data, const bool requires_grad)
     this->shape = {};
     this->size = 1;
     this->strides = {};
-    this->_data = std::make_shared<std::vector<float>>(py::cast<float>(data));
+    this->_data =
+        std::make_shared<std::vector<float>>(1, py::cast<float>(data));
   } else {
     throw py::type_error(
         py::str("init(): type '{}' invalid").format(py::type::of(data)));

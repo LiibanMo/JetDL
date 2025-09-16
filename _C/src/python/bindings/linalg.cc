@@ -1,6 +1,7 @@
 #include "jetdl/linalg.h"
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include "jetdl/python/linalg/bindings.h"
 
@@ -11,7 +12,6 @@ void bind_linalg_submodule(py::module_& m) {
 
   linalg.def("c_dot", &jetdl::linalg::dot);
   linalg.def("c_matmul", &jetdl::linalg::matmul);
-
   linalg.def("c_T", &jetdl::linalg::T);
   linalg.def("c_mT", &jetdl::linalg::mT);
 }
