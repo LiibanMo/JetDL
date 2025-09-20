@@ -1,23 +1,24 @@
 #ifndef JETDL_AUTOGRAD_GRAPH_HPP
 #define JETDL_AUTOGRAD_GRAPH_HPP
 
-#include "jetdl/tensor.h"
 #include <memory>
 #include <vector>
 
+#include "jetdl/tensor.h"
+
 namespace jetdl {
-namespace autograd {
 
 class Graph {
- public:
-  Graph(const Tensor& tensor);
-  void backward();
-
  private:
-  std::vector<std::shared_ptr<Function>> fns_;
+  std::vector<std::shared_ptr<Function>> graph = {};
+
+ public:
+  Graph() = default;
+
+  void traverse(const Tensor& tensor);
+  void apply(const std::shared_ptr<Tensor>& grad);
 };
 
-}  // namespace autograd
 }  // namespace jetdl
 
 #endif

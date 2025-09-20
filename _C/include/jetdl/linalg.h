@@ -1,18 +1,22 @@
 #ifndef JETDL_LINALG_H
 #define JETDL_LINALG_H
 
+#include <memory>
+
 #include "jetdl/tensor.h"
 
 namespace jetdl {
 namespace linalg {
 
-jetdl::Tensor dot(const jetdl::Tensor& a, const jetdl::Tensor& b);
+std::shared_ptr<Tensor> dot(std::shared_ptr<Tensor>& a,
+                            std::shared_ptr<Tensor>& b);
 
-jetdl::Tensor matmul(const jetdl::Tensor& a, const jetdl::Tensor& b);
+std::shared_ptr<Tensor> matmul(std::shared_ptr<Tensor>& a,
+                               std::shared_ptr<Tensor>& b);
 
-jetdl::Tensor T(const jetdl::Tensor& a);
+std::shared_ptr<Tensor> T(std::shared_ptr<Tensor>& a);
 
-jetdl::Tensor mT(const jetdl::Tensor& a);
+std::shared_ptr<Tensor> mT(std::shared_ptr<Tensor>& a);
 
 }  // namespace linalg
 }  // namespace jetdl

@@ -3,7 +3,11 @@
 
 #include "jetdl/tensor.h"
 
-jetdl::Tensor _linalg_T(const jetdl::Tensor& a);
-jetdl::Tensor _linalg_mT(const jetdl::Tensor& a);
+namespace jetdl {
+
+std::shared_ptr<Tensor> _linalg_T(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> _linalg_mT(std::shared_ptr<Tensor>& a);
+
+}  // namespace jetdl
 
 #endif

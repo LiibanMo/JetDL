@@ -7,6 +7,8 @@
 
 namespace py = pybind11;
 
+namespace jetdl {
+
 void bind_linalg_submodule(py::module_& m) {
   py::module_ linalg = m.def_submodule("linalg");
 
@@ -15,3 +17,5 @@ void bind_linalg_submodule(py::module_& m) {
   linalg.def("c_T", &jetdl::linalg::T);
   linalg.def("c_mT", &jetdl::linalg::mT);
 }
+
+}  // namespace jetdl

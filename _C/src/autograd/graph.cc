@@ -1,56 +1,52 @@
 #include "jetdl/autograd/graph.h"
 
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 #include "jetdl/autograd.h"
+#include "jetdl/tensor.h"
 
 namespace jetdl {
-namespace autograd {
 
-Graph::Graph(const Tensor& tensor) {
+void Graph::traverse(const Tensor& tensor) {
+  this->graph.clear();
   if (!tensor.grad_fn) {
     return;
   }
 
-  std::vector<std::shared_ptr<Function>> stack;
-  std::vector<std::shared_ptr<Function>> visited;
+  std::vector<std::shared_ptr<Function>> s1;
+  std::unordered_set<std::shared_ptr<Function>> visited;
 
-  stack.push_back(tensor.grad_fn);
-  visited.push_back(tensor.grad_fn);
+  s1.push_back(tensor.grad_fn);
+  visited.insert(tensor.grad_fn);
 
-  while (!stack.empty()) {
-    auto current_fn = stack.back();
-    stack.pop_back();
+  while (!s1.empty()) {
+    const auto& fn = s1.back();
+    s1.pop_back();
+    this->graph.push_back(fn);
 
-    fns_.push_back(current_fn);
-
-    for (const auto& prev_tensor : current_fn->prev_tensors) {
-      if (prev_tensor && prev_tensor->grad_fn) {
-        auto next_fn = prev_tensor->grad_fn;
-        bool already_visited = false;
-        for (const auto& fn : visited) {
-          if (fn == next_fn) {
-            already_visited = true;
-            break;
-          }
-        }
-
-        if (!already_visited) {
-          visited.push_back(next_fn);
-          stack.push_back(next_fn);
-        }
+    for (const auto& next_fn : fn->next_functions) {
+      if (next_fn && visited.find(next_fn) == visited.end()) {
+        s1.push_back(next_fn);
+        visited.insert(next_fn);
       }
     }
   }
 }
 
-void Graph::backward() {
-  for (auto it = fns_.rbegin(); it != fns_.rend(); ++it) {
-    auto& fn = *it;
-    fn->apply(*fn->tensor.lock().get());
+void Graph::apply(const std::shared_ptr<Tensor>& grad) {
+  for (const auto& fn : this->graph) {
+    const std::vector<std::shared_ptr<Tensor>>& grads = fn->apply(grad);
+    if (grads.size() != fn->saved_tensors.size()) {
+      throw std::runtime_error(
+          "grad.size != fn->saved_tensor.size() in Graph::apply\n");
+    }
+    for (size_t i = 0; i < fn->saved_tensors.size(); i++) {
+      std::shared_ptr<Tensor>& tensor = fn->saved_tensors[i];
+      tensor->grad = grads[i];
+    }
   }
 }
 
-}  // namespace autograd
 }  // namespace jetdl

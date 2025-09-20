@@ -6,8 +6,8 @@
 #include "jetdl/python/tensor/bindings.h"
 
 PYBIND11_MODULE(_C, m) {
-  bind_tensor_submodule(m);
-  bind_linalg_submodule(m);
-  bind_math_submodule(m);
-  bind_routines_submodule(m);
+  jetdl::bind_tensor_submodule(m);
+  jetdl::bind_linalg_submodule(m);
+  jetdl::bind_math_submodule(m);
+  jetdl::bind_routines_submodule(m);
 }

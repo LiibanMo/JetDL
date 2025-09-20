@@ -19,6 +19,9 @@ std::vector<size_t> get_result_shape(const std::vector<size_t>& shapeA,
 
 size_t get_batch_size(const std::vector<size_t>& shape);
 
+std::vector<size_t> get_broadcasted_axes(
+    const std::vector<size_t>& original_shape,
+    const std::vector<size_t>& broadcasted_shape);
 }  // namespace utils
 }  // namespace jetdl
 

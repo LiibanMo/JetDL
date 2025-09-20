@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "jetdl/tensor.h"
 #include "jetdl/utils/metadata.h"
 
@@ -21,19 +23,19 @@ Tensor Tensor::operator=(const Tensor& other) {
   return *this;
 }
 
-Tensor Tensor::view(const std::vector<size_t>& shape) const {
-  Tensor view_tensor;
-  view_tensor._data = this->_data;
-  view_tensor.ndim = shape.size();
-  view_tensor.shape = shape;
-  view_tensor.size = jetdl::utils::get_size(shape);
-  if (view_tensor.size != this->size) {
-    throw std::logic_error("shape incompatible for creating view_tensor.\n");
+std::shared_ptr<Tensor> Tensor::view(const std::vector<size_t>& shape) const {
+  auto view_tensor = std::make_shared<Tensor>();
+  view_tensor->_data = this->_data;
+  view_tensor->ndim = shape.size();
+  view_tensor->shape = shape;
+  view_tensor->size = jetdl::utils::get_size(shape);
+  if (view_tensor->size != this->size) {
+    throw std::logic_error("shape incompatible for creating view_tensor->\n");
   }
-  view_tensor.strides = jetdl::utils::get_strides(shape);
-  view_tensor.requires_grad = this->requires_grad;
-  view_tensor.grad_fn = nullptr;  // assigned by user after returning
-  view_tensor.grad = nullptr;     // assigned by user after returning
+  view_tensor->strides = jetdl::utils::get_strides(shape);
+  view_tensor->requires_grad = this->requires_grad;
+  view_tensor->grad_fn = nullptr;  // assigned by user after returning
+  view_tensor->grad = nullptr;     // assigned by user after returning
   return view_tensor;
 }
 

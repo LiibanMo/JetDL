@@ -3,9 +3,17 @@
 
 #include "jetdl/tensor.h"
 
-jetdl::Tensor _linalg_dot(const jetdl::Tensor& a, const jetdl::Tensor& b);
-jetdl::Tensor _linalg_matvec(const jetdl::Tensor& a, const jetdl::Tensor& b);
-jetdl::Tensor _linalg_vecmat(const jetdl::Tensor& a, const jetdl::Tensor& b);
-jetdl::Tensor _linalg_matmul(const jetdl::Tensor& a, const jetdl::Tensor& b);
+namespace jetdl {
+
+std::shared_ptr<Tensor> _linalg_dot(std::shared_ptr<Tensor>& a,
+                                    std::shared_ptr<Tensor>& b);
+std::shared_ptr<Tensor> _linalg_matvec(std::shared_ptr<Tensor>& a,
+                                       std::shared_ptr<Tensor>& b);
+std::shared_ptr<Tensor> _linalg_vecmat(std::shared_ptr<Tensor>& a,
+                                       std::shared_ptr<Tensor>& b);
+std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& a,
+                                       std::shared_ptr<Tensor>& b);
+
+}  // namespace jetdl
 
 #endif

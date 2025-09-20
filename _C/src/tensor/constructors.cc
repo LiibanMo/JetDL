@@ -16,7 +16,7 @@ Tensor::Tensor()
       shape({}),
       size(0),
       strides({}),
-      is_contiguous(false),
+      is_contiguous(true),
       requires_grad(false),
       grad_fn(nullptr),
       grad(nullptr) {}

@@ -89,5 +89,32 @@ size_t get_batch_size(const std::vector<size_t>& shape) {
   return batch_size;
 }
 
+std::vector<size_t> get_broadcasted_axes(
+    const std::vector<size_t>& original_shape,
+    const std::vector<size_t>& broadcasted_shape) {
+  const size_t broadcasted_ndim = broadcasted_shape.size();
+  const size_t original_ndim = original_shape.size();
+
+  if (broadcasted_ndim < original_ndim) {
+    throw std::runtime_error(
+        "INTERNAL: broadcasted_ndim cannot be smaller than original_ndim.\n");
+  }
+
+  auto broadcasted_axes = std::vector<size_t>();
+
+  for (size_t i = 0; i < broadcasted_ndim; ++i) {
+    long original_i = (long)i - ((long)broadcasted_ndim - (long)original_ndim);
+
+    if (original_i < 0) {
+      broadcasted_axes.push_back(i);
+    } else {
+      if (original_shape[original_i] == 1 && broadcasted_shape[i] > 1) {
+        broadcasted_axes.push_back(i);
+      }
+    }
+  }
+  return broadcasted_axes;
+}
+
 }  // namespace utils
 }  // namespace jetdl

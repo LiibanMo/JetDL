@@ -5,6 +5,10 @@
 
 namespace py = pybind11;
 
+namespace jetdl {
+
 void bind_math_submodule(py::module_& m);
+
+}
 
 #endif

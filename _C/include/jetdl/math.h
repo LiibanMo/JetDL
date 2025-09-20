@@ -6,11 +6,12 @@
 namespace jetdl {
 namespace math {
 
-jetdl::Tensor add(const jetdl::Tensor& a, const jetdl::Tensor& b);
-jetdl::Tensor sub(const jetdl::Tensor& a, const jetdl::Tensor& b);
-jetdl::Tensor mul(const jetdl::Tensor& a, const jetdl::Tensor& b);
-jetdl::Tensor div(const jetdl::Tensor& a, const jetdl::Tensor& b);
-jetdl::Tensor sum(const jetdl::Tensor& a, const std::vector<int>& axes);
+Tensor add(const Tensor& a, const Tensor& b);
+Tensor sub(const Tensor& a, const Tensor& b);
+Tensor mul(const Tensor& a, const Tensor& b);
+Tensor div(const Tensor& a, const Tensor& b);
+Tensor sum(const Tensor& a, const std::vector<int>& axes);
+Tensor sum_to_shape(const Tensor& tensor, const std::vector<size_t>& shape);
 
 }  // namespace math
 }  // namespace jetdl

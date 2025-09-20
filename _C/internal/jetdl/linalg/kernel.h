@@ -1,5 +1,5 @@
-#ifndef LINALG_KERNEL_H
-#define LINALG_KERNEL_H
+#ifndef JETDL_LINALG_KERNEL_H
+#define JETDL_LINALG_KERNEL_H
 
 #define BLOCK_N_ROWS 6
 #define BLOCK_N_COLS 8

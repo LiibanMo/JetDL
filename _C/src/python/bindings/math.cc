@@ -9,6 +9,8 @@
 
 namespace py = pybind11;
 
+namespace jetdl {
+
 void bind_math_submodule(py::module_& m) {
   py::module_ math = m.def_submodule("math");
   math.def("c_add", &jetdl::math::add);
@@ -33,3 +35,5 @@ void bind_math_submodule(py::module_& m) {
     }
   });
 }
+
+}  // namespace jetdl
