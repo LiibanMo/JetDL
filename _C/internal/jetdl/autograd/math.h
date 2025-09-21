@@ -9,12 +9,35 @@ namespace jetdl {
 
 class AddBackward : public Function {
  public:
-  AddBackward(const std::shared_ptr<Tensor>& a,
-              const std::shared_ptr<Tensor>& b);
+  AddBackward(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b);
 
   std::vector<std::shared_ptr<Tensor>> apply(
-      const std::shared_ptr<Tensor>& grad_tensor) override;
+      std::shared_ptr<Tensor>& grad_tensor) override;
 };
+
+// class SubBackward : public Function {
+//  public:
+//   SubBackward(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b);
+//
+//   std::vector<std::shared_ptr<Tensor>> apply(
+//       std::shared_ptr<Tensor>& grad_tensor) override;
+// };
+//
+// class MulBackward : public Function {
+//  public:
+//   MulBackward(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b);
+//
+//   std::vector<std::shared_ptr<Tensor>> apply(
+//       std::shared_ptr<Tensor>& grad_tensor) override;
+// };
+//
+// class DivBackward : public Function {
+//  public:
+//   DivBackward(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b);
+//
+//   std::vector<std::shared_ptr<Tensor>> apply(
+//       std::shared_ptr<Tensor>& grad_tensor) override;
+// };
 
 }  // namespace jetdl
 

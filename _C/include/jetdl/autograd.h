@@ -13,7 +13,7 @@ class Function {
   std::vector<std::shared_ptr<Tensor>> saved_tensors = {};
 
   virtual std::vector<std::shared_ptr<Tensor>> apply(
-      const std::shared_ptr<Tensor>& grad_tensor) = 0;
+      std::shared_ptr<Tensor>& grad_tensor) = 0;
 
   virtual ~Function() = default;
 };

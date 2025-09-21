@@ -5,11 +5,12 @@
 
 namespace jetdl {
 
-Tensor _math_total_sum(const Tensor& a);
-Tensor _math_sum_over_axes(const Tensor& a, const std::vector<size_t>& axes);
+std::shared_ptr<Tensor> _math_total_sum(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> _math_sum_over_axes(std::shared_ptr<Tensor>& a,
+                                            const std::vector<size_t>& axes);
 
-Tensor _math_sum_to_shape(const Tensor& tensor,
-                          const std::vector<size_t>& shape);
+std::shared_ptr<Tensor> _math_sum_to_shape(std::shared_ptr<Tensor>& tensor,
+                                           const std::vector<size_t>& shape);
 
 }  // namespace jetdl
 

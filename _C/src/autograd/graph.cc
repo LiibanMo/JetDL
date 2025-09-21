@@ -9,17 +9,17 @@
 
 namespace jetdl {
 
-void Graph::traverse(const Tensor& tensor) {
+void Graph::traverse(std::shared_ptr<Tensor>& tensor) {
   this->graph.clear();
-  if (!tensor.grad_fn) {
+  if (!tensor->grad_fn) {
     return;
   }
 
   std::vector<std::shared_ptr<Function>> s1;
   std::unordered_set<std::shared_ptr<Function>> visited;
 
-  s1.push_back(tensor.grad_fn);
-  visited.insert(tensor.grad_fn);
+  s1.push_back(tensor->grad_fn);
+  visited.insert(tensor->grad_fn);
 
   while (!s1.empty()) {
     const auto& fn = s1.back();
@@ -35,7 +35,7 @@ void Graph::traverse(const Tensor& tensor) {
   }
 }
 
-void Graph::apply(const std::shared_ptr<Tensor>& grad) {
+void Graph::apply(std::shared_ptr<Tensor>& grad) {
   for (const auto& fn : this->graph) {
     const std::vector<std::shared_ptr<Tensor>>& grads = fn->apply(grad);
     if (grads.size() != fn->saved_tensors.size()) {

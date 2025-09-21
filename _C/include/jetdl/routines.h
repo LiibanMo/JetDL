@@ -7,8 +7,9 @@
 
 namespace jetdl {
 
-Tensor ones(const std::vector<size_t>& shape, const bool requires_grad);
-std::shared_ptr<Tensor> reshape(const Tensor& tensor,
+std::shared_ptr<Tensor> ones(const std::vector<size_t>& shape,
+                             const bool requires_grad);
+std::shared_ptr<Tensor> reshape(std::shared_ptr<Tensor>& tensor,
                                 const std::vector<size_t>& shape);
 
 }  // namespace jetdl

@@ -8,10 +8,9 @@ namespace jetdl {
 
 class DotBackward : public Function {
  public:
-  DotBackward(const std::shared_ptr<Tensor>& a,
-              const std::shared_ptr<Tensor>& b);
+  DotBackward(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b);
   std::vector<std::shared_ptr<Tensor>> apply(
-      const std::shared_ptr<Tensor>& grad_tensor) override;
+      std::shared_ptr<Tensor>& grad_tensor) override;
 };
 
 }  // namespace jetdl

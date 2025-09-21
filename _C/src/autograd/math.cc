@@ -7,30 +7,47 @@
 
 namespace jetdl {
 
-AddBackward::AddBackward(const std::shared_ptr<Tensor>& a,
-                         const std::shared_ptr<Tensor>& b) {
+AddBackward::AddBackward(std::shared_ptr<Tensor>& a,
+                         std::shared_ptr<Tensor>& b) {
   this->next_functions =
       std::vector<std::shared_ptr<Function>>{a->grad_fn, b->grad_fn};
   this->saved_tensors = std::vector<std::shared_ptr<Tensor>>{a, b};
 }
 
 std::vector<std::shared_ptr<Tensor>> AddBackward::apply(
-    const std::shared_ptr<Tensor>& grad_tensor) {
+    std::shared_ptr<Tensor>& grad_tensor) {
   std::shared_ptr<Tensor>& tensorA = this->saved_tensors[0];
   std::shared_ptr<Tensor>& tensorB = this->saved_tensors[1];
 
   auto grads = std::vector<std::shared_ptr<Tensor>>(2, nullptr);
   if (tensorA->requires_grad) {
-    const Tensor& gradA =
-        jetdl::math::sum_to_shape(*grad_tensor, tensorA->shape);
-    grads[0] = std::make_shared<Tensor>(gradA);
+    grads[0] = jetdl::math::sum_to_shape(grad_tensor, tensorA->shape);
   }
   if (tensorB->requires_grad) {
-    const Tensor& gradB =
-        jetdl::math::sum_to_shape(*grad_tensor, tensorB->shape);
-    grads[1] = std::make_shared<Tensor>(gradB);
+    grads[1] = jetdl::math::sum_to_shape(grad_tensor, tensorB->shape);
   }
   return grads;
 }
+
+// SubBackward::SubBackward(std::shared_ptr<Tensor>& a,
+//                          std::shared_ptr<Tensor>& b) {
+//   this->next_functions =
+//       std::vector<std::shared_ptr<Function>>{a->grad_fn, b->grad_fn};
+//   this->saved_tensors = std::vector<std::shared_ptr<Tensor>>{a, b};
+// }
+//
+// MulBackward::MulBackward(std::shared_ptr<Tensor>& a,
+//                          std::shared_ptr<Tensor>& b) {
+//   this->next_functions =
+//       std::vector<std::shared_ptr<Function>>{a->grad_fn, b->grad_fn};
+//   this->saved_tensors = std::vector<std::shared_ptr<Tensor>>{a, b};
+// }
+//
+// DivBackward::DivBackward(std::shared_ptr<Tensor>& a,
+//                          std::shared_ptr<Tensor>& b) {
+//   this->next_functions =
+//       std::vector<std::shared_ptr<Function>>{a->grad_fn, b->grad_fn};
+//   this->saved_tensors = std::vector<std::shared_ptr<Tensor>>{a, b};
+// }
 
 }  // namespace jetdl

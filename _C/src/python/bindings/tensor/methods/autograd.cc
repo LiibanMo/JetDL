@@ -1,6 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <memory>
+
 #include "jetdl/autograd/graph.h"
 #include "jetdl/python/tensor/methods.h"
 
@@ -12,18 +14,18 @@ namespace {
 
 void bind_tensor_backward_method(
     py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
-  py_tensor.def("backward", [](Tensor& self) {
-    if (self.ndim != 0) {
+  py_tensor.def("backward", [](std::shared_ptr<Tensor>& self) {
+    if (self->ndim != 0) {
       throw std::runtime_error(
           py::str(
               "backward pass only starts for scalar tensors; got {}-D tensor\n")
-              .format(self.ndim));
+              .format(self->ndim));
     }
-    self.grad = std::make_shared<Tensor>(1.0f, false);
+    self->grad = std::make_shared<Tensor>(1.0f, false);
 
     auto graph = Graph();
     graph.traverse(self);
-    graph.apply(self.grad);
+    graph.apply(self->grad);
   });
 }
 

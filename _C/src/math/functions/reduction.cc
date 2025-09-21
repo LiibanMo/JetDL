@@ -1,5 +1,6 @@
 #include "jetdl/math/reduction.h"
 
+#include <memory>
 #include <vector>
 
 #include "jetdl/math/kernel.h"
@@ -10,15 +11,19 @@
 
 namespace jetdl {
 
-Tensor _math_total_sum(const Tensor& a) {
-  auto result_data = std::make_shared<std::vector<float>>(1);
-  c_total_sum_cpu((*result_data).data(), (*a._data).data(), a.size);
+std::shared_ptr<Tensor> _math_total_sum(std::shared_ptr<Tensor>& a) {
+  auto result_data = std::make_shared<std::vector<float>>(1, 0.0f);
+  c_total_sum_cpu(result_data->data(), a->_data->data(), a->size);
 
-  return Tensor(result_data, {}, a.requires_grad);
+  auto result_tensor = std::make_shared<Tensor>(
+      result_data, std::vector<size_t>{}, a->requires_grad);
+
+  return result_tensor;
 }
 
-Tensor _math_sum_over_axes(const Tensor& a, const std::vector<size_t>& axes) {
-  const std::vector<size_t>& result_shape = utils::get_shape(a.shape, axes);
+std::shared_ptr<Tensor> _math_sum_over_axes(std::shared_ptr<Tensor>& a,
+                                            const std::vector<size_t>& axes) {
+  const std::vector<size_t>& result_shape = utils::get_shape(a->shape, axes);
 
   const size_t result_size = utils::get_size(result_shape);
   auto result_data = std::make_shared<std::vector<float>>(result_size);
@@ -26,24 +31,27 @@ Tensor _math_sum_over_axes(const Tensor& a, const std::vector<size_t>& axes) {
   const std::vector<size_t>& result_strides = utils::get_strides(result_shape);
 
   const std::vector<size_t>& dest_strides =
-      utils::get_dest_strides(a.shape, result_strides, axes);
+      utils::get_dest_strides(a->shape, result_strides, axes);
 
   const std::vector<size_t>& dest_idxs_vec = utils::populate_linear_idxs(
-      a.shape, dest_strides, utils::OpType::REDUCTION);
+      a->shape, dest_strides, utils::OpType::REDUCTION);
 
-  c_sum_over_axes_cpu(result_data->data(), a._data->data(),
-                      dest_idxs_vec.data(), a.size);
+  c_sum_over_axes_cpu(result_data->data(), a->_data->data(),
+                      dest_idxs_vec.data(), a->size);
 
-  return Tensor(result_data, result_shape, a.requires_grad);
+  auto result_tensor =
+      std::make_shared<Tensor>(result_data, result_shape, a->requires_grad);
+
+  return result_tensor;
 }
 
-Tensor _math_sum_to_shape(const Tensor& tensor,
-                          const std::vector<size_t>& shape) {
-  if (tensor.shape == shape) {
+std::shared_ptr<Tensor> _math_sum_to_shape(std::shared_ptr<Tensor>& tensor,
+                                           const std::vector<size_t>& shape) {
+  if (tensor->shape == shape) {
     return tensor;
   }
   const std::vector<size_t>& axes =
-      utils::get_broadcasted_axes(tensor.shape, shape);
+      utils::get_broadcasted_axes(tensor->shape, shape);
   return _math_sum_over_axes(tensor, axes);
 }
 

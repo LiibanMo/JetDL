@@ -7,7 +7,7 @@
 
 namespace jetdl {
 
-std::shared_ptr<Tensor> _reshape(const Tensor& tensor,
+std::shared_ptr<Tensor> _reshape(std::shared_ptr<Tensor>& tensor,
                                  const std::vector<size_t>& shape);
 
 }

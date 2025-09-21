@@ -15,8 +15,8 @@ class Graph {
  public:
   Graph() = default;
 
-  void traverse(const Tensor& tensor);
-  void apply(const std::shared_ptr<Tensor>& grad);
+  void traverse(std::shared_ptr<Tensor>& tensor);
+  void apply(std::shared_ptr<Tensor>& grad);
 };
 
 }  // namespace jetdl
