@@ -6,10 +6,10 @@
 
 namespace jetdl {
 
-std::shared_ptr<Tensor> _ones(const std::vector<size_t>& shape,
-                              const bool requires_grad) {
+std::shared_ptr<Tensor> _zeros(const std::vector<size_t>& shape,
+                               const bool requires_grad) {
   const size_t size = utils::get_size(shape);
-  auto result_data = std::make_shared<std::vector<float>>(size, 1.0f);
+  auto result_data = std::make_shared<std::vector<float>>(size, 0.0f);
   auto result_tensor =
       std::make_shared<Tensor>(result_data, shape, requires_grad);
 

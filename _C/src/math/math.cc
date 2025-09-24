@@ -65,6 +65,11 @@ std::shared_ptr<Tensor> div(std::shared_ptr<Tensor>& a,
   }
 }
 
+std::shared_ptr<Tensor> neg(std::shared_ptr<Tensor>& a) {
+  auto zero_tensors = std::make_shared<Tensor>(0.0f);
+  return sub(zero_tensors, a);
+}
+
 std::shared_ptr<Tensor> sum(std::shared_ptr<Tensor>& a,
                             const std::vector<int>& axes) {
   if (axes.empty()) {

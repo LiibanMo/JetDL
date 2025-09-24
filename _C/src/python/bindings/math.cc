@@ -3,7 +3,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <memory>
 #include <stdexcept>
+#include <vector>
 
 #include "jetdl/python/math/bindings.h"
 
@@ -36,6 +38,18 @@ void bind_math_submodule(py::module_& m) {
                        .format(py::type::of(axes)));
              }
            });
+
+  math.def("c_sum_to_shape", [](std::shared_ptr<Tensor>& self,
+                                const py::object& shape) {
+    if (py::isinstance<py::list>(shape) || py::isinstance<py::tuple>(shape)) {
+      auto shape_vec = py::cast<std::vector<size_t>>(shape);
+      return math::sum_to_shape(self, shape_vec);
+    } else {
+      throw py::type_error(
+          py::str("type '{}' for shape input for tensor reduction.")
+              .format(py::type::of(shape)));
+    }
+  });
 }
 
 }  // namespace jetdl

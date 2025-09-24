@@ -36,11 +36,11 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
   const size_t NB = b->shape[b->ndim - 1];
   const size_t N = std::max(NA, NB);
 
-  const size_t DATA_VEC_SIZE = utils::get_next_multiple(N, BLOCK_N_COLS);
+  const size_t data_vec_size = utils::get_next_multiple(N, BLOCK_N_COLS);
 
-  float* result_vec = new float[DATA_VEC_SIZE]();
-  float* data1_vec = new float[DATA_VEC_SIZE]();
-  float* data2_vec = new float[DATA_VEC_SIZE]();
+  float* result_vec = new float[data_vec_size]();
+  float* data1_vec = new float[data_vec_size]();
+  float* data2_vec = new float[data_vec_size]();
 
   const size_t result_size = utils::get_size(shape);
   auto result_data = std::make_shared<std::vector<float>>(result_size);
@@ -58,7 +58,7 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
                 a->_data->begin() + idxsA[row] + N, data1_vec);
       std::copy(b->_data->begin() + idxsB[row],
                 b->_data->begin() + idxsB[row] + N, data2_vec);
-      kernel(data1_vec, data2_vec, result_vec, DATA_VEC_SIZE);
+      kernel(data1_vec, data2_vec, result_vec, data_vec_size);
       std::copy(result_vec, result_vec + N, result_data->begin() + row * N);
     }
   } else if (NA < NB && NA == 1) {
@@ -66,7 +66,7 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
       std::fill_n(data1_vec, N, a->_data->at(idxsA[row]));
       std::copy(b->_data->begin() + idxsB[row],
                 b->_data->begin() + idxsB[row] + N, data2_vec);
-      kernel(data1_vec, data2_vec, result_vec, DATA_VEC_SIZE);
+      kernel(data1_vec, data2_vec, result_vec, data_vec_size);
       std::copy(result_vec, result_vec + N, result_data->begin() + row * N);
     }
   } else if (NA > NB && NB == 1) {
@@ -74,7 +74,7 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
       std::copy(a->_data->begin() + idxsA[row],
                 a->_data->begin() + idxsA[row] + N, data1_vec);
       std::fill_n(data2_vec, N, b->_data->at(idxsB[row]));
-      kernel(data1_vec, data2_vec, result_vec, DATA_VEC_SIZE);
+      kernel(data1_vec, data2_vec, result_vec, data_vec_size);
       std::copy(result_vec, result_vec + N, result_data->begin() + row * N);
     }
   }
@@ -88,13 +88,17 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
 
   if (result_tensor->requires_grad) {
     if (arith_type == ArithType::ADD) {
-      result_tensor->grad_fn = std::make_shared<AddBackward>(a, b);
-      // } else if (arith_type == ArithType::SUB) {
-      //   result_tensor->grad_fn = std::make_shared<SubBackward>(a, b);
-      // } else if (arith_type == ArithType::MUL) {
-      //   result_tensor->grad_fn = std::make_shared<MulBackward>(a, b);
-      // } else if (arith_type == ArithType::DIV) {
-      //   result_tensor->grad_fn = std::make_shared<DivBackward>(a, b);
+      result_tensor->grad_fn =
+          std::make_shared<AddBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::SUB) {
+      result_tensor->grad_fn =
+          std::make_shared<SubBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::MUL) {
+      result_tensor->grad_fn =
+          std::make_shared<MulBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::DIV) {
+      result_tensor->grad_fn =
+          std::make_shared<DivBackward>(a, b, result_tensor);
     }
   }
 
@@ -121,13 +125,17 @@ std::shared_ptr<Tensor> _math_ops_a_scalar(std::shared_ptr<Tensor>& a,
 
   if (result_tensor->requires_grad) {
     if (arith_type == ArithType::ADD) {
-      result_tensor->grad_fn = std::make_shared<AddBackward>(a, b);
-      // } else if (arith_type == ArithType::SUB) {
-      //   result_tensor->grad_fn = std::make_shared<SubBackward>(a, b);
-      // } else if (arith_type == ArithType::MUL) {
-      //   result_tensor->grad_fn = std::make_shared<MulBackward>(a, b);
-      // } else if (arith_type == ArithType::DIV) {
-      //   result_tensor->grad_fn = std::make_shared<DivBackward>(a, b);
+      result_tensor->grad_fn =
+          std::make_shared<AddBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::SUB) {
+      result_tensor->grad_fn =
+          std::make_shared<SubBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::MUL) {
+      result_tensor->grad_fn =
+          std::make_shared<MulBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::DIV) {
+      result_tensor->grad_fn =
+          std::make_shared<DivBackward>(a, b, result_tensor);
     }
   }
 
@@ -154,13 +162,17 @@ std::shared_ptr<Tensor> _math_ops_b_scalar(std::shared_ptr<Tensor>& a,
 
   if (result_tensor->requires_grad) {
     if (arith_type == ArithType::ADD) {
-      result_tensor->grad_fn = std::make_shared<AddBackward>(a, b);
-      // } else if (arith_type == ArithType::SUB) {
-      //   result_tensor->grad_fn = std::make_shared<SubBackward>(a, b);
-      // } else if (arith_type == ArithType::MUL) {
-      //   result_tensor->grad_fn = std::make_shared<MulBackward>(a, b);
-      // } else if (arith_type == ArithType::DIV) {
-      //   result_tensor->grad_fn = std::make_shared<DivBackward>(a, b);
+      result_tensor->grad_fn =
+          std::make_shared<AddBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::SUB) {
+      result_tensor->grad_fn =
+          std::make_shared<SubBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::MUL) {
+      result_tensor->grad_fn =
+          std::make_shared<MulBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::DIV) {
+      result_tensor->grad_fn =
+          std::make_shared<DivBackward>(a, b, result_tensor);
     }
   }
 
@@ -185,13 +197,17 @@ std::shared_ptr<Tensor> _math_ops_scalars(std::shared_ptr<Tensor>& a,
 
   if (result_tensor->requires_grad) {
     if (arith_type == ArithType::ADD) {
-      result_tensor->grad_fn = std::make_shared<AddBackward>(a, b);
-      // } else if (arith_type == ArithType::SUB) {
-      //   result_tensor->grad_fn = std::make_shared<SubBackward>(a, b);
-      // } else if (arith_type == ArithType::MUL) {
-      //   result_tensor->grad_fn = std::make_shared<MulBackward>(a, b);
-      // } else if (arith_type == ArithType::DIV) {
-      //   result_tensor->grad_fn = std::make_shared<DivBackward>(a, b);
+      result_tensor->grad_fn =
+          std::make_shared<AddBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::SUB) {
+      result_tensor->grad_fn =
+          std::make_shared<SubBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::MUL) {
+      result_tensor->grad_fn =
+          std::make_shared<MulBackward>(a, b, result_tensor);
+    } else if (arith_type == ArithType::DIV) {
+      result_tensor->grad_fn =
+          std::make_shared<DivBackward>(a, b, result_tensor);
     }
   }
 

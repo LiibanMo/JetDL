@@ -25,7 +25,7 @@ void bind_tensor_backward_method(
 
     auto graph = Graph();
     graph.traverse(self);
-    graph.apply(self->grad);
+    graph.apply();
   });
 }
 

@@ -12,17 +12,21 @@ namespace py = pybind11;
 namespace jetdl {
 namespace utils {
 
-void check_axes(const std::vector<size_t>& shape,
-                const std::vector<int>& axes) {
-  for (int axis : axes) {
-    if (axis >= static_cast<int>(shape.size()) ||
-        axis < -static_cast<int>(shape.size())) {
+void check_axes(const std::vector<size_t>& shape, const std::vector<int>& axes,
+                SubModule submodule) {
+  const int lower_limit_offset = (submodule == SubModule::ROUTINES) ? 1 : 0;
+  const int upper_limit_offset = (submodule == SubModule::MATH) ? 1 : 0;
+
+  const int lower_limit = -static_cast<int>(shape.size()) - lower_limit_offset;
+  const int upper_limit = static_cast<int>(shape.size()) - upper_limit_offset;
+
+  for (const int axis : axes) {
+    if (axis > upper_limit || axis < lower_limit) {
       py::gil_scoped_acquire acquire;
       throw py::index_error(
           py::str(
               "dimension out of range (got {}, which is outside of [{},{}])")
-              .format(axis, -static_cast<int>(shape.size()),
-                      static_cast<int>(shape.size()) - 1));
+              .format(axis, lower_limit, upper_limit));
     }
   }
 

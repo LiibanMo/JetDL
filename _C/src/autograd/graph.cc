@@ -1,10 +1,12 @@
 #include "jetdl/autograd/graph.h"
 
 #include <memory>
+#include <stdexcept>
 #include <unordered_set>
 #include <vector>
 
 #include "jetdl/autograd.h"
+#include "jetdl/math.h"
 #include "jetdl/tensor.h"
 
 namespace jetdl {
@@ -35,16 +37,29 @@ void Graph::traverse(std::shared_ptr<Tensor>& tensor) {
   }
 }
 
-void Graph::apply(std::shared_ptr<Tensor>& grad) {
+void Graph::apply() {
   for (const auto& fn : this->graph) {
-    const std::vector<std::shared_ptr<Tensor>>& grads = fn->apply(grad);
-    if (grads.size() != fn->saved_tensors.size()) {
-      throw std::runtime_error(
-          "grad.size != fn->saved_tensor.size() in Graph::apply\n");
+    std::shared_ptr<Tensor>& grad = fn->tensor.lock()->grad;
+    if (grad == nullptr) {
+      continue;
     }
-    for (size_t i = 0; i < fn->saved_tensors.size(); i++) {
+
+    std::vector<std::shared_ptr<Tensor>> input_grads = fn->apply(grad);
+
+    if (input_grads.size() != fn->saved_tensors.size()) {
+      throw std::runtime_error(
+          "INTERNAL: input_grads.size() != fn->saved_tensors.size()");
+    }
+
+    for (size_t i = 0; i < input_grads.size(); i++) {
       std::shared_ptr<Tensor>& tensor = fn->saved_tensors[i];
-      tensor->grad = grads[i];
+      std::shared_ptr<Tensor>& grad = input_grads[i];
+
+      if (tensor->grad) {
+        tensor->grad = math::add(tensor->grad, grad);
+      } else {
+        fn->saved_tensors[i]->grad = input_grads[i];
+      }
     }
   }
 }

@@ -2,15 +2,27 @@
 #define JETDL_ROUTINES_H
 
 #include <memory>
+#include <vector>
 
 #include "jetdl/tensor.h"
 
 namespace jetdl {
 
+std::shared_ptr<Tensor> zeros(const std::vector<size_t>& shape,
+                              const bool requires_grad);
+
 std::shared_ptr<Tensor> ones(const std::vector<size_t>& shape,
                              const bool requires_grad);
+
 std::shared_ptr<Tensor> reshape(std::shared_ptr<Tensor>& tensor,
                                 const std::vector<size_t>& shape);
 
+std::shared_ptr<Tensor> squeeze(std::shared_ptr<Tensor>& input,
+                                const std::vector<int>& axes = {});
+
+std::shared_ptr<Tensor> unsqueeze(std::shared_ptr<Tensor>& input,
+                                  const int axis);
+
+std::shared_ptr<Tensor> contiguous(std::shared_ptr<Tensor>& input);
 }  // namespace jetdl
 #endif

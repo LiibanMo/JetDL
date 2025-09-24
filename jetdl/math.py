@@ -1,7 +1,14 @@
 from typing import Optional, Union
 
 from ._C import Tensor
-from ._C.math import c_add, c_div, c_mul, c_sub, c_sum
+from ._C.math import (
+    c_add,
+    c_div,
+    c_mul,
+    c_sub,
+    c_sum,
+    c_sum_to_shape,
+)
 
 
 def add(a: Tensor, b: Tensor) -> Tensor:
@@ -22,3 +29,7 @@ def div(a: Tensor, b: Tensor) -> Tensor:
 
 def sum(input: Tensor, axes: Optional[Union[int, list, tuple]] = None) -> Tensor:
     return c_sum(input, axes)
+
+
+def sum_to_shape(input: Tensor, shape: Union[list, tuple]) -> Tensor:
+    return c_sum_to_shape(input, shape)

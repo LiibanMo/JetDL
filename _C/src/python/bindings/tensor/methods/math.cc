@@ -27,9 +27,7 @@ void bind_tensor_add_method(
   py_tensor.def("__add__",
                 static_cast<TensorOpsPyObject>(
                     [](std::shared_ptr<Tensor>& self, py::object& other) {
-                      const bool& requires_grad = false;
-                      auto operand_tensor =
-                          std::make_shared<Tensor>(other, requires_grad);
+                      auto operand_tensor = std::make_shared<Tensor>(other);
                       return math::add(self, operand_tensor);
                     }),
                 py::is_operator());
@@ -40,8 +38,7 @@ void bind_tensor_radd_method(
   py_tensor.def("__radd__", [](std::shared_ptr<Tensor> self,
                                const py::object& other) {
     if (py::isinstance<py::int_>(other) || py::isinstance<py::float_>(other)) {
-      const bool& requires_grad = false;
-      auto operand_tensor = std::make_shared<Tensor>(other, requires_grad);
+      auto operand_tensor = std::make_shared<Tensor>(other);
       return math::add(operand_tensor, self);
     } else {
       throw py::type_error(py::str("{} object cannot be interpreted "
@@ -58,9 +55,7 @@ void bind_tensor_sub_method(
   py_tensor.def("__sub__",
                 static_cast<TensorOpsPyObject>(
                     [](std::shared_ptr<Tensor>& self, py::object& other) {
-                      const bool& requires_grad = false;
-                      auto operand_tensor =
-                          std::make_shared<Tensor>(other, requires_grad);
+                      auto operand_tensor = std::make_shared<Tensor>(other);
                       return math::sub(self, operand_tensor);
                     }),
                 py::is_operator());
@@ -71,8 +66,7 @@ void bind_tensor_rsub_method(
   py_tensor.def("__rsub__", [](std::shared_ptr<Tensor> self,
                                const py::object& other) {
     if (py::isinstance<py::int_>(other) || py::isinstance<py::float_>(other)) {
-      const bool& requires_grad = false;
-      auto operand_tensor = std::make_shared<Tensor>(other, requires_grad);
+      auto operand_tensor = std::make_shared<Tensor>(other);
       return math::sub(operand_tensor, self);
     } else {
       throw py::type_error(py::str("{} object cannot be interpreted "
@@ -89,9 +83,7 @@ void bind_tensor_mul_method(
   py_tensor.def("__mul__",
                 static_cast<TensorOpsPyObject>(
                     [](std::shared_ptr<Tensor>& self, py::object& other) {
-                      const bool& requires_grad = false;
-                      auto operand_tensor =
-                          std::make_shared<Tensor>(other, requires_grad);
+                      auto operand_tensor = std::make_shared<Tensor>(other);
                       return math::mul(self, operand_tensor);
                     }),
                 py::is_operator());
@@ -102,8 +94,7 @@ void bind_tensor_rmul_method(
   py_tensor.def("__rmul__", [](std::shared_ptr<Tensor> self,
                                const py::object& other) {
     if (py::isinstance<py::int_>(other) || py::isinstance<py::float_>(other)) {
-      const bool& requires_grad = false;
-      auto operand_tensor = std::make_shared<Tensor>(other, requires_grad);
+      auto operand_tensor = std::make_shared<Tensor>(other);
       return math::mul(operand_tensor, self);
     } else {
       throw py::type_error(py::str("{} object cannot be interpreted "
@@ -120,9 +111,7 @@ void bind_tensor_div_method(
   py_tensor.def("__truediv__",
                 static_cast<TensorOpsPyObject>(
                     [](std::shared_ptr<Tensor>& self, py::object& other) {
-                      const bool& requires_grad = false;
-                      auto operand_tensor =
-                          std::make_shared<Tensor>(other, requires_grad);
+                      auto operand_tensor = std::make_shared<Tensor>(other);
                       return math::div(self, operand_tensor);
                     }),
                 py::is_operator());
@@ -133,8 +122,7 @@ void bind_tensor_rdiv_method(
   py_tensor.def("__rtruediv__", [](std::shared_ptr<Tensor> self,
                                    const py::object& other) {
     if (py::isinstance<py::int_>(other) || py::isinstance<py::float_>(other)) {
-      const bool& requires_grad = false;
-      auto operand_tensor = std::make_shared<Tensor>(other, requires_grad);
+      auto operand_tensor = std::make_shared<Tensor>(other);
       return math::div(operand_tensor, self);
     } else {
       throw py::type_error(py::str("{} object cannot be interpreted "
@@ -142,6 +130,12 @@ void bind_tensor_rdiv_method(
                                .format(py::type::of(other)));
     }
   });
+}
+
+void bind_tensor_neg_method(
+    py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
+  py_tensor.def("__neg__",
+                [](std::shared_ptr<Tensor>& self) { return math::neg(self); });
 }
 
 void bind_tensor_sum_method(
@@ -162,6 +156,21 @@ void bind_tensor_sum_method(
       });
 }
 
+void bind_tensor_sum_to_shape_method(
+    py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
+  py_tensor.def("sum_to_shape", [](std::shared_ptr<Tensor>& self,
+                                   const py::object& shape) {
+    if (py::isinstance<py::list>(shape) || py::isinstance<py::tuple>(shape)) {
+      auto shape_vec = py::cast<std::vector<size_t>>(shape);
+      return math::sum_to_shape(self, shape_vec);
+    } else {
+      throw py::type_error(
+          py::str("type '{}' for shape input for tensor reduction.")
+              .format(py::type::of(shape)));
+    }
+  });
+}
+
 }  // namespace
 
 void bind_tensor_math_methods(
@@ -178,7 +187,10 @@ void bind_tensor_math_methods(
   bind_tensor_div_method(py_tensor);
   bind_tensor_rdiv_method(py_tensor);
 
+  bind_tensor_neg_method(py_tensor);
+
   bind_tensor_sum_method(py_tensor);
+  bind_tensor_sum_to_shape_method(py_tensor);
 }
 
 }  // namespace jetdl

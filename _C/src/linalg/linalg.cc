@@ -7,6 +7,7 @@
 
 #include "jetdl/linalg/product.h"
 #include "jetdl/linalg/transpose.h"
+#include "jetdl/routines.h"
 #include "jetdl/utils/check.h"
 
 namespace py = pybind11;
@@ -27,13 +28,17 @@ std::shared_ptr<Tensor> matmul(std::shared_ptr<Tensor>& a,
     return _linalg_dot(a, b);
   } else if (a->ndim > 1 && b->ndim == 1) {
     utils::check_matvec_shapes(a->shape, b->shape);
-    return _linalg_matvec(a, b);
+    std::shared_ptr<Tensor> operandA = contiguous(a);
+    return _linalg_matvec(operandA, b);
   } else if (a->ndim == 1 && b->ndim > 1) {
     utils::check_vecmat_shapes(a->shape, b->shape);
-    return _linalg_vecmat(a, b);
+    std::shared_ptr<Tensor> operandB = contiguous(b);
+    return _linalg_vecmat(a, operandB);
   } else {
     utils::check_matmul_shapes(a->shape, b->shape);
-    return _linalg_matmul(a, b);
+    std::shared_ptr<Tensor> operandA = contiguous(a);
+    std::shared_ptr<Tensor> operandB = contiguous(b);
+    return _linalg_matmul(operandA, operandB);
   }
 }
 

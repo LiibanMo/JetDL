@@ -6,7 +6,7 @@
 
 #include <cstddef>
 
-void c_matmul_cpu(float* a, float* b, float* c, const size_t x, const size_t y,
-                  const size_t p, const size_t n);
+void c_matmul_cpu(const float* a, const float* b, float* c, const size_t x,
+                  const size_t y, const size_t p, const size_t n);
 
 #endif

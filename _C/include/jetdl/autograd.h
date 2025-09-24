@@ -11,6 +11,7 @@ class Function {
  public:
   std::vector<std::shared_ptr<Function>> next_functions = {};
   std::vector<std::shared_ptr<Tensor>> saved_tensors = {};
+  std::weak_ptr<Tensor> tensor;
 
   virtual std::vector<std::shared_ptr<Tensor>> apply(
       std::shared_ptr<Tensor>& grad_tensor) = 0;

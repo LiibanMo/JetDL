@@ -24,7 +24,7 @@ std::shared_ptr<Tensor> _linalg_dot(std::shared_ptr<Tensor>& a,
       result_data, std::vector<size_t>{}, a->requires_grad || b->requires_grad);
 
   if (result_tensor->requires_grad) {
-    result_tensor->grad_fn = std::make_shared<DotBackward>(a, b);
+    result_tensor->grad_fn = std::make_shared<DotBackward>(a, b, result_tensor);
   }
 
   return result_tensor;
@@ -38,16 +38,16 @@ std::shared_ptr<Tensor> _linalg_matvec(std::shared_ptr<Tensor>& a,
   const size_t M = a->shape[a->ndim - 2];
   const size_t N = b->shape[0];
 
-  const size_t DATA1_ROWS = utils::get_next_multiple(M, BLOCK_N_ROWS);
-  const size_t BATCH_SIZE = utils::get_batch_size(a->shape);
+  const size_t data1_rows = utils::get_next_multiple(M, BLOCK_N_ROWS);
+  const size_t batch_size = utils::get_batch_size(a->shape);
 
-  const size_t DATA1_MAT_SIZE = DATA1_ROWS * N;
-  const size_t DATA2_MAT_SIZE = N * BLOCK_N_COLS;
-  const size_t RESULT_MAT_SIZE = DATA1_ROWS * BLOCK_N_COLS;
+  const size_t data1_mat_size = data1_rows * N;
+  const size_t data2_mat_size = N * BLOCK_N_COLS;
+  const size_t result_mat_size = data1_rows * BLOCK_N_COLS;
 
-  float* result_matrix = new float[RESULT_MAT_SIZE]();
-  float* data1_matrix = new float[DATA1_MAT_SIZE]();
-  float* data2_matrix = new float[DATA2_MAT_SIZE]();
+  float* result_matrix = new float[result_mat_size]();
+  float* data1_matrix = new float[data1_mat_size]();
+  float* data2_matrix = new float[data2_mat_size]();
 
   const size_t result_size = a->size / b->size;
   auto result_data = std::make_shared<std::vector<float>>(result_size);
@@ -55,12 +55,12 @@ std::shared_ptr<Tensor> _linalg_matvec(std::shared_ptr<Tensor>& a,
   for (size_t i = 0; i < N; i++) {
     data2_matrix[i * BLOCK_N_COLS] = b->_data->at(i);
   }
-  for (size_t batch = 0; batch < BATCH_SIZE; batch++) {
+  for (size_t batch = 0; batch < batch_size; batch++) {
     const size_t a_batch_stride = (a->ndim > 2) ? a->strides[a->ndim - 3] : 0;
     const size_t idxA = batch * a_batch_stride;
     std::copy(a->_data->begin() + idxA, a->_data->begin() + idxA + M * N,
               data1_matrix);
-    for (size_t x = 0; x < DATA1_ROWS; x += BLOCK_N_ROWS) {
+    for (size_t x = 0; x < data1_rows; x += BLOCK_N_ROWS) {
       c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, x, 0,
                    BLOCK_N_COLS, N);
     }
@@ -76,6 +76,11 @@ std::shared_ptr<Tensor> _linalg_matvec(std::shared_ptr<Tensor>& a,
   auto result_tensor = std::make_shared<Tensor>(
       result_data, shape, a->requires_grad || b->requires_grad);
 
+  if (result_tensor->requires_grad) {
+    result_tensor->grad_fn =
+        std::make_shared<MatVecBackward>(a, b, result_tensor);
+  }
+
   return result_tensor;
 }
 
@@ -87,30 +92,30 @@ std::shared_ptr<Tensor> _linalg_vecmat(std::shared_ptr<Tensor>& a,
   const size_t N = a->shape[0];
   const size_t P = b->shape[b->ndim - 1];
 
-  const size_t DATA2_COLS = utils::get_next_multiple(P, BLOCK_N_COLS);
-  const size_t BATCH_SIZE = utils::get_batch_size(b->shape);
+  const size_t data2_cols = utils::get_next_multiple(P, BLOCK_N_COLS);
+  const size_t batch_size = utils::get_batch_size(b->shape);
 
-  const size_t DATA1_MAT_SIZE = BLOCK_N_ROWS * N;
-  const size_t DATA2_MAT_SIZE = N * DATA2_COLS;
-  const size_t RESULT_MAT_SIZE = BLOCK_N_ROWS * DATA2_COLS;
+  const size_t data1_mat_size = BLOCK_N_ROWS * N;
+  const size_t data2_mat_size = N * data2_cols;
+  const size_t result_mat_size = BLOCK_N_ROWS * data2_cols;
 
-  float* result_matrix = new float[RESULT_MAT_SIZE]();
-  float* data1_matrix = new float[DATA1_MAT_SIZE]();
-  float* data2_matrix = new float[DATA2_MAT_SIZE]();
+  float* result_matrix = new float[result_mat_size]();
+  float* data1_matrix = new float[data1_mat_size]();
+  float* data2_matrix = new float[data2_mat_size]();
 
-  const size_t RESULT_SIZE = b->size / a->size;
-  auto result_data = std::make_shared<std::vector<float>>(RESULT_SIZE);
+  const size_t result_size = b->size / a->size;
+  auto result_data = std::make_shared<std::vector<float>>(result_size);
 
   std::copy(a->_data->begin(), a->_data->end(), data1_matrix);
-  for (size_t batch = 0; batch < BATCH_SIZE; batch++) {
+  for (size_t batch = 0; batch < batch_size; batch++) {
     for (size_t i = 0; i < N; i++) {
       const size_t b_batch_stride = (b->ndim > 2) ? b->strides[b->ndim - 3] : 0;
       const size_t idxB = batch * b_batch_stride + i * b->strides[b->ndim - 2];
       std::copy(b->_data->begin() + idxB, b->_data->begin() + idxB + P,
-                data2_matrix + i * DATA2_COLS);
+                data2_matrix + i * data2_cols);
     }
-    for (size_t y = 0; y < DATA2_COLS; y += BLOCK_N_COLS) {
-      c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, 0, y, DATA2_COLS,
+    for (size_t y = 0; y < data2_cols; y += BLOCK_N_COLS) {
+      c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, 0, y, data2_cols,
                    N);
     }
     std::copy(result_matrix, result_matrix + P,
@@ -124,6 +129,11 @@ std::shared_ptr<Tensor> _linalg_vecmat(std::shared_ptr<Tensor>& a,
   auto result_tensor = std::make_shared<Tensor>(
       result_data, shape, a->requires_grad || b->requires_grad);
 
+  if (result_tensor->requires_grad) {
+    result_tensor->grad_fn =
+        std::make_shared<VecMatBackward>(a, b, result_tensor);
+  }
+
   return result_tensor;
 }
 
@@ -136,14 +146,14 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& a,
   const size_t N = a->shape[a->ndim - 1];
   const size_t P = b->shape[b->ndim - 1];
 
-  const size_t BATCH_SIZE = utils::get_batch_size(shape);
+  const size_t batch_size = utils::get_batch_size(shape);
 
-  const size_t DATA1_ROWS = utils::get_next_multiple(M, BLOCK_N_ROWS);
-  const size_t DATA2_COLS = utils::get_next_multiple(P, BLOCK_N_COLS);
+  const size_t data1_rows = utils::get_next_multiple(M, BLOCK_N_ROWS);
+  const size_t data2_cols = utils::get_next_multiple(P, BLOCK_N_COLS);
 
-  const size_t RESULT_MAT_SIZE = DATA1_ROWS * DATA2_COLS;
-  const size_t DATA1_MAT_SIZE = DATA1_ROWS * N;
-  const size_t DATA2_MAT_SIZE = N * DATA2_COLS;
+  const size_t result_mat_size = data1_rows * data2_cols;
+  const size_t data1_mat_size = data1_rows * N;
+  const size_t data2_mat_size = N * data2_cols;
 
   const auto& strides_pair =
       utils::get_strides(a->shape, b->shape, utils::OpType::MATMUL);
@@ -155,32 +165,32 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& a,
   const std::vector<size_t>& idxsB =
       utils::populate_linear_idxs(shape, stridesB, utils::OpType::MATMUL);
 
-  float* result_matrix = new float[RESULT_MAT_SIZE]();
-  float* data1_matrix = new float[DATA1_MAT_SIZE]();
-  float* data2_matrix = new float[DATA2_MAT_SIZE]();
+  float* result_matrix = new float[result_mat_size]();
+  float* data1_matrix = new float[data1_mat_size]();
+  float* data2_matrix = new float[data2_mat_size]();
 
-  const size_t RESULT_SIZE = utils::get_size(shape);
-  auto result_data = std::make_shared<std::vector<float>>(RESULT_SIZE);
+  const size_t result_size = utils::get_size(shape);
+  auto result_data = std::make_shared<std::vector<float>>(result_size);
 
-  for (size_t batch = 0; batch < BATCH_SIZE; batch++) {
+  for (size_t batch = 0; batch < batch_size; batch++) {
     const size_t idxA = idxsA[batch];
     std::copy(a->_data->begin() + idxA, a->_data->begin() + idxA + M * N,
               data1_matrix);
     for (size_t i = 0; i < N; i++) {
       const size_t idxB = idxsB[batch] + i * b->strides[b->ndim - 2];
       std::copy(b->_data->begin() + idxB, b->_data->begin() + idxB + P,
-                data2_matrix + i * DATA2_COLS);
+                data2_matrix + i * data2_cols);
     }
-    for (size_t x = 0; x < DATA1_ROWS; x += BLOCK_N_ROWS) {
-      for (size_t y = 0; y < DATA2_COLS; y += BLOCK_N_COLS) {
+    for (size_t x = 0; x < data1_rows; x += BLOCK_N_ROWS) {
+      for (size_t y = 0; y < data2_cols; y += BLOCK_N_COLS) {
         c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, x, y,
-                     DATA2_COLS, N);
+                     data2_cols, N);
       }
     }
     for (size_t i = 0; i < M; i++) {
       const size_t idx = batch * M * P + i * P;
-      std::copy(result_matrix + i * DATA2_COLS,
-                result_matrix + i * DATA2_COLS + P, result_data->begin() + idx);
+      std::copy(result_matrix + i * data2_cols,
+                result_matrix + i * data2_cols + P, result_data->begin() + idx);
     }
   }
 
@@ -190,6 +200,11 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& a,
 
   auto result_tensor = std::make_shared<Tensor>(
       result_data, shape, a->requires_grad || b->requires_grad);
+
+  if (result_tensor->requires_grad) {
+    result_tensor->grad_fn =
+        std::make_shared<MatmulBackward>(a, b, result_tensor);
+  }
 
   return result_tensor;
 }

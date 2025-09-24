@@ -1,7 +1,27 @@
 from ._C import Tensor
-from .creation import ones
-from .linalg import dot, matmul, matrix_transpose, transpose
-from .math import add, div, mul, sub, sum
+from ._creation import (
+    zeros,
+    ones,
+)
+from .linalg import (
+    dot,
+    matmul,
+    matrix_transpose,
+    transpose,
+)
+from ._manip import (
+    contiguous,
+    squeeze,
+    unsqueeze,
+    reshape,
+)
+from .math import (
+    add,
+    div,
+    mul,
+    sub,
+    sum,
+)
 
 
 def tensor(data, *, requires_grad: bool = False) -> Tensor:
@@ -20,5 +40,10 @@ __all__ = [
     "matmul",
     "transpose",
     "matrix_transpose",
+    "zeros",
     "ones",
+    "contiguous",
+    "reshape",
+    "squeeze",
+    "unsqueeze",
 ]

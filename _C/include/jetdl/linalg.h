@@ -20,4 +20,5 @@ std::shared_ptr<Tensor> mT(std::shared_ptr<Tensor>& a);
 
 }  // namespace linalg
 }  // namespace jetdl
+
 #endif

@@ -1,6 +1,8 @@
 #ifndef JETDL_MATH_H
 #define JETDL_MATH_H
 
+#include <memory>
+
 #include "jetdl/tensor.h"
 
 namespace jetdl {
@@ -14,6 +16,7 @@ std::shared_ptr<Tensor> mul(std::shared_ptr<Tensor>& a,
                             std::shared_ptr<Tensor>& b);
 std::shared_ptr<Tensor> div(std::shared_ptr<Tensor>& a,
                             std::shared_ptr<Tensor>& b);
+std::shared_ptr<Tensor> neg(std::shared_ptr<Tensor>& a);
 
 std::shared_ptr<Tensor> sum(std::shared_ptr<Tensor>& a,
                             const std::vector<int>& axes);

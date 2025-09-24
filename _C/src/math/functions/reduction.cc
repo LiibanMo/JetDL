@@ -51,7 +51,7 @@ std::shared_ptr<Tensor> _math_sum_to_shape(std::shared_ptr<Tensor>& tensor,
     return tensor;
   }
   const std::vector<size_t>& axes =
-      utils::get_broadcasted_axes(tensor->shape, shape);
+      utils::get_broadcasted_axes(shape, tensor->shape);
   return _math_sum_over_axes(tensor, axes);
 }
 

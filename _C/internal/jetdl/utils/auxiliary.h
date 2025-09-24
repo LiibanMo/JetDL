@@ -11,6 +11,8 @@ enum class OpType { MATMUL, DOT, ARITHMETIC, REDUCTION };
 
 enum class ArithType { ADD, SUB, MUL, DIV };
 
+enum class SubModule { MATH, ROUTINES };
+
 inline long get_next_multiple(const long start, const long factor) {
   return ((start + factor - 1) / factor) * factor;
 }
@@ -23,6 +25,7 @@ std::vector<size_t> make_axes_positive(const std::vector<int>& axes,
                                        size_t ndim);
 
 }  // namespace utils
+
 }  // namespace jetdl
 
 #endif
