@@ -1,14 +1,7 @@
 from typing import Optional, Union
 
 from ._C import Tensor
-from ._C.math import (
-    c_add,
-    c_div,
-    c_mul,
-    c_sub,
-    c_sum,
-    c_sum_to_shape,
-)
+from ._C.math import c_add, c_div, c_mul, c_sub, c_sum, c_sum_to_shape
 
 
 def add(a: Tensor, b: Tensor) -> Tensor:

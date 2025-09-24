@@ -3,13 +3,8 @@ import torch
 
 import jetdl
 
-from ..utils import (
-    SEED,
-    PyTestAsserts,
-    generate_random_data,
-    generate_shape_ids,
-)
-
+from ..utils import (SEED, PyTestAsserts, generate_random_data,
+                     generate_shape_ids)
 
 torch.manual_seed(SEED)
 
@@ -57,9 +52,9 @@ def test_dot(shape1, shape2):
     t3 = torch.dot(t1, t2)
 
     assert_object = PyTestAsserts(j3, t3)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -109,9 +104,9 @@ def test_matmul(shape1, shape2):
     t3 = torch.matmul(t1, t2)
 
     assert_object = PyTestAsserts(j3, t3)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -164,9 +159,9 @@ def test_transpose(shape):
     torch_transposed = t_tensor.permute(*torch.arange(t_tensor.ndim - 1, -1, -1))
 
     assert_object = PyTestAsserts(jetdl_transposed, torch_transposed)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
 
 
 @pytest.mark.parametrize(
@@ -189,9 +184,9 @@ def test_matrix_transpose(shape):
     torch_matrix_transposed = t_tensor.mT
 
     assert_object = PyTestAsserts(jetdl_matrix_transposed, torch_matrix_transposed)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
 
 
 @pytest.mark.parametrize(
@@ -208,9 +203,9 @@ def test_incorrect_matrix_transpose(shape):
     t_tensor = torch.tensor(data)
 
     assert_object = PyTestAsserts(j_tensor, t_tensor)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
 
     with pytest.raises(RuntimeError) as err:
         _ = j_tensor.mT

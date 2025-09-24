@@ -49,6 +49,11 @@ void bind_tensor_method_unsqueeze(
   });
 }
 
+void bind_tensor_method_str(
+    py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
+  py_tensor.def("__str__", &jetdl::tensor_to_string);
+}
+
 }  // namespace
 
 void bind_tensor_routines_methods(
@@ -56,6 +61,7 @@ void bind_tensor_routines_methods(
   bind_tensor_method_unsqueeze(py_tensor);
   bind_tensor_method_squeeze(py_tensor);
   bind_tensor_method_reshape(py_tensor);
+  bind_tensor_method_str(py_tensor);
 }
 
 }  // namespace jetdl

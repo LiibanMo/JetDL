@@ -2,12 +2,8 @@ import pytest
 import torch
 
 import jetdl
-from ..utils import (
-    SEED,
-    PyTestAsserts,
-    generate_random_data,
-)
 
+from ..utils import SEED, PyTestAsserts, generate_random_data
 
 torch.manual_seed(SEED)
 

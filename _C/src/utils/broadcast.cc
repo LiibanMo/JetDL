@@ -1,6 +1,7 @@
 #include "jetdl/utils/broadcast.h"
 
 #include <algorithm>
+#include <stdexcept>
 #include <vector>
 
 #include "jetdl/utils/metadata.h"

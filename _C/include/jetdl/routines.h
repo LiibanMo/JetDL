@@ -24,5 +24,8 @@ std::shared_ptr<Tensor> unsqueeze(std::shared_ptr<Tensor>& input,
                                   const int axis);
 
 std::shared_ptr<Tensor> contiguous(std::shared_ptr<Tensor>& input);
+
+std::string tensor_to_string(const std::shared_ptr<Tensor>& input);
+
 }  // namespace jetdl
 #endif

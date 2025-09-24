@@ -2,12 +2,8 @@ import pytest
 import torch
 
 import jetdl
-from ..utils import (
-    SEED,
-    PyTestAsserts,
-    generate_random_data,
-)
 
+from ..utils import SEED, PyTestAsserts, generate_random_data
 
 torch.manual_seed(SEED)
 
@@ -35,9 +31,9 @@ def test_contiguous():
     assert t_contiguous.is_contiguous()
 
     assert_object = PyTestAsserts(j_contiguous, t_contiguous)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -53,9 +49,9 @@ def test_contiguous_on_contiguous():
     t_contiguous = t_tensor.contiguous()
 
     assert_object = PyTestAsserts(j_contiguous, t_contiguous)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -86,9 +82,9 @@ def test_squeeze(shape, axes):
         t_squeezed = torch.squeeze(t_tensor, dim=axes)
 
     assert_object = PyTestAsserts(j_squeezed, t_squeezed)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -113,9 +109,9 @@ def test_unsqueeze(shape, axis):
     t_unsqueezed = torch.unsqueeze(t_tensor, dim=axis)
 
     assert_object = PyTestAsserts(j_unsqueezed, t_unsqueezed)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 

@@ -1,10 +1,7 @@
 from typing import Union
 
 from ._C import Tensor
-from ._C.routines import (
-    c_ones,
-    c_zeros,
-)
+from ._C.routines import c_ones, c_zeros
 
 
 def zeros(shape: Union[tuple, list], *, requires_grad: bool = False) -> Tensor:

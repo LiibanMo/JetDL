@@ -1,12 +1,7 @@
 from typing import Optional, Union
 
 from ._C import Tensor
-from ._C.routines import (
-    c_contiguous,
-    c_squeeze,
-    c_unsqueeze,
-    c_reshape,
-)
+from ._C.routines import c_contiguous, c_reshape, c_squeeze, c_unsqueeze
 
 
 def contiguous(input: Tensor) -> Tensor:

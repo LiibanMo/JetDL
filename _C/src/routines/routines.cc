@@ -48,4 +48,8 @@ std::shared_ptr<Tensor> contiguous(std::shared_ptr<Tensor>& input) {
   return _make_contiguous(input);
 }
 
+std::string tensor_to_string(const std::shared_ptr<Tensor>& input) {
+  return _tensor_to_string(input);
+}
+
 }  // namespace jetdl
