@@ -2,7 +2,7 @@ from ._C import Tensor
 from ._creation import ones, zeros
 from ._manip import contiguous, reshape, squeeze, unsqueeze
 from .linalg import dot, matmul, matrix_transpose, transpose
-from .math import add, div, mul, sub, sum
+from .math import add, div, mul, sub, pow, sum, mean
 
 
 def tensor(data, *, requires_grad: bool = False) -> Tensor:
@@ -16,7 +16,9 @@ __all__ = [
     "sub",
     "mul",
     "div",
+    "pow",
     "sum",
+    "mean",
     "dot",
     "matmul",
     "transpose",

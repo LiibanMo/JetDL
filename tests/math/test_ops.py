@@ -3,7 +3,14 @@ import torch
 
 import jetdl
 
-from ..utils import *
+from ..utils import (
+    SEED,
+    PyTestAsserts,
+    generate_random_data,
+    generate_shape_ids,
+    obtain_result_tensors,
+    operation_registry,
+)
 
 torch.manual_seed(SEED)
 
@@ -34,9 +41,9 @@ def test_non_broadcast_arithmetic(shape1, shape2, operation):
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
     assert_object = PyTestAsserts(j3, expected_tensor)
-    assert (
-        assert_object.check_basic_metadata()
-    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_basic_metadata(), (
+        assert_object.basic_metadata_error_output()
+    )
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -48,9 +55,9 @@ def test_broadcast_arithmetic(shape1, shape2, operation):
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
     assert_object = PyTestAsserts(j3, expected_tensor)
-    assert (
-        assert_object.check_basic_metadata()
-    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_basic_metadata(), (
+        assert_object.basic_metadata_error_output()
+    )
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -75,9 +82,9 @@ def test_scalar_tensor_arithmetic(shape, operation):
     print(f"expected_tensor = {expected_tensor.shape}")
 
     assert_object = PyTestAsserts(j_result, expected_tensor)
-    assert (
-        assert_object.check_basic_metadata()
-    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_basic_metadata(), (
+        assert_object.basic_metadata_error_output()
+    )
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -98,7 +105,7 @@ def test_tensor_scalar_arithmetic(shape, operation):
     expected_tensor = torch_op(t_tensor, t_scalar)
 
     assert_object = PyTestAsserts(j_result, expected_tensor)
-    assert (
-        assert_object.check_basic_metadata()
-    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_basic_metadata(), (
+        assert_object.basic_metadata_error_output()
+    )
     assert assert_object.check_results(), assert_object.results_error_output()

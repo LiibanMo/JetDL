@@ -2,6 +2,7 @@
 #define JETDL_AUTOGRAD_MATH_H
 
 #include <memory>
+#include <vector>
 
 #include "jetdl/autograd.h"
 
@@ -37,6 +38,18 @@ class MulBackward : public Function {
 class DivBackward : public Function {
  public:
   DivBackward(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b,
+              std::shared_ptr<Tensor>& result_tensor);
+
+  std::vector<std::shared_ptr<Tensor>> apply(
+      std::shared_ptr<Tensor>& grad_tensor) override;
+};
+
+class PowBackward : public Function {
+ private:
+  int exponent = 0;
+
+ public:
+  PowBackward(std::shared_ptr<Tensor>& a, const int exponent,
               std::shared_ptr<Tensor>& result_tensor);
 
   std::vector<std::shared_ptr<Tensor>> apply(

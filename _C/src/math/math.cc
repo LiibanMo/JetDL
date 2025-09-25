@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "jetdl/math/arith.h"
-#include "jetdl/math/reduction.h"
+#include "jetdl/math/function.h"
 #include "jetdl/utils/check.h"
 
 namespace jetdl {
@@ -70,6 +70,10 @@ std::shared_ptr<Tensor> neg(std::shared_ptr<Tensor>& a) {
   return sub(zero_tensors, a);
 }
 
+std::shared_ptr<Tensor> pow(std::shared_ptr<Tensor>& a, const int exponent) {
+  return _power(a, exponent);
+}
+
 std::shared_ptr<Tensor> sum(std::shared_ptr<Tensor>& a,
                             const std::vector<int>& axes) {
   if (axes.empty()) {
@@ -79,6 +83,18 @@ std::shared_ptr<Tensor> sum(std::shared_ptr<Tensor>& a,
     std::vector<size_t> updated_axes = utils::make_axes_positive(axes, a->ndim);
     std::sort(updated_axes.begin(), updated_axes.end());
     return _math_sum_over_axes(a, updated_axes);
+  }
+}
+
+std::shared_ptr<Tensor> mean(std::shared_ptr<Tensor>& a,
+                             const std::vector<int>& axes) {
+  if (axes.empty()) {
+    return _math_total_mean(a);
+  } else {
+    utils::check_axes(a->shape, axes);
+    std::vector<size_t> updated_axes = utils::make_axes_positive(axes, a->ndim);
+    std::sort(updated_axes.begin(), updated_axes.end());
+    return _math_mean_over_axes(a, updated_axes);
   }
 }
 

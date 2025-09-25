@@ -171,6 +171,24 @@ void bind_tensor_sum_to_shape_method(
   });
 }
 
+void bind_tensor_mean_method(
+    py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
+  py_tensor.def(
+      "mean", [](std::shared_ptr<Tensor> self, const py::object& axes) {
+        if (py::isinstance<py::list>(axes) || py::isinstance<py::tuple>(axes)) {
+          std::vector<int> axes_vec = py::cast<std::vector<int>>(axes);
+          return math::mean(self, axes_vec);
+        } else if (py::isinstance<py::int_>(axes)) {
+          std::vector<int> axes_vec = std::vector<int>(py::cast<int>(axes));
+          return math::mean(self, axes_vec);
+        } else {
+          throw py::type_error(
+              py::str("{} object cannot be interpreted as a valid set of axes")
+                  .format(py::type::of(axes)));
+        }
+      });
+}
+
 }  // namespace
 
 void bind_tensor_math_methods(
@@ -191,6 +209,8 @@ void bind_tensor_math_methods(
 
   bind_tensor_sum_method(py_tensor);
   bind_tensor_sum_to_shape_method(py_tensor);
+
+  bind_tensor_mean_method(py_tensor);
 }
 
 }  // namespace jetdl
