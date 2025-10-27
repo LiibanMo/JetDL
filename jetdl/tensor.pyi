@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Union, TypeAlias, Sequence, overload
+
+from typing import Sequence, TypeAlias, Union, overload
 
 Numeric: TypeAlias = Union[int, float]
 Axes: TypeAlias = Union[int, Sequence[int]]
@@ -10,10 +11,9 @@ class Tensor:
     """
 
     # Initialization
-    @overload
-    def __init__(self, data: Union[Numeric, Sequence], *, requires_grad: bool = False) -> None: ...
-    @overload
-    def __init__(self, data: Tensor, *, requires_grad: bool = False) -> None: ...
+    def __init__(
+        self, data: Union[Numeric, Sequence], *, requires_grad: bool = False
+    ) -> None: ...
 
     # Properties
     @property
@@ -60,7 +60,6 @@ class Tensor:
     def mT(self) -> Tensor:
         """Returns a matrix-transposed version of this tensor."""
         ...
-
     # Dunder methods
     def __str__(self) -> str: ...
     def __neg__(self) -> Tensor: ...
@@ -68,16 +67,12 @@ class Tensor:
     # --- Arithmetic ---
     def __add__(self, other: Tensor | Numeric) -> Tensor: ...
     def __radd__(self, other: Numeric) -> Tensor: ...
-
     def __sub__(self, other: Tensor | Numeric) -> Tensor: ...
     def __rsub__(self, other: Numeric) -> Tensor: ...
-
     def __mul__(self, other: Tensor | Numeric) -> Tensor: ...
     def __rmul__(self, other: Numeric) -> Tensor: ...
-
     def __truediv__(self, other: Tensor | Numeric) -> Tensor: ...
     def __rtruediv__(self, other: Numeric) -> Tensor: ...
-
     def __pow__(self, exponent: Numeric) -> Tensor: ...
 
     # --- Linalg ---
@@ -90,7 +85,6 @@ class Tensor:
         The graph is differentiated using the chain rule.
         """
         ...
-
     # --- Math ---
     def sum(self, axes: Axes | None = None) -> Tensor:
         """
@@ -111,7 +105,6 @@ class Tensor:
         Can be performed along specified axes.
         """
         ...
-
     # --- Routines ---
     def reshape(self, new_shape: tuple[int, ...]) -> Tensor:
         """

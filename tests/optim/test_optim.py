@@ -50,7 +50,7 @@ def test_optimizer_zero_grad():
     optim = Optimizer(model.parameters())
     input_tensor = jetdl.ones((1, 10))
     output = model(input_tensor)
-    
+
     loss = jetdl.mean(output)
     loss.backward()
 
@@ -66,7 +66,7 @@ def test_optimizer_zero_grad():
 
     # Check if gradients are zero
     for p in optim.params:
-       assert p.grad is None 
+        assert p.grad is None
 
 
 def test_optimizer_zero_grad_no_params():
@@ -77,4 +77,6 @@ def test_optimizer_zero_grad_no_params():
     try:
         optim.zero_grad()
     except Exception as e:
-        pytest.fail(f"Optimizer.zero_grad() with no parameters raised an exception: {e}")
+        pytest.fail(
+            f"Optimizer.zero_grad() with no parameters raised an exception: {e}"
+        )

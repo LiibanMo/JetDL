@@ -25,3 +25,13 @@ def normal(mean: float, std: float, shape: Union[list, tuple] = [], seed: int = 
         seed (int): The seed for the random number generator.
     """
     return c_normal(mean, std, shape, seed)
+
+
+def rand(*shape: Union[int, list, tuple], seed: int = 123):
+    """Creates a tensor with values from a uniform distribution between 0 and 1.
+
+    Args:
+        shape (Union[int, list, tuple]): The shape of the output tensor.
+        seed (int): The seed for the random number generator.
+    """
+    return c_uniform(0, 1, shape, seed)

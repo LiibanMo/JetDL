@@ -1,0 +1,29 @@
+from abc import abstractmethod
+
+from .._C import Tensor
+from ._objects import Parameter
+
+class Module:
+    def __init__(self) -> None: ...
+    def __setattr__(self, name, value) -> None: ...
+    def __call__(self, *inputs) -> Tensor: ...
+    def parameters(self) -> iter: ...
+    @abstractmethod
+    def forward(self, *inputs) -> Tensor: ...
+
+class Linear(Module):
+    weight: Parameter
+    bias: Parameter
+
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        init_type: str,
+        seed: int,
+    ) -> None: ...
+    def forward(self, input: Tensor) -> Tensor: ...
+
+class ReLU(Module):
+    def __init__(self) -> None: ...
+    def forward(self, input: Tensor) -> Tensor: ...

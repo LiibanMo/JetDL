@@ -1,0 +1,6 @@
+from .._C import Tensor
+from ._layers import Module
+
+class MSELoss(Module):
+    def __init__(self) -> None: ...
+    def forward(self, input: Tensor, target: Tensor) -> Tensor: ...

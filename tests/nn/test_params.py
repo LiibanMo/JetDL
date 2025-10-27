@@ -8,12 +8,17 @@ from ..utils import PyTestAsserts, generate_random_data, generate_shape_ids
 
 # nn.Parameter
 
-@pytest.mark.parametrize("shape", [
-    ([10, 5]),
-    ([8, 20]),
-    ([1, 1, 1, 1]),
-    ([3, 4, 5, 6]),
-], ids=generate_shape_ids)
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        ([10, 5]),
+        ([8, 20]),
+        ([1, 1, 1, 1]),
+        ([3, 4, 5, 6]),
+    ],
+    ids=generate_shape_ids,
+)
 def test_parameter_he_initialization(shape):
     param = Parameter(shape, init_type="he")
 
@@ -30,12 +35,17 @@ def test_parameter_he_initialization(shape):
     # assert param.min() >= -bound * 5 # Loosen bound for random values
     # assert param.max() <= bound * 5 # Loosen bound for random values
 
-@pytest.mark.parametrize("shape", [
-    ([10, 5]),
-    ([8, 20]),
-    ([1, 1, 1, 1]),
-    ([3, 4, 5, 6]),
-], ids=generate_shape_ids)
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        ([10, 5]),
+        ([8, 20]),
+        ([1, 1, 1, 1]),
+        ([3, 4, 5, 6]),
+    ],
+    ids=generate_shape_ids,
+)
 def test_parameter_zero_initialization(shape):
     param = Parameter(shape, init_type="zero")
 
@@ -45,7 +55,9 @@ def test_parameter_zero_initialization(shape):
     # Need to implement inequality checks first
     # assert (param == 0).all()
 
-def test_parameter_not_implemented_init_type():
-    with pytest.raises(NotImplementedError, match="init type 'invalid' not implemented for Parameter"):
-        Parameter([2, 2], init_type="invalid")
 
+def test_parameter_not_implemented_init_type():
+    with pytest.raises(
+        NotImplementedError, match="init type 'invalid' not implemented for Parameter"
+    ):
+        Parameter([2, 2], init_type="invalid")

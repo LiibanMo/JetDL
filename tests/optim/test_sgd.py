@@ -38,7 +38,9 @@ def test_sgd_step():
 
     # --- Synchronize model parameters ---
     with torch.no_grad():
-        t_model.weight.copy_(torch.asarray(j_model.weight).reshape(j_model.weight.shape))
+        t_model.weight.copy_(
+            torch.asarray(j_model.weight).reshape(j_model.weight.shape)
+        )
         t_model.bias.copy_(torch.asarray(j_model.bias).reshape(j_model.bias.shape))
 
     # --- Synthesise data and target
@@ -46,7 +48,7 @@ def test_sgd_step():
     target_data = torch.arange(5, dtype=torch.float32, requires_grad=True)
 
     # --- Forward and backward pass to get gradients ---
-    
+
     # JetDL
     j_input = jetdl.tensor(input_data.tolist())
     j_output = j_model(j_input)

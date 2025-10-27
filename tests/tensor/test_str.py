@@ -32,4 +32,4 @@ def test_tensor_str(shape):
     # A simple heuristic to check if the string representation is reasonable
     # It should contain numbers and brackets
     assert any(char.isdigit() for char in j_str)
-    assert '[' in j_str or ']' in j_str or j_tensor.ndim == 0
+    assert "[" in j_str or "]" in j_str or j_tensor.ndim == 0

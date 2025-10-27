@@ -6,6 +6,7 @@ from jetdl.nn import Parameter
 
 # nn.Module
 
+
 def test_empty_module():
     """
     Tests that a bare nn.Module has no parameters.
@@ -26,13 +27,12 @@ def test_module_with_parameters():
             self.p1 = Parameter([4, 5])
             self.t1 = tensor([2.0], requires_grad=True)
             self.not_a_param1 = tensor([3.0], requires_grad=False)
-            self.not_a_param2 = [
-                Parameter([2, 3])
-            ]  # In a list, should not be found
+            self.not_a_param2 = [Parameter([2, 3])]  # In a list, should not be found
 
     m = TestModule()
     params = list(m.parameters())
     assert len(params) == 1
+
 
 def test_nested_module():
     """

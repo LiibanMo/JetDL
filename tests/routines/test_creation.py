@@ -27,10 +27,9 @@ init_shapes = [
     (500, 1),
 ]
 
+
 @pytest.mark.parametrize("requires_grad", [True, False])
-@pytest.mark.parametrize(
-    "shape", init_shapes 
-)
+@pytest.mark.parametrize("shape", init_shapes)
 def test_zeros(shape, requires_grad):
     """
     Tests the zeros routine for various shapes.
@@ -48,9 +47,7 @@ def test_zeros(shape, requires_grad):
 
 
 @pytest.mark.parametrize("requires_grad", [True, False])
-@pytest.mark.parametrize(
-    "shape", init_shapes
-)
+@pytest.mark.parametrize("shape", init_shapes)
 def test_ones(shape, requires_grad):
     """
     Tests the ones routine for various shapes.

@@ -67,8 +67,8 @@ def test_tensor_pow_method(shape, exponent):
     j_tensor = jetdl.tensor(data)
     t_tensor = torch.tensor(data, dtype=torch.float32)
 
-    j_result = j_tensor ** exponent
-    t_result = t_tensor ** exponent
+    j_result = j_tensor**exponent
+    t_result = t_tensor**exponent
 
     assert_object = PyTestAsserts(j_result, t_result)
     assert (
@@ -109,6 +109,7 @@ def test_sqrt(shape):
 
 def test_sqrt_scalar():
     import math
+
     j_res = jetdl.sqrt(25.0)
     t_res = math.sqrt(25.0)
     assert j_res == t_res
