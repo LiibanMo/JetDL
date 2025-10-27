@@ -67,7 +67,6 @@ jobs:
           
           $toolchainPath = "$PWD\vcpkg\scripts\buildsystems\vcpkg.cmake"
           echo "CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=$toolchainPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
-
   
       - name: Install dependencies
         run: |
@@ -76,7 +75,7 @@ jobs:
           
       - name: Build shared library(s)
         run: |
-          pip install -e .
+          pip install -e . --progress-bar off
           
       - name: Run tests
         run: | 
