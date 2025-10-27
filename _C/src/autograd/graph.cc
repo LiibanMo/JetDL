@@ -58,7 +58,7 @@ void Graph::apply() {
       if (tensor->grad) {
         tensor->grad = math::add(tensor->grad, grad);
       } else {
-        fn->saved_tensors[i]->grad = input_grads[i];
+        tensor->grad = grad;
       }
     }
   }

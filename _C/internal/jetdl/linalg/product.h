@@ -7,12 +7,15 @@ namespace jetdl {
 
 std::shared_ptr<Tensor> _linalg_dot(std::shared_ptr<Tensor>& a,
                                     std::shared_ptr<Tensor>& b);
+
 std::shared_ptr<Tensor> _linalg_matvec(std::shared_ptr<Tensor>& a,
                                        std::shared_ptr<Tensor>& b);
+
 std::shared_ptr<Tensor> _linalg_vecmat(std::shared_ptr<Tensor>& a,
                                        std::shared_ptr<Tensor>& b);
-std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& a,
-                                       std::shared_ptr<Tensor>& b);
+
+std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
+                                       std::shared_ptr<Tensor>& tensor2);
 
 }  // namespace jetdl
 

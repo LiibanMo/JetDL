@@ -8,6 +8,9 @@
 
 namespace jetdl {
 
+std::shared_ptr<Tensor> _view(std::shared_ptr<Tensor>& input,
+                              const std::vector<size_t>& shape);
+
 std::shared_ptr<Tensor> _reshape(std::shared_ptr<Tensor>& tensor,
                                  const std::vector<size_t>& shape);
 

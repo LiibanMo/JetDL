@@ -1,22 +1,26 @@
 #include <memory>
-#include <vector>
 
+#include "jetdl/autograd/math.h"
 #include "jetdl/math/function.h"
-#include "jetdl/math/kernel.h"
 #include "jetdl/tensor.h"
 
 namespace jetdl {
 
 std::shared_ptr<Tensor> _power(std::shared_ptr<Tensor>& input,
-                               const int exponent) {
-  std::shared_ptr<std::vector<float>> result_data = input->_data;
+                               const double exponent) {
+  auto result_data = std::shared_ptr<float[]>(new float[input->size]());
 
-  for (size_t i = 0; i < result_data->size(); i++) {
-    c_pow_cpu(&result_data->at(i), input->_data->at(i), exponent);
+  for (size_t i = 0; i < input->size; i++) {
+    result_data[i] = std::pow(input->_data[i], exponent);
   }
 
   auto result_tensor =
       std::make_shared<Tensor>(result_data, input->shape, input->requires_grad);
+
+  if (result_tensor->requires_grad) {
+    result_tensor->grad_fn =
+        std::make_shared<PowBackward>(input, exponent, result_tensor);
+  }
 
   return result_tensor;
 }

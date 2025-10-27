@@ -4,6 +4,7 @@
 
 #include "jetdl/math/arith.h"
 #include "jetdl/math/function.h"
+#include "jetdl/tensor.h"
 #include "jetdl/utils/check.h"
 
 namespace jetdl {
@@ -70,8 +71,12 @@ std::shared_ptr<Tensor> neg(std::shared_ptr<Tensor>& a) {
   return sub(zero_tensors, a);
 }
 
-std::shared_ptr<Tensor> pow(std::shared_ptr<Tensor>& a, const int exponent) {
+std::shared_ptr<Tensor> pow(std::shared_ptr<Tensor>& a, const double exponent) {
   return _power(a, exponent);
+}
+
+std::shared_ptr<Tensor> sqrt(std::shared_ptr<Tensor>& a) {
+  return _square_root(a);
 }
 
 std::shared_ptr<Tensor> sum(std::shared_ptr<Tensor>& a,
@@ -101,6 +106,11 @@ std::shared_ptr<Tensor> mean(std::shared_ptr<Tensor>& a,
 std::shared_ptr<Tensor> sum_to_shape(std::shared_ptr<Tensor>& tensor,
                                      const std::vector<size_t>& shape) {
   return _math_sum_to_shape(tensor, shape);
+}
+
+std::shared_ptr<Tensor> heaviside(std::shared_ptr<Tensor>& a,
+                                  const float value) {
+  return _heaviside_function(a, value);
 }
 
 }  // namespace math

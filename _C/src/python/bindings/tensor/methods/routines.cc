@@ -17,7 +17,8 @@ void bind_tensor_method_reshape(
 void bind_tensor_method_squeeze(
     py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
   py_tensor.def(
-      "squeeze", [](std::shared_ptr<Tensor>& self, const py::object& axes) {
+      "squeeze",
+      [](std::shared_ptr<Tensor>& self, const py::object& axes) {
         if (axes.is_none()) {
           return jetdl::squeeze(self, {});
         } else if (py::isinstance<py::list>(axes) ||
@@ -31,7 +32,8 @@ void bind_tensor_method_squeeze(
               py::str("type '{}' not valid as axes input when squeezing tensor")
                   .format(py::type::of(axes)));
         }
-      });
+      },
+      py::arg("axes") = py::none());
 }
 
 void bind_tensor_method_unsqueeze(

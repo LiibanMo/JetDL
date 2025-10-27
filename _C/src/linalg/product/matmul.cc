@@ -1,10 +1,14 @@
+#include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <thread>
 #include <vector>
 
 #include "jetdl/autograd/linalg.h"
 #include "jetdl/linalg/kernel.h"
 #include "jetdl/linalg/product.h"
+#include "jetdl/routines.h"
 #include "jetdl/tensor.h"
 #include "jetdl/utils/auxiliary.h"
 #include "jetdl/utils/broadcast.h"
@@ -14,14 +18,20 @@ namespace jetdl {
 
 std::shared_ptr<Tensor> _linalg_dot(std::shared_ptr<Tensor>& a,
                                     std::shared_ptr<Tensor>& b) {
-  auto result_data = std::make_shared<std::vector<float>>(1, 0.0f);
+  std::vector<size_t> view_shape_a = {1};
+  view_shape_a.push_back(a->shape[0]);
 
-  for (size_t i = 0; i < a->size; i++) {
-    result_data->at(0) += a->_data->at(i) * b->_data->at(i);
-  }
+  std::vector<size_t> view_shape_b = b->shape;
+  view_shape_b.push_back(1);
+
+  std::shared_ptr<Tensor> view_tensor_a = view(a, view_shape_a);
+  std::shared_ptr<Tensor> view_tensor_b = view(b, view_shape_b);
+
+  std::shared_ptr<Tensor> view_result_tensor =
+      _linalg_matmul(view_tensor_a, view_tensor_b);
 
   auto result_tensor = std::make_shared<Tensor>(
-      result_data, std::vector<size_t>{}, a->requires_grad || b->requires_grad);
+      view_result_tensor->_data[0], a->requires_grad || b->requires_grad);
 
   if (result_tensor->requires_grad) {
     result_tensor->grad_fn = std::make_shared<DotBackward>(a, b, result_tensor);
@@ -32,181 +42,133 @@ std::shared_ptr<Tensor> _linalg_dot(std::shared_ptr<Tensor>& a,
 
 std::shared_ptr<Tensor> _linalg_matvec(std::shared_ptr<Tensor>& a,
                                        std::shared_ptr<Tensor>& b) {
+  std::vector<size_t> view_shape_b = b->shape;
+  view_shape_b.push_back(1);
+
+  std::shared_ptr<Tensor> view_tensor_b = view(b, view_shape_b);
+
+  std::shared_ptr<Tensor> view_result_tensor = _linalg_matmul(a, view_tensor_b);
+
   const std::vector<size_t>& shape =
       utils::get_result_shape(a->shape, b->shape, utils::OpType::MATMUL);
 
-  const size_t M = a->shape[a->ndim - 2];
-  const size_t N = b->shape[0];
-
-  const size_t data1_rows = utils::get_next_multiple(M, BLOCK_N_ROWS);
-  const size_t batch_size = utils::get_batch_size(a->shape);
-
-  const size_t data1_mat_size = data1_rows * N;
-  const size_t data2_mat_size = N * BLOCK_N_COLS;
-  const size_t result_mat_size = data1_rows * BLOCK_N_COLS;
-
-  float* result_matrix = new float[result_mat_size]();
-  float* data1_matrix = new float[data1_mat_size]();
-  float* data2_matrix = new float[data2_mat_size]();
-
-  const size_t result_size = a->size / b->size;
-  auto result_data = std::make_shared<std::vector<float>>(result_size);
-
-  for (size_t i = 0; i < N; i++) {
-    data2_matrix[i * BLOCK_N_COLS] = b->_data->at(i);
-  }
-  for (size_t batch = 0; batch < batch_size; batch++) {
-    const size_t a_batch_stride = (a->ndim > 2) ? a->strides[a->ndim - 3] : 0;
-    const size_t idxA = batch * a_batch_stride;
-    std::copy(a->_data->begin() + idxA, a->_data->begin() + idxA + M * N,
-              data1_matrix);
-    for (size_t x = 0; x < data1_rows; x += BLOCK_N_ROWS) {
-      c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, x, 0,
-                   BLOCK_N_COLS, N);
-    }
-    for (size_t i = 0; i < M; i++) {
-      result_data->at(batch * M + i) = result_matrix[i * BLOCK_N_COLS];
-    }
-  }
-
-  delete[] result_matrix;
-  delete[] data1_matrix;
-  delete[] data2_matrix;
-
-  auto result_tensor = std::make_shared<Tensor>(
-      result_data, shape, a->requires_grad || b->requires_grad);
-
-  if (result_tensor->requires_grad) {
-    result_tensor->grad_fn =
-        std::make_shared<MatVecBackward>(a, b, result_tensor);
-  }
+  std::shared_ptr<Tensor> result_tensor = view(view_result_tensor, shape);
+  result_tensor->requires_grad = a->requires_grad || b->requires_grad;
 
   return result_tensor;
 }
 
 std::shared_ptr<Tensor> _linalg_vecmat(std::shared_ptr<Tensor>& a,
                                        std::shared_ptr<Tensor>& b) {
+  std::vector<size_t> view_shape_a = {1};
+  view_shape_a.push_back(a->shape[0]);
+
+  std::shared_ptr<Tensor> view_tensor_a = view(a, view_shape_a);
+
+  std::shared_ptr<Tensor> view_result_tensor = _linalg_matmul(view_tensor_a, b);
+
   const std::vector<size_t>& shape =
       utils::get_result_shape(a->shape, b->shape, utils::OpType::MATMUL);
 
-  const size_t N = a->shape[0];
-  const size_t P = b->shape[b->ndim - 1];
-
-  const size_t data2_cols = utils::get_next_multiple(P, BLOCK_N_COLS);
-  const size_t batch_size = utils::get_batch_size(b->shape);
-
-  const size_t data1_mat_size = BLOCK_N_ROWS * N;
-  const size_t data2_mat_size = N * data2_cols;
-  const size_t result_mat_size = BLOCK_N_ROWS * data2_cols;
-
-  float* result_matrix = new float[result_mat_size]();
-  float* data1_matrix = new float[data1_mat_size]();
-  float* data2_matrix = new float[data2_mat_size]();
-
-  const size_t result_size = b->size / a->size;
-  auto result_data = std::make_shared<std::vector<float>>(result_size);
-
-  std::copy(a->_data->begin(), a->_data->end(), data1_matrix);
-  for (size_t batch = 0; batch < batch_size; batch++) {
-    for (size_t i = 0; i < N; i++) {
-      const size_t b_batch_stride = (b->ndim > 2) ? b->strides[b->ndim - 3] : 0;
-      const size_t idxB = batch * b_batch_stride + i * b->strides[b->ndim - 2];
-      std::copy(b->_data->begin() + idxB, b->_data->begin() + idxB + P,
-                data2_matrix + i * data2_cols);
-    }
-    for (size_t y = 0; y < data2_cols; y += BLOCK_N_COLS) {
-      c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, 0, y, data2_cols,
-                   N);
-    }
-    std::copy(result_matrix, result_matrix + P,
-              result_data->begin() + batch * P);
-  }
-
-  delete[] result_matrix;
-  delete[] data1_matrix;
-  delete[] data2_matrix;
-
-  auto result_tensor = std::make_shared<Tensor>(
-      result_data, shape, a->requires_grad || b->requires_grad);
-
-  if (result_tensor->requires_grad) {
-    result_tensor->grad_fn =
-        std::make_shared<VecMatBackward>(a, b, result_tensor);
-  }
+  std::shared_ptr<Tensor> result_tensor = view(view_result_tensor, shape);
+  result_tensor->requires_grad = a->requires_grad || b->requires_grad;
 
   return result_tensor;
 }
 
-std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& a,
-                                       std::shared_ptr<Tensor>& b) {
-  const std::vector<size_t>& shape =
-      utils::get_result_shape(a->shape, b->shape, utils::OpType::MATMUL);
+std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
+                                       std::shared_ptr<Tensor>& tensor2) {
+  // Fast path for 2D matmul
+  if (tensor1->ndim == 2 && tensor2->ndim == 2) {
+    const size_t M = tensor1->shape[0];
+    const size_t K = tensor1->shape[1];
+    const size_t N = tensor2->shape[1];
 
-  const size_t M = a->shape[a->ndim - 2];
-  const size_t N = a->shape[a->ndim - 1];
-  const size_t P = b->shape[b->ndim - 1];
+    const std::vector<size_t> shape = {M, N};
+    const size_t result_size = M * N;
+    auto result_data = std::shared_ptr<float[]>(new float[result_size]());
 
-  const size_t batch_size = utils::get_batch_size(shape);
+    matmul_cpu(tensor1->_data.get(), tensor2->_data.get(), result_data.get(), M,
+               K, N, K, N, N);
 
-  const size_t data1_rows = utils::get_next_multiple(M, BLOCK_N_ROWS);
-  const size_t data2_cols = utils::get_next_multiple(P, BLOCK_N_COLS);
+    auto result_tensor = std::make_shared<Tensor>(
+        result_data, shape, tensor1->requires_grad || tensor2->requires_grad);
 
-  const size_t result_mat_size = data1_rows * data2_cols;
-  const size_t data1_mat_size = data1_rows * N;
-  const size_t data2_mat_size = N * data2_cols;
+    if (result_tensor->requires_grad) {
+      result_tensor->grad_fn =
+          std::make_shared<MatmulBackward>(tensor1, tensor2, result_tensor);
+    }
+    return result_tensor;
+  }
+
+  const std::vector<size_t>& shape = utils::get_result_shape(
+      tensor1->shape, tensor2->shape, utils::OpType::MATMUL);
+
+  const size_t M = tensor1->shape[tensor1->ndim - 2];
+  const size_t K = tensor1->shape[tensor1->ndim - 1];
+  const size_t N = tensor2->shape[tensor2->ndim - 1];
+
+  const size_t B = utils::get_batch_size(shape);
 
   const auto& strides_pair =
-      utils::get_strides(a->shape, b->shape, utils::OpType::MATMUL);
-  const std::vector<size_t>& stridesA = strides_pair.first;
-  const std::vector<size_t>& stridesB = strides_pair.second;
-
-  const std::vector<size_t>& idxsA =
-      utils::populate_linear_idxs(shape, stridesA, utils::OpType::MATMUL);
-  const std::vector<size_t>& idxsB =
-      utils::populate_linear_idxs(shape, stridesB, utils::OpType::MATMUL);
-
-  float* result_matrix = new float[result_mat_size]();
-  float* data1_matrix = new float[data1_mat_size]();
-  float* data2_matrix = new float[data2_mat_size]();
+      utils::get_strides(tensor1->shape, tensor2->shape, utils::OpType::MATMUL);
+  const std::vector<size_t>& batch_strides1 = strides_pair.first;
+  const std::vector<size_t>& batch_strides2 = strides_pair.second;
 
   const size_t result_size = utils::get_size(shape);
-  auto result_data = std::make_shared<std::vector<float>>(result_size);
+  auto result_data = std::shared_ptr<float[]>(new float[result_size]());
 
-  for (size_t batch = 0; batch < batch_size; batch++) {
-    const size_t idxA = idxsA[batch];
-    std::copy(a->_data->begin() + idxA, a->_data->begin() + idxA + M * N,
-              data1_matrix);
-    for (size_t i = 0; i < N; i++) {
-      const size_t idxB = idxsB[batch] + i * b->strides[b->ndim - 2];
-      std::copy(b->_data->begin() + idxB, b->_data->begin() + idxB + P,
-                data2_matrix + i * data2_cols);
+  const std::vector<size_t>& idxs1 =
+      utils::populate_linear_idxs(shape, batch_strides1, utils::OpType::MATMUL);
+  const std::vector<size_t>& idxs2 =
+      utils::populate_linear_idxs(shape, batch_strides2, utils::OpType::MATMUL);
+
+  float* ptr1 = tensor1->_data.get();
+  float* ptr2 = tensor2->_data.get();
+  float* result_ptr = result_data.get();
+
+  auto worker = [&](size_t start_b, size_t end_b) {
+    for (size_t b = start_b; b < end_b; b++) {
+      float* ptr1_b = ptr1 + idxs1[b];
+      float* ptr2_b = ptr2 + idxs2[b];
+      float* result_ptr_b = result_ptr + b * M * N;
+      matmul_cpu(ptr1_b, ptr2_b, result_ptr_b, M, K, N, K, N, N);
     }
-    for (size_t x = 0; x < data1_rows; x += BLOCK_N_ROWS) {
-      for (size_t y = 0; y < data2_cols; y += BLOCK_N_COLS) {
-        c_matmul_cpu(data1_matrix, data2_matrix, result_matrix, x, y,
-                     data2_cols, N);
+  };
+
+  if (B > 0) {
+    unsigned int num_threads = std::thread::hardware_concurrency();
+    if (B < num_threads) {
+      num_threads = B;
+    }
+
+    if (num_threads > 1) {
+      std::vector<std::thread> threads;
+      threads.reserve(num_threads);
+      size_t chunk_size = (B + num_threads - 1) / num_threads;
+      for (unsigned int i = 0; i < num_threads; ++i) {
+        size_t start_b = i * chunk_size;
+        size_t end_b = std::min(start_b + chunk_size, B);
+        if (start_b < end_b) {
+          threads.emplace_back(worker, start_b, end_b);
+        }
       }
-    }
-    for (size_t i = 0; i < M; i++) {
-      const size_t idx = batch * M * P + i * P;
-      std::copy(result_matrix + i * data2_cols,
-                result_matrix + i * data2_cols + P, result_data->begin() + idx);
+      for (auto& t : threads) {
+        t.join();
+      }
+    } else {
+      worker(0, B);
     }
   }
 
-  delete[] result_matrix;
-  delete[] data1_matrix;
-  delete[] data2_matrix;
-
   auto result_tensor = std::make_shared<Tensor>(
-      result_data, shape, a->requires_grad || b->requires_grad);
+      result_data, shape, tensor1->requires_grad || tensor2->requires_grad);
 
   if (result_tensor->requires_grad) {
     result_tensor->grad_fn =
-        std::make_shared<MatmulBackward>(a, b, result_tensor);
+        std::make_shared<MatmulBackward>(tensor1, tensor2, result_tensor);
   }
 
   return result_tensor;
 }
-
 }  // namespace jetdl

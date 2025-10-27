@@ -1,5 +1,210 @@
 #include "jetdl/math/kernel.h"
 
+#include <cstddef>
+
+#if defined(__ARM_NEON__) || defined(__AVX2__)
+
+#include "jetdl/simd.h"
+
+#if defined(__ARM_NEON__)
+constexpr size_t BLOCK_SIZE = 16;
+constexpr size_t N_VECS = BLOCK_SIZE / 4;
+#elif defined(__AVX2__)
+constexpr size_t BLOCK_SIZE = 32;
+constexpr size_t N_VECS = BLOCK_SIZE / 8;
+#endif
+
+void c_add_a_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V a_vec = JETDL_DUP_n_F32_V(*a);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(b + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_ADD_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = *a + b[i];
+  }
+}
+
+void c_add_b_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V b_vec = JETDL_DUP_n_F32_V(*b);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(a + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_ADD_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] + *b;
+  }
+}
+
+void c_add_scalars_cpu(const float* a, const float* b, float* c) {
+  *c = *a + *b;
+}
+
+void c_sub_a_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V a_vec = JETDL_DUP_n_F32_V(*a);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(b + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_SUB_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = *a - b[i];
+  }
+}
+
+void c_sub_b_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V b_vec = JETDL_DUP_n_F32_V(*b);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    c[i] = a[i] + *b;
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(a + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_SUB_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] - *b;
+  }
+}
+
+void c_sub_scalars_cpu(const float* a, const float* b, float* c) {
+  *c = *a - *b;
+}
+
+void c_mul_a_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V a_vec = JETDL_DUP_n_F32_V(*a);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(b + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_MUL_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = *a * b[i];
+  }
+}
+
+void c_mul_b_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V b_vec = JETDL_DUP_n_F32_V(*b);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    c[i] = a[i] + *b;
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(a + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_MUL_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] * *b;
+  }
+}
+
+void c_mul_scalars_cpu(const float* a, const float* b, float* c) {
+  *c = *a * *b;
+}
+
+void c_div_a_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V a_vec = JETDL_DUP_n_F32_V(*a);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(b + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_DIV_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = *a / b[i];
+  }
+}
+
+void c_div_b_scalar_cpu(const float* a, const float* b, float* c,
+                        const size_t N) {
+  size_t i = 0;
+  const JETDL_FLOAT32_V b_vec = JETDL_DUP_n_F32_V(*b);
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    c[i] = a[i] + *b;
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(a + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_DIV_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] / *b;
+  }
+}
+
+void c_div_scalars_cpu(const float* a, const float* b, float* c) {
+  *c = *a / *b;
+}
+
+void c_add_cpu(const float* a, const float* b, float* c, const size_t N) {
+  size_t i = 0;
+  for (; i + BLOCK_SIZE - 1 < N; i += BLOCK_SIZE) {
+    for (size_t j = 0; j < N_VECS; j++) {
+      const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(a + i + (4 * j));
+      const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(b + i + (4 * j));
+      JETDL_ST1_F32_V(c + i + (4 * j), JETDL_ADD_F32_V(a_vec, b_vec));
+    }
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] + b[i];
+  }
+}
+
+void c_sub_cpu(const float* a, const float* b, float* c, const size_t N) {
+  size_t i = 0;
+  for (; i + 3 < N; i += 4) {
+    const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(&a[i]);
+    const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(&b[i]);
+    JETDL_ST1_F32_V(&c[i], JETDL_SUB_F32_V(a_vec, b_vec));
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] - b[i];
+  }
+}
+
+void c_mul_cpu(const float* a, const float* b, float* c, const size_t N) {
+  size_t i = 0;
+  for (; i + 3 < N; i += 4) {
+    const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(&a[i]);
+    const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(&b[i]);
+    JETDL_ST1_F32_V(&c[i], JETDL_MUL_F32_V(a_vec, b_vec));
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] * b[i];
+  }
+}
+
+void c_div_cpu(const float* a, const float* b, float* c, const size_t N) {
+  size_t i = 0;
+  for (; i + 3 < N; i += 4) {
+    const JETDL_FLOAT32_V a_vec = JETDL_LD1_F32_V(&a[i]);
+    const JETDL_FLOAT32_V b_vec = JETDL_LD1_F32_V(&b[i]);
+    JETDL_ST1_F32_V(&c[i], JETDL_DIV_F32_V(a_vec, b_vec));
+  }
+  for (; i < N; i++) {
+    c[i] = a[i] / b[i];
+  }
+}
+
+#else
+
 void c_add_a_scalar_cpu(const float* a, const float* b, float* c,
                         const size_t N) {
   for (size_t i = 0; i < N; i++) {
@@ -71,56 +276,6 @@ void c_div_b_scalar_cpu(const float* a, const float* b, float* c,
 void c_div_scalars_cpu(const float* a, const float* b, float* c) {
   *c = *a / *b;
 }
-
-#if defined(__ARM_NEON__)
-
-#include <arm_neon.h>
-
-void c_add_cpu(const float* a, const float* b, float* c, const size_t N) {
-  for (size_t i = 0; i < N; i += BLOCK_N_COLS) {
-    const float32x4_t a0 = vld1q_f32(&a[i]);
-    const float32x4_t b0 = vld1q_f32(&b[i]);
-    const float32x4_t a1 = vld1q_f32(&a[i + 4]);
-    const float32x4_t b1 = vld1q_f32(&b[i + 4]);
-    vst1q_f32(&c[i], vaddq_f32(a0, b0));
-    vst1q_f32(&c[i + 4], vaddq_f32(a1, b1));
-  }
-}
-
-void c_sub_cpu(const float* a, const float* b, float* c, const size_t N) {
-  for (size_t i = 0; i < N; i += BLOCK_N_COLS) {
-    const float32x4_t a0 = vld1q_f32(&a[i]);
-    const float32x4_t b0 = vld1q_f32(&b[i]);
-    const float32x4_t a1 = vld1q_f32(&a[i + 4]);
-    const float32x4_t b1 = vld1q_f32(&b[i + 4]);
-    vst1q_f32(&c[i], vsubq_f32(a0, b0));
-    vst1q_f32(&c[i + 4], vsubq_f32(a1, b1));
-  }
-}
-
-void c_mul_cpu(const float* a, const float* b, float* c, const size_t N) {
-  for (size_t i = 0; i < N; i += BLOCK_N_COLS) {
-    const float32x4_t a0 = vld1q_f32(&a[i]);
-    const float32x4_t b0 = vld1q_f32(&b[i]);
-    const float32x4_t a1 = vld1q_f32(&a[i + 4]);
-    const float32x4_t b1 = vld1q_f32(&b[i + 4]);
-    vst1q_f32(&c[i], vmulq_f32(a0, b0));
-    vst1q_f32(&c[i + 4], vmulq_f32(a1, b1));
-  }
-}
-
-void c_div_cpu(const float* a, const float* b, float* c, const size_t N) {
-  for (size_t i = 0; i < N; i += BLOCK_N_COLS) {
-    const float32x4_t a0 = vld1q_f32(&a[i]);
-    const float32x4_t b0 = vld1q_f32(&b[i]);
-    const float32x4_t a1 = vld1q_f32(&a[i + 4]);
-    const float32x4_t b1 = vld1q_f32(&b[i + 4]);
-    vst1q_f32(&c[i], vdivq_f32(a0, b0));
-    vst1q_f32(&c[i + 4], vdivq_f32(a1, b1));
-  }
-}
-
-#else
 
 void c_add_cpu(const float* a, const float* b, float* c, const size_t N) {
   for (size_t i = 0; i < N; i++) {

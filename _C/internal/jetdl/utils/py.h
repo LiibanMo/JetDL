@@ -3,6 +3,8 @@
 
 #include <pybind11/pybind11.h>
 
+#include <memory>
+
 namespace py = pybind11;
 
 namespace jetdl {
@@ -23,14 +25,19 @@ inline py::str py_dtype_error_message(const py::object& item) {
 }
 
 void py_check_data_consistency_step(const py::list& data);
+
 void py_check_data_consistency(const py::list& data);
 
 size_t py_get_ndim(const py::object& data);
+
 std::vector<size_t> py_get_shape(const py::object& data, const size_t ndim);
 
 size_t py_get_size(const py::list& data);
-void py_flatten_list_to_vec(const py::list& data, std::vector<float>& vec);
-std::shared_ptr<std::vector<float>> py_flatten_list(const py::list& data);
+
+void py_flatten_list_to_vec(const py::list& data,
+                            std::shared_ptr<float[]>& data_ptr, size_t& idx);
+
+std::shared_ptr<float[]> py_flatten_list(const py::list& data);
 
 }  // namespace utils
 }  // namespace jetdl

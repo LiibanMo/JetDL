@@ -3,29 +3,34 @@ import torch
 
 import jetdl
 
-from ..utils import (
-    SEED,
-    PyTestAsserts,
-    generate_random_data,
-    generate_shape_ids,
-    obtain_result_tensors,
-    operation_registry,
-)
+from ..utils import (SEED, PyTestAsserts, generate_random_data,
+                     generate_shape_ids, obtain_result_tensors,
+                     operation_registry)
 
 torch.manual_seed(SEED)
 
 non_broadcast_shapes = [
     ((2), (2)),
+    ((20), (20)),
     ((3,), (3,)),
+    ((30,), (30,)),
     ((3, 4), (3, 4)),
+    ((30, 40), (30, 40)),
     ((4, 3, 2), (4, 3, 2)),
+    ((4, 30, 20), (4, 30, 20)),
     ((2, 3, 4, 5), (2, 3, 4, 5)),
+    ((2, 30, 40, 50), (2, 30, 40, 50)),
 ]
 
 broadcast_shapes = [
     ((1), (4)),
+    ((1), (40)),
+    ((1), (400)),
     ((5), (1)),
+    ((50), (1)),
+    ((500), (1)),
     ((2, 3), (3)),
+    ((20, 30), (30)),
     ((2, 3), (2, 1)),
     ((2, 3, 1, 4), (1, 3, 4, 4)),
 ]
@@ -41,9 +46,9 @@ def test_non_broadcast_arithmetic(shape1, shape2, operation):
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
     assert_object = PyTestAsserts(j3, expected_tensor)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -55,9 +60,9 @@ def test_broadcast_arithmetic(shape1, shape2, operation):
     j3, expected_tensor = obtain_result_tensors(data1, data2, operation)
 
     assert_object = PyTestAsserts(j3, expected_tensor)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -72,19 +77,15 @@ def test_scalar_tensor_arithmetic(shape, operation):
     j_scalar = jetdl.tensor(scalar_data)
     j_tensor = jetdl.tensor(tensor_data)
     j_result = jetdl_op(j_scalar, j_tensor)
-    print(f"j_result = {j_result._data}")
-    print(f"j_result_shape = {j_result.shape}")
 
     t_scalar = torch.tensor(scalar_data)
     t_tensor = torch.tensor(tensor_data)
     expected_tensor = torch_op(t_scalar, t_tensor)
-    print(f"expected_tensor = {expected_tensor}")
-    print(f"expected_tensor = {expected_tensor.shape}")
 
     assert_object = PyTestAsserts(j_result, expected_tensor)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()
 
 
@@ -105,7 +106,79 @@ def test_tensor_scalar_arithmetic(shape, operation):
     expected_tensor = torch_op(t_tensor, t_scalar)
 
     assert_object = PyTestAsserts(j_result, expected_tensor)
-    assert assert_object.check_basic_metadata(), (
-        assert_object.basic_metadata_error_output()
-    )
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_results(), assert_object.results_error_output()
+
+
+@pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
+def test_radd(shape):
+    tensor_data = generate_random_data(shape, shape)[0]
+    scalar_data = generate_random_data((), ())[0]
+
+    j_tensor = jetdl.tensor(tensor_data)
+    t_tensor = torch.tensor(tensor_data)
+
+    j_result = scalar_data + j_tensor
+    t_result = scalar_data + t_tensor
+
+    assert_object = PyTestAsserts(j_result, t_result)
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_results(), assert_object.results_error_output()
+
+
+@pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
+def test_rsub(shape):
+    tensor_data = generate_random_data(shape, shape)[0]
+    scalar_data = generate_random_data((), ())[0]
+
+    j_tensor = jetdl.tensor(tensor_data)
+    t_tensor = torch.tensor(tensor_data)
+
+    j_result = scalar_data - j_tensor
+    t_result = scalar_data - t_tensor
+
+    assert_object = PyTestAsserts(j_result, t_result)
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_results(), assert_object.results_error_output()
+
+
+@pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
+def test_rmul(shape):
+    tensor_data = generate_random_data(shape, shape)[0]
+    scalar_data = generate_random_data((), ())[0]
+
+    j_tensor = jetdl.tensor(tensor_data)
+    t_tensor = torch.tensor(tensor_data)
+
+    j_result = scalar_data * j_tensor
+    t_result = scalar_data * t_tensor
+
+    assert_object = PyTestAsserts(j_result, t_result)
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
+    assert assert_object.check_results(), assert_object.results_error_output()
+
+
+@pytest.mark.parametrize("shape", [(), (1,), (2, 3), (4, 3, 2)], ids=generate_shape_ids)
+def test_rtruediv(shape):
+    tensor_data = generate_random_data(shape, shape)[0]
+    scalar_data = generate_random_data((), ())[0]
+
+    j_tensor = jetdl.tensor(tensor_data)
+    t_tensor = torch.tensor(tensor_data)
+
+    j_result = scalar_data / j_tensor
+    t_result = scalar_data / t_tensor
+
+    assert_object = PyTestAsserts(j_result, t_result)
+    assert (
+        assert_object.check_basic_metadata()
+    ), assert_object.basic_metadata_error_output()
     assert assert_object.check_results(), assert_object.results_error_output()

@@ -37,6 +37,7 @@ std::vector<std::shared_ptr<Tensor>> VecMatBackward::apply(
     std::shared_ptr<Tensor> unsqueezed_grad_tensor = unsqueeze(grad_tensor, 0);
     std::shared_ptr<Tensor> gradB =
         linalg::matmul(unsqueezed_tensorA, unsqueezed_grad_tensor);
+
     grads[1] = math::sum_to_shape(gradB, tensorB->shape);
   }
 

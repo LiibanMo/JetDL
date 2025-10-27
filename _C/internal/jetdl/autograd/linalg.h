@@ -41,6 +41,24 @@ class MatmulBackward : public Function {
       std::shared_ptr<Tensor>& grad_tensor) override;
 };
 
+class TransposeBackward : public Function {
+ public:
+  TransposeBackward(std::shared_ptr<Tensor>& a,
+                    std::shared_ptr<Tensor>& result_tensor);
+
+  std::vector<std::shared_ptr<Tensor>> apply(
+      std::shared_ptr<Tensor>& grad_tensor) override;
+};
+
+class MatrixTransposeBackward : public Function {
+ public:
+  MatrixTransposeBackward(std::shared_ptr<Tensor>& a,
+                          std::shared_ptr<Tensor>& result_tensor);
+
+  std::vector<std::shared_ptr<Tensor>> apply(
+      std::shared_ptr<Tensor>& grad_tensor) override;
+};
+
 }  // namespace jetdl
 
 #endif

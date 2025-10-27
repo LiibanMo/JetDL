@@ -8,7 +8,7 @@
 namespace jetdl {
 
 std::shared_ptr<Tensor> _power(std::shared_ptr<Tensor>& input,
-                               const int exponent);
+                               const double exponent);
 
 std::shared_ptr<Tensor> _math_total_sum(std::shared_ptr<Tensor>& a);
 
@@ -23,6 +23,10 @@ std::shared_ptr<Tensor> _math_total_mean(std::shared_ptr<Tensor>& a);
 std::shared_ptr<Tensor> _math_mean_over_axes(std::shared_ptr<Tensor>& a,
                                              const std::vector<size_t>& axes);
 
+std::shared_ptr<Tensor> _square_root(std::shared_ptr<Tensor>& input);
+
+std::shared_ptr<Tensor> _heaviside_function(std::shared_ptr<Tensor>& input,
+                                            const float value = 0.0f);
 }  // namespace jetdl
 
 #endif

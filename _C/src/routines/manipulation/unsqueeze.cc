@@ -1,6 +1,7 @@
 #include <memory>
 #include <vector>
 
+#include "jetdl/routines.h"
 #include "jetdl/routines/manipulation.h"
 #include "jetdl/tensor.h"
 
@@ -26,7 +27,7 @@ std::shared_ptr<Tensor> _unsqueeze(std::shared_ptr<Tensor>& input,
     }
   }
 
-  return input->view(shape);
+  return view(input, shape);
 }
 
 }  // namespace jetdl

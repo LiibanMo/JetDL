@@ -21,36 +21,51 @@ if(ENABLE_DEBUG)
   target_compile_options(_C PRIVATE -O0 -g -no-omit-frame-pointer
                                     -fsanitize=address)
 else()
-  target_compile_options(_C PRIVATE -O3 -DNDEBUG -march=native)
+  target_compile_options(_C PRIVATE -O3 -DNDEBUG -march=native -ffast-math)
 endif()
 
 target_include_directories(_C PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_include_directories(_C PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../internal)
 
-# Include Directories and Link Libraries for BLAS
-
-set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/opt/homebrew/opt/openblas")
-message(STATUS "CMAKE_PREFIX_PATH set to: ${CMAKE_PREFIX_PATH}")
-
-set(BLA_VENDOR OpenBLAS)
-
-find_package(BLAS REQUIRED)
-
-if(BLAS_FOUND)
-  message(STATUS "BLAS found: ${BLAS_LIBRARIES}")
-  message(STATUS "BLAS include directories: ${BLAS_INCLUDE_DIRS}")
-
-  target_link_libraries(_C PRIVATE ${BLAS_LIBRARIES})
-
-  if(BLAS_INCLUDE_DIRS)
-    target_include_directories(_C PRIVATE ${BLAS_INCLUDE_DIRS})
+# --- BLAS Configuration ---
+if(APPLE)
+  # On macOS, use the native, hardware-optimized Accelerate framework
+  target_compile_definitions(_C PRIVATE -DACCELERATE_NEW_LAPACK)
+  find_library(ACCELERATE_FRAMEWORK Accelerate)
+  if(ACCELERATE_FRAMEWORK)
+    message(STATUS "Found Accelerate framework, linking against it.")
+    target_link_libraries(_C PRIVATE ${ACCELERATE_FRAMEWORK})
   else()
-    # Fallback if BLAS_INCLUDE_DIRS
-    message(WARNING "BLAS_INCLUDE_DIRS was not set by FindBLAS.
-        Manually adding common OpenBLAS include path.")
-    target_include_directories(_C PRIVATE "${CMAKE_PREFIX_PATH}/include")
+    message(FATAL_ERROR "Accelerate framework not found on Apple system.")
   endif()
 else()
-  message(FATAL_ERROR "OpenBLAS (or a compatible BLAS) not found.
+  # On other systems (e.g., Linux), use OpenBLAS
+  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/opt/homebrew/opt/openblas")
+  message(STATUS "CMAKE_PREFIX_PATH set to: ${CMAKE_PREFIX_PATH}")
+
+  set(BLA_VENDOR OpenBLAS)
+
+  find_package(BLAS REQUIRED)
+
+  if(BLAS_FOUND)
+    message(STATUS "BLAS found: ${BLAS_LIBRARIES}")
+    message(STATUS "BLAS include directories: ${BLAS_INCLUDE_DIRS}")
+
+    target_link_libraries(_C PRIVATE ${BLAS_LIBRARIES})
+
+    if(BLAS_INCLUDE_DIRS)
+      target_include_directories(_C PRIVATE ${BLAS_INCLUDE_DIRS})
+    else()
+      # Fallback if BLAS_INCLUDE_DIRS
+      message(WARNING "BLAS_INCLUDE_DIRS was not set by FindBLAS.
+        Manually adding common OpenBLAS include path.")
+      target_include_directories(_C PRIVATE "${CMAKE_PREFIX_PATH}/include")
+    endif()
+  else()
+    message(FATAL_ERROR "OpenBLAS (or a compatible BLAS) not found.
       Please install OpenBLAS and ensure it's discoverable by CMake.")
+  endif()
 endif()
+
+set(OpenMP_ROOT_DIR "/opt/homebrew/opt/libomp")
+find_package(OpenMP)

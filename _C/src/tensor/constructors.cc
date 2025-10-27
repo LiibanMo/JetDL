@@ -1,7 +1,9 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include <vector>
 
+#include "jetdl/autograd.h"
 #include "jetdl/tensor.h"
 #include "jetdl/utils/metadata.h"
 #include "jetdl/utils/py.h"
@@ -39,15 +41,15 @@ Tensor::Tensor(const py::object& data, const bool requires_grad)
     this->shape = {};
     this->size = 1;
     this->strides = {};
-    this->_data =
-        std::make_shared<std::vector<float>>(1, py::cast<float>(data));
+    this->_data = std::shared_ptr<float[]>(new float[1]());
+    this->_data[0] = py::cast<float>(data);
   } else {
     throw py::type_error(
         py::str("init(): type '{}' invalid").format(py::type::of(data)));
   }
 }
 
-Tensor::Tensor(const std::shared_ptr<std::vector<float>>& data,
+Tensor::Tensor(const std::shared_ptr<float[]>& data,
                const std::vector<size_t>& shape, const bool requires_grad)
     : _data(data),
       ndim(shape.size()),
@@ -69,8 +71,20 @@ Tensor::Tensor(const float& data, const bool requires_grad)
       requires_grad(requires_grad),
       grad_fn(nullptr),
       grad(nullptr) {
-  this->_data = std::make_shared<std::vector<float>>(1, data);
+  this->_data = std::shared_ptr<float[]>(new float[1]());
+  this->_data[0] = data;
 }
+
+Tensor::Tensor(const Tensor& other, const bool requires_grad)
+    : _data(other._data),
+      ndim(other.ndim),
+      shape(other.shape),
+      size(other.size),
+      strides(other.strides),
+      is_contiguous(other.is_contiguous),
+      requires_grad(requires_grad),
+      grad_fn(other.grad_fn),
+      grad(other.grad) {}
 
 Tensor::Tensor(const Tensor& other)
     : _data(other._data),

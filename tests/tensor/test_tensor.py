@@ -11,10 +11,20 @@ from ..utils import PyTestAsserts, generate_random_data
     [
         (),
         (5,),
+        (50,),
+        (500,),
         (3, 4),
+        (30, 40),
+        (300, 400),
         (2, 3, 5),
+        (2, 30, 50),
+        (20, 30, 50),
         (1, 5),
+        (1, 50),
+        (1, 500),
         (5, 1),
+        (50, 1),
+        (500, 1),
     ],
 )
 def test_tensor_metadata(shape):

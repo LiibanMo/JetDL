@@ -28,17 +28,35 @@ std::shared_ptr<Tensor> matmul(std::shared_ptr<Tensor>& a,
     return _linalg_dot(a, b);
   } else if (a->ndim > 1 && b->ndim == 1) {
     utils::check_matvec_shapes(a->shape, b->shape);
-    std::shared_ptr<Tensor> operandA = contiguous(a);
-    return _linalg_matvec(operandA, b);
+    if (a->is_contiguous) {
+      return _linalg_matvec(a, b);
+    } else {
+      std::shared_ptr<Tensor> operandA = contiguous(a);
+      return _linalg_matvec(operandA, b);
+    }
   } else if (a->ndim == 1 && b->ndim > 1) {
     utils::check_vecmat_shapes(a->shape, b->shape);
-    std::shared_ptr<Tensor> operandB = contiguous(b);
-    return _linalg_vecmat(a, operandB);
+    if (b->is_contiguous) {
+      return _linalg_vecmat(a, b);
+    } else {
+      std::shared_ptr<Tensor> operandB = contiguous(b);
+      return _linalg_vecmat(a, operandB);
+    }
   } else {
     utils::check_matmul_shapes(a->shape, b->shape);
-    std::shared_ptr<Tensor> operandA = contiguous(a);
-    std::shared_ptr<Tensor> operandB = contiguous(b);
-    return _linalg_matmul(operandA, operandB);
+    if (a->is_contiguous && b->is_contiguous) {
+      return _linalg_matmul(a, b);
+    } else if (!a->is_contiguous && b->is_contiguous) {
+      std::shared_ptr<Tensor> operandA = contiguous(a);
+      return _linalg_matmul(operandA, b);
+    } else if (a->is_contiguous && !b->is_contiguous) {
+      std::shared_ptr<Tensor> operandB = contiguous(b);
+      return _linalg_matmul(a, operandB);
+    } else {
+      std::shared_ptr<Tensor> operandA = contiguous(a);
+      std::shared_ptr<Tensor> operandB = contiguous(b);
+      return _linalg_matmul(operandA, operandB);
+    }
   }
 }
 
@@ -46,7 +64,6 @@ std::shared_ptr<Tensor> T(std::shared_ptr<Tensor>& a) { return _linalg_T(a); }
 
 std::shared_ptr<Tensor> mT(std::shared_ptr<Tensor>& a) {
   if (a->ndim < 2) {
-    py::gil_scoped_acquire acquire;
     throw std::runtime_error(py::str("tensor.mT only supports matrices or "
                                      "batches of matrices. Got {}D tensor.")
                                  .format(a->ndim));

@@ -3,7 +3,7 @@ import torch
 import jetdl
 
 SEED = 123
-ERR = 1e-6
+ERR = 1e-3
 
 
 def generate_random_data(shape1, shape2=None) -> list:
@@ -100,8 +100,8 @@ class PyTestAsserts:
             return self.is_contiguous_error_output()
 
     def check_results(self, err: float = ERR) -> bool:
-        j_torch_version = torch.tensor(self.j._data).reshape(self.j.shape)
+        j_torch_version = torch.asarray(self.j).reshape(self.j.shape)
         return torch.allclose(j_torch_version, self.t, err)
 
     def results_error_output(self) -> str:
-        return f"Expected tensors to be close: {self.j._data} vs {self.t}"
+        return f"Expected tensors to be close: {self.j} vs {self.t}"

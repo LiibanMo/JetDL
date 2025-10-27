@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "jetdl/python/routines/bindings.h"
+#include "jetdl/utils/check.h"
 
 namespace py = pybind11;
 
@@ -16,10 +17,19 @@ namespace jetdl {
 void bind_routines_submodule(py::module_& m) {
   py::module_ routines = m.def_submodule("routines");
   routines.def("c_zeros", &jetdl::zeros);
-
   routines.def("c_ones", &jetdl::ones);
+  routines.def("c_fill", &jetdl::fill);
+  routines.def("c_reshape", [](std::shared_ptr<Tensor>& tensor,
+                               const py::object& shape) {
+    if (!py::isinstance<py::list>(shape) && !py::isinstance<py::tuple>(shape)) {
+      throw py::type_error(
+          py::str("type '{}' not valid as shape input when reshaping tensor")
+              .format(py::type::of(shape)));
+    }
 
-  routines.def("c_reshape", &jetdl::reshape);
+    const auto& shape_vec = py::cast<std::vector<int>>(shape);
+    return jetdl::reshape(tensor, shape_vec);
+  });
 
   routines.def(
       "c_squeeze", [](std::shared_ptr<Tensor>& input, const py::object& axes) {

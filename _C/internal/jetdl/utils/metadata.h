@@ -6,7 +6,18 @@
 namespace jetdl {
 namespace utils {
 
-size_t get_size(const std::vector<size_t>& shape);
+template <typename T>
+T get_size(const std::vector<T>& shape) {
+  const size_t ndim = shape.size();
+  T size = 1;
+  if (ndim == 0) {
+    return size;
+  }
+  for (size_t i = 0; i < ndim; i++) {
+    size *= shape[i];
+  }
+  return size;
+}
 
 std::vector<size_t> get_strides(const std::vector<size_t>& shape);
 

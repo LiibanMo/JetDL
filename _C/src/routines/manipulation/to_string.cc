@@ -20,7 +20,7 @@ void to_string_recursive(std::stringstream& ss,
       for (size_t d = 0; d < tensor->ndim; ++d) {
         offset += indices[d] * tensor->strides[d];
       }
-      ss << tensor->_data->at(offset);
+      ss << tensor->_data[offset];
       if (i < tensor->shape[dim] - 1) {
         ss << ", ";
       }
@@ -42,7 +42,7 @@ void to_string_recursive(std::stringstream& ss,
 
 std::string _tensor_to_string(const std::shared_ptr<Tensor>& input) {
   if (input->ndim == 0) {
-    return std::to_string(input->_data->at(0));
+    return std::to_string(input->_data[0]);
   }
 
   std::stringstream ss;

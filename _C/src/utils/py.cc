@@ -3,6 +3,8 @@
 #include <memory>
 #include <stdexcept>
 
+#include "jetdl/utils/metadata.h"
+
 namespace jetdl {
 namespace utils {
 
@@ -108,12 +110,14 @@ size_t py_get_size(const py::list& data) {
   return count;
 }
 
-void py_flatten_list_to_vec(const py::list& data, std::vector<float>& vec) {
+void py_flatten_list_to_vec(const py::list& data,
+                            std::shared_ptr<float[]>& data_ptr, size_t& idx) {
   for (const auto& item : data) {
     if (jetdl::utils::py_is_list(item)) {
-      py_flatten_list_to_vec(py::cast<py::list>(item), vec);
+      py_flatten_list_to_vec(py::cast<py::list>(item), data_ptr, idx);
     } else if (jetdl::utils::py_is_num(item)) {
-      vec.push_back(py::cast<float>(item));
+      data_ptr[idx] = py::cast<float>(item);
+      idx++;
     } else {
       throw py::type_error(py::str("init: incorrect data type present in input "
                                    "data; contains type {}.")
@@ -122,12 +126,13 @@ void py_flatten_list_to_vec(const py::list& data, std::vector<float>& vec) {
   }
 }
 
-std::shared_ptr<std::vector<float>> py_flatten_list(const py::list& data) {
+std::shared_ptr<float[]> py_flatten_list(const py::list& data) {
   const size_t size = py_get_size(data);
 
-  auto data_ptr = std::make_shared<std::vector<float>>();
+  auto data_ptr = std::shared_ptr<float[]>(new float[size]());
 
-  jetdl::utils::py_flatten_list_to_vec(data, *data_ptr);
+  size_t idx = 0;
+  jetdl::utils::py_flatten_list_to_vec(data, data_ptr, idx);
 
   return data_ptr;
 }

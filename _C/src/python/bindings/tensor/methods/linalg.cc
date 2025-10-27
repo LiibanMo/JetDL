@@ -16,10 +16,12 @@ namespace {
 
 void bind_tensor_matmul_method(
     py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
-  py_tensor.def("__matmul__", [](std::shared_ptr<Tensor>& self,
-                                 std::shared_ptr<Tensor>& other) {
-    return linalg::matmul(self, other);
-  });
+  py_tensor.def(
+      "__matmul__",
+      [](std::shared_ptr<Tensor>& self, std::shared_ptr<Tensor>& other) {
+        return linalg::matmul(self, other);
+      },
+      py::call_guard<py::gil_scoped_release>());
 }
 
 void bind_tensor_T_method(

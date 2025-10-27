@@ -1,8 +1,6 @@
 #ifndef MATH_KERNEL_H
 #define MATH_KERNEL_H
 
-#define BLOCK_N_COLS 8
-
 #include <cstddef>
 
 void c_add_cpu(const float* a, const float* b, float* c, const size_t N);

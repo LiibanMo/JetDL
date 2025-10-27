@@ -5,31 +5,31 @@
 
 namespace jetdl {
 
-Tensor Tensor::operator+(const Tensor& other) const {
+Tensor Tensor::operator+(Tensor& other) {
   auto a = std::make_shared<Tensor>(*this);
   auto b = std::make_shared<Tensor>(other);
   return *math::add(a, b);
 }
 
-Tensor Tensor::operator-(const Tensor& other) const {
+Tensor Tensor::operator-(Tensor& other) {
   auto a = std::make_shared<Tensor>(*this);
   auto b = std::make_shared<Tensor>(other);
   return *math::sub(a, b);
 }
 
-Tensor Tensor::operator-() const {
+Tensor Tensor::operator-() {
   auto zero_tensor = std::make_shared<Tensor>(0.0f);
   auto input_tensor = std::make_shared<Tensor>(*this);
   return *math::sub(zero_tensor, input_tensor);
 }
 
-Tensor Tensor::operator*(const Tensor& other) const {
+Tensor Tensor::operator*(Tensor& other) {
   auto a = std::make_shared<Tensor>(*this);
   auto b = std::make_shared<Tensor>(other);
   return *math::mul(a, b);
 }
 
-Tensor Tensor::operator/(const Tensor& other) const {
+Tensor Tensor::operator/(Tensor& other) {
   auto a = std::make_shared<Tensor>(*this);
   auto b = std::make_shared<Tensor>(other);
   return *math::div(a, b);

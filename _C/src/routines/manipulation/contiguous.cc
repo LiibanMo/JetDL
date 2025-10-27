@@ -1,6 +1,7 @@
 #include <memory>
 #include <vector>
 
+#include "jetdl/autograd/routines.h"
 #include "jetdl/routines/manipulation.h"
 #include "jetdl/tensor.h"
 
@@ -11,7 +12,7 @@ std::shared_ptr<Tensor> _make_contiguous(std::shared_ptr<Tensor>& input) {
     return input;
   }
 
-  auto result_data = std::make_shared<std::vector<float>>(input->size, 0.0f);
+  auto result_data = std::shared_ptr<float[]>(new float[input->size]());
 
   std::vector<size_t> current_coords(input->ndim, 0);
   for (size_t i = 0; i < input->size; ++i) {
@@ -20,7 +21,7 @@ std::shared_ptr<Tensor> _make_contiguous(std::shared_ptr<Tensor>& input) {
       source_offset += current_coords[j] * input->strides[j];
     }
 
-    (*result_data)[i] = (*input->_data)[source_offset];
+    result_data[i] = input->_data[source_offset];
 
     for (int j = input->ndim - 1; j >= 0; --j) {
       current_coords[j]++;
@@ -32,7 +33,12 @@ std::shared_ptr<Tensor> _make_contiguous(std::shared_ptr<Tensor>& input) {
   }
 
   auto result_tensor =
-      std::make_shared<Tensor>(result_data, input->shape, input->ndim);
+      std::make_shared<Tensor>(result_data, input->shape, input->requires_grad);
+
+  if (result_tensor->requires_grad) {
+    result_tensor->grad_fn =
+        std::make_shared<ContiguousBackward>(input, result_tensor);
+  }
 
   return result_tensor;
 }

@@ -1,5 +1,6 @@
 #include "jetdl/routines.h"
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -11,24 +12,42 @@
 
 namespace jetdl {
 
+std::shared_ptr<Tensor> copy(std::shared_ptr<Tensor>& input) {
+  return _copy(input);
+}
+
 std::shared_ptr<Tensor> zeros(const std::vector<size_t>& shape,
                               const bool requires_grad) {
-  return _zeros(shape, requires_grad);
+  return fill(shape, 0.0f, requires_grad);
 }
 
 std::shared_ptr<Tensor> ones(const std::vector<size_t>& shape,
                              const bool requires_grad) {
-  return _ones(shape, requires_grad);
+  return fill(shape, 1.0f, requires_grad);
+}
+
+std::shared_ptr<Tensor> fill(const std::vector<size_t>& shape,
+                             const float value, const bool requires_grad) {
+  const size_t size = utils::get_size(shape);
+  auto result_data = std::shared_ptr<float[]>(new float[size]());
+  std::fill(result_data.get(), result_data.get() + size, value);
+  auto result_tensor =
+      std::make_shared<Tensor>(result_data, shape, requires_grad);
+  return result_tensor;
 }
 
 std::shared_ptr<Tensor> reshape(std::shared_ptr<Tensor>& tensor,
-                                const std::vector<size_t>& shape) {
-  const size_t size = utils::get_size(shape);
-  if (size != tensor->size) {
-    throw std::runtime_error(py::str("shape '{}' invalid for reshaping.")
-                                 .format(*py::tuple(py::cast(shape))));
-  }
-  return _reshape(tensor, shape);
+                                const std::vector<int>& shape) {
+  utils::check_reshape_shape(shape, tensor->size);
+  auto new_shape = std::vector<size_t>(shape.size(), 0);
+  std::copy(shape.begin(), shape.end(), new_shape.begin());
+  return view(tensor, new_shape);
+}
+
+std::shared_ptr<Tensor> view(std::shared_ptr<Tensor>& tensor,
+                             const std::vector<size_t>& shape,
+                             const bool requires_grad) {
+  return _view(tensor, shape);
 }
 
 std::shared_ptr<Tensor> squeeze(std::shared_ptr<Tensor>& input,

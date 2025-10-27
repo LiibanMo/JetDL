@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "jetdl/utils/auxiliary.h"
+#include "jetdl/utils/metadata.h"
 
 namespace py = pybind11;
 
@@ -139,6 +140,30 @@ void check_matmul_shapes(const std::vector<size_t>& shapeA,
           py::str("operands could not be broadcasted together along batch "
                   "dimensions"));
     }
+  }
+}
+
+void check_reshape_shape(const std::vector<int>& new_shape, const size_t size) {
+  size_t infer_count = 0;
+  for (size_t i = 0; i < new_shape.size(); i++) {
+    const int dim = new_shape[i];
+    if (dim < 0 && dim != -1) {
+      throw std::runtime_error(
+          py::str("invalid shape dimension {} at index {} of {}")
+              .format(i, dim, new_shape));
+    }
+    infer_count += (dim == -1) ? 1 : 0;
+    if (infer_count > 1) {
+      throw std::runtime_error(py::str("only one dimension can be inferred."));
+    }
+  }
+
+  const int new_size = utils::get_size(new_shape);
+
+  if (new_size != size) {
+    throw std::runtime_error(
+        py::str("shape '{}' is invalid for input for size {}")
+            .format(new_shape, size));
   }
 }
 

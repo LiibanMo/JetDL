@@ -6,6 +6,7 @@
 namespace jetdl {
 
 std::shared_ptr<Tensor> _linalg_T(std::shared_ptr<Tensor>& a);
+
 std::shared_ptr<Tensor> _linalg_mT(std::shared_ptr<Tensor>& a);
 
 }  // namespace jetdl
