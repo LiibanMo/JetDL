@@ -56,8 +56,7 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Cloning vcpkg..."
-          git clone https://github.com/microsoft/vcpkg.git -n --depth 1 --branch master
-          .\vcpkg\checkout-artifacts.bat
+          git clone https://github.com/microsoft/vcpkg.git --depth 1 --branch master
           
           Write-Host "Bootstrapping vcpkg..."
           .\vcpkg\bootstrap-vcpkg.bat
