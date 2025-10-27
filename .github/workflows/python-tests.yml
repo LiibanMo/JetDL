@@ -65,6 +65,10 @@ jobs:
           # Install OpenBLAS for the native 64-bit Windows build (MSVC compiler)
           .\vcpkg\vcpkg.exe install openblas:x64-windows
           
+          $vcpkgRoot = (Get-Item .\vcpkg).FullName
+          $toolchainPath = "$vcpkgRoot\scripts\buildsystems\vcpkg.cmake"
+          $toolchainPathUnix = $toolchainPath.Replace('\', '/')
+
           $toolchainPath = "$PWD\vcpkg\scripts\buildsystems\vcpkg.cmake"
           echo "CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=$toolchainPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
   
