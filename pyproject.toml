@@ -4,17 +4,19 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "jetdl"
-version = "0.1.0"
+version = "0.9.0"
 description = "A lightweight deep learning framework"
 readme = "README.md"
-license = {text = "MIT"}
-authors = [
-    {name = "Liiban Mohamud", email = "liibanmohamud12@gmail.com"}
+license = { text = "MIT" }
+authors = [{ name = "Liiban Mohamud", email = "liibanmohamud12@gmail.com" }]
+maintainers = [{ name = "Liiban Mohamud", email = "liibanmohamud12@gmail.com" }]
+keywords = [
+    "machine-learning",
+    "deep-learning",
+    "automatic-differentiation",
+    "tensor",
+    "neural-networks",
 ]
-maintainers = [
-    {name = "Liiban Mohamud", email = "liibanmohamud12@gmail.com"}
-]
-keywords = ["machine-learning", "deep-learning", "automatic-differentiation", "tensor", "neural-networks"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -25,17 +27,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 requires-python = ">=3.11"
 
 [project.optional-dependencies]
-dev = [
-    "setuptools>=80.9.0",
-    "black>=22.0.0",
-    "isort>=5.0.0",
-]
-test = [
-    "pytest>=8.3.4",
-]
+dev = ["setuptools>=80.9.0", "black>=22.0.0", "isort>=5.0.0"]
+test = ["pytest>=8.3.4"]
