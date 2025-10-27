@@ -4,7 +4,7 @@ from ._creation import fill, ones, zeros
 from ._manip import contiguous, reshape, squeeze, unsqueeze
 from .linalg import dot, matmul, matrix_transpose, transpose
 from .math import add, div, mean, mul, pow, sqrt, sub, sum, sum_to_shape
-from .random import normal, uniform, rand
+from .random import normal, rand, uniform
 
 
 def tensor(data, *, requires_grad: bool = False) -> Tensor:

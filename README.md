@@ -32,6 +32,10 @@ print(b)
 # Create a tensor of ones
 c = jetdl.ones((3, 2))
 print(c)
+
+# Create a tensor of random values
+d = jetdl.rand(2, 4)
+print(d)
 ```
 
 ### Tensor Arithmetic
@@ -73,7 +77,7 @@ a = jetdl.tensor([[1, 2], [3, 4]])
 b = jetdl.tensor([[5, 6], [7, 8]])
 
 # Perform matrix multiplication
-c = jetdl.matmul(a, b)
+c = a @ b 
 print(c)
 print(c.shape)
 ```

@@ -55,7 +55,7 @@ def pow(input: Tensor, exponent: int) -> Tensor:
     return c_pow(input, exponent)
 
 
-def sqrt(input: Union[int, float, Tensor]) -> Union[int, float]:
+def sqrt(input: Union[int, float, Tensor]) -> Union[int, float, Tensor]:
     """Computes the element-wise square root of a tensor or a scalar.
 
     Args:
