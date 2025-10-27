@@ -1,10 +1,13 @@
 #ifndef JETDL_SIMD_H
 #define JETDL_SIMD_H
 
+#include <cstddef>
+
 #if defined(__ARM_NEON__)
 
 #include <arm_neon.h>
 // ARM NEON uses 128-bit (4 floats) quad-word vectors (float32x4_t)
+constexpr size_t SIMD_SIZE = 4;
 
 // NEON dtypes
 #define JETDL_FLOAT32_V float32x4_t
@@ -23,6 +26,7 @@
 
 #include <immintrin.h>
 // AVX2 uses 256-bit (8 floats) YMM registers (__m256)
+constexpr size_t SIMD_SIZE = 8;
 
 // AVX2 dtypes
 #define JETDL_FLOAT32_V __m256

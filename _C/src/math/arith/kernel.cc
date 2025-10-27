@@ -6,13 +6,8 @@
 
 #include "jetdl/simd.h"
 
-#if defined(__ARM_NEON__)
-constexpr size_t BLOCK_SIZE = 16;
-constexpr size_t N_VECS = BLOCK_SIZE / 4;
-#elif defined(__AVX2__)
-constexpr size_t BLOCK_SIZE = 32;
-constexpr size_t N_VECS = BLOCK_SIZE / 8;
-#endif
+constexpr size_t BLOCK_SIZE = SIMD_SIZE * 2;
+constexpr size_t N_VECS = BLOCK_SIZE / SIMD_SIZE;
 
 void c_add_a_scalar_cpu(const float* a, const float* b, float* c,
                         const size_t N) {
