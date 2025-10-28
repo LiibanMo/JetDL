@@ -21,7 +21,11 @@ if(ENABLE_DEBUG)
   target_compile_options(_C PRIVATE -O0 -g -no-omit-frame-pointer
                                     -fsanitize=address)
 else()
-  target_compile_options(_C PRIVATE -O3 -DNDEBUG -march=native -ffast-math)
+  if(MSVC)
+    target_compile_options(_C PRIVATE /O2 /DNDEBUG /fp:fast)
+  else()
+    target_compile_options(_C PRIVATE -O3 -DNDEBUG -march=native -ffast-math)
+  endif()
 endif()
 
 target_include_directories(_C PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
