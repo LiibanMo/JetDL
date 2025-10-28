@@ -36,6 +36,33 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
+      - name: Cache apt packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-cache-1
+          restore-keys: |
+            ${{ runner.os }}-apt-cache-
+
+      - name: Cache Homebrew packages
+        if: runner.os == 'MacOS'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ runner.os }}-brew-cache-1
+          restore-keys: |
+            ${{ runner.os }}-brew-cache-
+
+      - name: Cache vcpkg
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-vcpkg-cache-1
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-cache-
+
       - name: Install build dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -56,8 +83,10 @@ jobs:
         id: vcpkg
         shell: bash # Use bash/zsh even on Windows for simpler command structure
         run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          ./vcpkg/bootstrap-vcpkg.sh
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.sh
+          fi
           echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV                                         
 
       - name: Install OpenBLAS via vcpkg (Windows)
@@ -82,14 +111,14 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          .\.venv\Scripts\Activate.ps1
-          python.exe -m pip install --upgrade pip --timeout 1000
+          source .venv/bin/activate
+          python -m pip install -U pip --timeout 1000
 
       - name: Updating pip (Linux & MacOS)
         if: runner.os != 'Windows'
         run: |
           source .venv/bin/activate
-          python -m pip install -U pip
+          python -m pip install -U pip --timeout 1000
   
       - name: Install dependencies
         run: |
