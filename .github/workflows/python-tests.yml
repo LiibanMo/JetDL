@@ -96,12 +96,17 @@ jobs:
           # Use the full path from the previous step, ensuring the correct triplet
           $VCPKG_ROOT/vcpkg install openblas:x64-windows
 
+      - name: Add vcpkg DLLs to PATH
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "$VCPKG_ROOT/installed/x64-windows/bin" >> $GITHUB_PATH
+
       - name: Install build dependencies (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
           choco install llvm cmake
-          vcpkg install openblas
 
       - name: Creating virtual environment for Python
         run: |
