@@ -107,7 +107,7 @@ jobs:
       - name: Build shared library(s) (Linux & MacOS)
         if: runner.os != 'Windows'
         run: |
-          python -m pip install -e . --timeout 100
+          python -m pip install -e . --timeout 1000
           
       - name: Run tests
         run: | 
