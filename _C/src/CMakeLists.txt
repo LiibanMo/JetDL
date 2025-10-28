@@ -44,6 +44,10 @@ if(APPLE)
   endif()
 else()
   # On other systems (e.g., Linux), use OpenBLAS
+  if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
+    include_directories("$ENV{VCPKG_ROOT}/installed/x64-windows/include")
+  endif()
+
   set(BLA_VENDOR OpenBLAS)
 
   find_package(BLAS REQUIRED)
