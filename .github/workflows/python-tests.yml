@@ -111,7 +111,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          source .venv/bin/activate
+          source .venv/Scripts/activate
           python -m pip install -U pip --timeout 1000
 
       - name: Updating pip (Linux & MacOS)
