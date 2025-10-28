@@ -52,6 +52,7 @@ jobs:
           brew install llvm openblas cmake
 
       - name: Bootstrap vcpkg
+        if: runner.os == 'Windows'
         id: vcpkg
         shell: bash # Use bash/zsh even on Windows for simpler command structure
         run: |
@@ -59,7 +60,8 @@ jobs:
           ./vcpkg/bootstrap-vcpkg.sh
           echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV                                         
 
-      - name: Install OpenBLAS via vcpkg
+      - name: Install OpenBLAS via vcpkg (Windows)
+        if: runner.os == 'Windows'
         shell: bash
         run: |
           # Use the full path from the previous step, ensuring the correct triplet
@@ -94,6 +96,7 @@ jobs:
           python -m pip install -r requirements.txt --timeout 1000
       
       - name: Build shared library(s) (Windows)
+        if: runner.os == 'Windows'
         run: |
           # Pass the toolchain file to scikit-build-core/CMake
           export SETUPTOOLS_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
