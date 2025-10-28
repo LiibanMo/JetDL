@@ -30,66 +30,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- Windows Stability Workaround ---
-      - name: Set PIP_NO_INPUT (Windows Workaround)
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm gdb
+          sudo apt-get install -y build-essential cmake
+          sudo apt-get install -y libopenblas-dev
+          sudo apt-get install pybind11-dev
+
+      - name: Install build dependencies (MacOS)
+        if: runner.os == 'MacOS'
+        run: |
+          brew uninstall cmake
+          brew install llvm openblas cmake
+        
+      - name: Install build dependencies (Windows)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          Write-Host "Setting PIP_NO_INPUT=1 and PIP_RETRIES=5 to stabilize pip on Windows runner..."
-          echo "PIP_NO_INPUT=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
-          echo "PIP_RETRIES=5" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
-
-      # --- Conda Setup (Unified Dependencies for ALL OS) ---
-      - name: Setup Miniconda Environment
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          use-mamba: false
-          miniconda-version: "latest"
-          channels: conda-forge, defaults
-          activate-environment: test-env
-          
-      # 1. Install foundational scientific packages (Torch/Numpy) via Conda first.
-      #    This resolves native dependencies (like OpenBLAS) robustly.
-      - name: Install Foundational Python Packages (Conda)
-        shell: bash
-        run: |
-          conda install -y -c pytorch -c conda-forge \
-            python=${{ matrix.python-version }} \
-            # Installs NumPy and Torch via Conda for stable native linking (OpenBLAS/MKL).
-            numpy \
-            torch \
-            openblas \
-            cmake
-            
-      # 2. Install C++ Toolchain only where needed (Linux/macOS)
-      - name: Install C++ Toolchain (Linux/macOS)
-        # Avoid installing clang/llvm on Windows (it should use MSVC)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          conda install -y -c conda-forge \
-            llvm \
-            clang
-            
-      # --- Configure CMake Prefix Path ---
-      - name: Set CMAKE_PREFIX_PATH
-        shell: bash
-        run: |
-          echo "Setting CMAKE_PREFIX_PATH to $CONDA_PREFIX"
-          echo "CMAKE_PREFIX_PATH=$CONDA_PREFIX" >> $GITHUB_ENV
-
-      # 3. Install remaining requirements and build tools via pip.
-      #    This includes: pytest, setuptools, scikit-build-core, pybind11, wheel, sphinx, and furo.
-      - name: Install remaining dependencies (pip)
+          choco install llvm openblas cmake -y
+  
+      - name: Install dependencies
         run: |
           pip install -U pip
-          pip install -r requirements.txt --progress-bar off
+          pip install -r requirements.txt
           
       - name: Build shared library(s)
         run: |
-          echo "Starting C++ build in Conda environment."
-          pip install -e . --progress-bar off
+          pip install -e .
           
       - name: Run tests
-        run: |  
+        run: | 
           pytest -v --disable-warnings
