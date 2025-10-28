@@ -30,57 +30,56 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-
-      - name: Install build dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang llvm gdb
-          sudo apt-get install -y build-essential cmake
-          sudo apt-get install -y libopenblas-dev
-          sudo apt-get install pybind11-dev
-
-      - name: Install build dependencies (MacOS)
-        if: runner.os == 'MacOS'
-        run: |
-          brew uninstall cmake
-          brew install llvm openblas cmake
-        
-      - name: Install build dependencies and configure vcpkg (Windows)
+      # --- Windows Stability Workaround ---
+      - name: Set PIP_NO_INPUT (Windows Workaround)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          Write-Host "Cloning vcpkg..."
-          git clone https://github.com/microsoft/vcpkg.git --depth 1 --branch master
-          
-          Write-Host "Bootstrapping vcpkg..."
-          .\vcpkg\bootstrap-vcpkg.bat
-          
-          Write-Host "Installing openblas..."
-          # Install OpenBLAS for the native 64-bit Windows build (MSVC compiler)
-          .\vcpkg\vcpkg.exe install openblas:x64-windows
-          
-          $vcpkgRoot = (Get-Item .\vcpkg).FullName
-          $toolchainPath = "$vcpkgRoot\scripts\buildsystems\vcpkg.cmake"
-          $toolchainPathUnix = $toolchainPath.Replace('\', '/')
+          Write-Host "Setting PIP_NO_INPUT=1 and PIP_RETRIES=5 to stabilize pip on Windows runner..."
+          echo "PIP_NO_INPUT=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
+          echo "PIP_RETRIES=5" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
 
-          $toolchainPath = "$PWD\vcpkg\scripts\buildsystems\vcpkg.cmake"
-          echo "CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=$toolchainPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
-  
+      # --- Conda Setup (Unified Dependencies for ALL OS) ---
+      - name: Setup Miniconda Environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          # We use standard conda for simplicity and avoid mamba dependency
+          use-mamba: false
+          miniconda-version: "latest"
+          channels: conda-forge, defaults
+          # Create and activate an environment named 'test-env'
+          activate-environment: test-env
+          # Note: The 'packages' input is intentionally omitted here.
+          
+      - name: Install Python and C++ Build Dependencies (Manual Conda Install)
+        shell: bash
+        run: |
+          # Use the activated environment to install all required packages manually.
+          conda install -y -c conda-forge \
+            python=${{ matrix.python-version }} \
+            llvm \
+            clang \
+            openblas \
+            cmake
+            
+      # --- Configure CMake Prefix Path ---
+      # This step tells CMake where to look for Conda-installed packages.
+      - name: Set CMAKE_PREFIX_PATH
+        shell: bash
+        run: |
+          echo "Setting CMAKE_PREFIX_PATH to $CONDA_PREFIX"
+          echo "CMAKE_PREFIX_PATH=$CONDA_PREFIX" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: |
           pip install -U pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt --progress-bar off
           
       - name: Build shared library(s)
         run: |
+          echo "Starting C++ build in Conda environment."
           pip install -e . --progress-bar off
           
       - name: Run tests
-        run: | 
+        run: |  
           pytest -v --disable-warnings
