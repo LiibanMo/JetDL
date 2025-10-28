@@ -134,7 +134,7 @@ jobs:
         shell: bash
         run: |
           # Pass the toolchain file to scikit-build-core/CMake
-          export SETUPTOOLS_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+          export CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
           python -m pip install -e . --timeout 1000
         env:
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}

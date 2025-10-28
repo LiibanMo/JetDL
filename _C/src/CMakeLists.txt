@@ -40,9 +40,6 @@ if(APPLE)
   endif()
 else()
   # On other systems (e.g., Linux), use OpenBLAS
-  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/opt/homebrew/opt/openblas")
-  message(STATUS "CMAKE_PREFIX_PATH set to: ${CMAKE_PREFIX_PATH}")
-
   set(BLA_VENDOR OpenBLAS)
 
   find_package(BLAS REQUIRED)
