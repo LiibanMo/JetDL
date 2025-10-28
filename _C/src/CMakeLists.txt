@@ -57,10 +57,14 @@ else()
     if(BLAS_INCLUDE_DIRS)
       target_include_directories(_C PRIVATE ${BLAS_INCLUDE_DIRS})
     else()
-      # Fallback if BLAS_INCLUDE_DIRS
-      message(WARNING "BLAS_INCLUDE_DIRS was not set by FindBLAS.
-        Manually adding common OpenBLAS include path.")
-      target_include_directories(_C PRIVATE "${CMAKE_PREFIX_PATH}/include")
+      if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
+        target_include_directories(_C PRIVATE "$ENV{VCPKG_ROOT}/installed/x64-windows/include")
+      else()
+        # Fallback if BLAS_INCLUDE_DIRS
+        message(WARNING "BLAS_INCLUDE_DIRS was not set by FindBLAS.
+          Manually adding common OpenBLAS include path.")
+        target_include_directories(_C PRIVATE "${CMAKE_PREFIX_PATH}/include")
+      endif()
     endif()
   else()
     message(FATAL_ERROR "OpenBLAS (or a compatible BLAS) not found.
