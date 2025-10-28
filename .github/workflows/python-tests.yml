@@ -43,34 +43,44 @@ jobs:
       - name: Setup Miniconda Environment
         uses: conda-incubator/setup-miniconda@v3
         with:
-          # We use standard conda for simplicity and avoid mamba dependency
           use-mamba: false
           miniconda-version: "latest"
           channels: conda-forge, defaults
-          # Create and activate an environment named 'test-env'
           activate-environment: test-env
-          # Note: The 'packages' input is intentionally omitted here.
           
-      - name: Install Python and C++ Build Dependencies (Manual Conda Install)
+      # 1. Install foundational scientific packages (Torch/Numpy) via Conda first.
+      #    This resolves native dependencies (like OpenBLAS) robustly.
+      - name: Install Foundational Python Packages (Conda)
         shell: bash
         run: |
-          # Use the activated environment to install all required packages manually.
-          conda install -y -c conda-forge \
+          conda install -y -c pytorch -c conda-forge \
             python=${{ matrix.python-version }} \
-            llvm \
-            clang \
+            # Installs NumPy and Torch via Conda for stable native linking (OpenBLAS/MKL).
+            numpy \
+            torch \
             openblas \
             cmake
             
+      # 2. Install C++ Toolchain only where needed (Linux/macOS)
+      - name: Install C++ Toolchain (Linux/macOS)
+        # Avoid installing clang/llvm on Windows (it should use MSVC)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          conda install -y -c conda-forge \
+            llvm \
+            clang
+            
       # --- Configure CMake Prefix Path ---
-      # This step tells CMake where to look for Conda-installed packages.
       - name: Set CMAKE_PREFIX_PATH
         shell: bash
         run: |
           echo "Setting CMAKE_PREFIX_PATH to $CONDA_PREFIX"
           echo "CMAKE_PREFIX_PATH=$CONDA_PREFIX" >> $GITHUB_ENV
 
-      - name: Install dependencies
+      # 3. Install remaining requirements and build tools via pip.
+      #    This includes: pytest, setuptools, scikit-build-core, pybind11, wheel, sphinx, and furo.
+      - name: Install remaining dependencies (pip)
         run: |
           pip install -U pip
           pip install -r requirements.txt --progress-bar off
