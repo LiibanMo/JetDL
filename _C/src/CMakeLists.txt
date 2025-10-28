@@ -44,9 +44,16 @@ if(APPLE)
   endif()
 else()
   # On other systems (e.g., Linux), use OpenBLAS
+  message(STATUS "--- Debug Info ---")
+  message(STATUS "WIN32: ${WIN32}")
+  message(STATUS "VCPKG_ROOT (from env): $ENV{VCPKG_ROOT}")
   if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
+    message(STATUS "Attempting to add include directory: $ENV{VCPKG_ROOT}/installed/x64-windows/include")
     include_directories("$ENV{VCPKG_ROOT}/installed/x64-windows/include")
+  else()
+    message(WARNING "Conditions not met to add vcpkg include directory.")
   endif()
+  message(STATUS "--- End Debug Info ---")
 
   set(BLA_VENDOR OpenBLAS)
 
