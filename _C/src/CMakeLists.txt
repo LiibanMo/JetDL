@@ -44,42 +44,13 @@ if(APPLE)
   endif()
 else()
   # On other systems (e.g., Linux), use OpenBLAS
-  message(STATUS "--- Debug Info ---")
-  message(STATUS "WIN32: ${WIN32}")
-  message(STATUS "VCPKG_ROOT (from env): $ENV{VCPKG_ROOT}")
-  if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
-    message(STATUS "Attempting to add include directory: $ENV{VCPKG_ROOT}/installed/x64-windows/include")
-    include_directories("$ENV{VCPKG_ROOT}/installed/x64-windows/include")
+  find_package(OpenBLAS REQUIRED)
+
+  if(OpenBLAS_FOUND)
+    message(STATUS "Found OpenBLAS, linking against it.")
+    target_link_libraries(_C PRIVATE OpenBLAS::OpenBLAS)
   else()
-    message(WARNING "Conditions not met to add vcpkg include directory.")
-  endif()
-  message(STATUS "--- End Debug Info ---")
-
-  set(BLA_VENDOR OpenBLAS)
-
-  find_package(BLAS REQUIRED)
-
-  if(BLAS_FOUND)
-    message(STATUS "BLAS found: ${BLAS_LIBRARIES}")
-    message(STATUS "BLAS include directories: ${BLAS_INCLUDE_DIRS}")
-
-    target_link_libraries(_C PRIVATE ${BLAS_LIBRARIES})
-
-    if(BLAS_INCLUDE_DIRS)
-      target_include_directories(_C PRIVATE ${BLAS_INCLUDE_DIRS})
-    else()
-      if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
-        target_include_directories(_C PRIVATE "$ENV{VCPKG_ROOT}/installed/x64-windows/include")
-      else()
-        # Fallback if BLAS_INCLUDE_DIRS
-        message(WARNING "BLAS_INCLUDE_DIRS was not set by FindBLAS.
-          Manually adding common OpenBLAS include path.")
-        target_include_directories(_C PRIVATE "${CMAKE_PREFIX_PATH}/include")
-      endif()
-    endif()
-  else()
-    message(FATAL_ERROR "OpenBLAS (or a compatible BLAS) not found.
-      Please install OpenBLAS and ensure it's discoverable by CMake.")
+    message(FATAL_ERROR "OpenBLAS not found.")
   endif()
 endif()
 
