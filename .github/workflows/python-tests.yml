@@ -55,7 +55,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          choco install llvm openblas cmake -y
+          vcpkg install openblas
   
       - name: Install dependencies
         run: |
