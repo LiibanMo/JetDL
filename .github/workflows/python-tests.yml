@@ -55,8 +55,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          vcpkg install llvm
-          vcpkg install cmake
+          choco install llvm cmake
           vcpkg install openblas
 
       - name: Updating pip (Windows)
