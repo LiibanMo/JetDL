@@ -69,7 +69,7 @@ jobs:
 
       - name: Install build dependencies (Windows)
         if: runner.os == 'Windows'
-        shell: powershell
+        shell: bash
         run: |
           choco install llvm cmake
           vcpkg install openblas
@@ -80,7 +80,7 @@ jobs:
 
       - name: Updating pip (Windows)
         if: runner.os == 'Windows'
-        shell: powershell
+        shell: bash
         run: |
           .\.venv\Scripts\Activate.ps1
           python.exe -m pip install --upgrade pip --timeout 1000
@@ -97,6 +97,7 @@ jobs:
       
       - name: Build shared library(s) (Windows)
         if: runner.os == 'Windows'
+        shell: bash
         run: |
           # Pass the toolchain file to scikit-build-core/CMake
           export SETUPTOOLS_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
