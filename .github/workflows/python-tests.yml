@@ -146,4 +146,4 @@ jobs:
 
       - name: Run tests
         run: | 
-          pytest -v --disable-warnings
+          pytest tests/ -v --disable-warnings
