@@ -113,37 +113,24 @@ jobs:
         run: |
           python -m venv .venv
 
-      - name: Updating pip (Windows)
+      - name: Installing `jetdl` & running pytest (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
           source .venv/Scripts/activate
           python -m pip install -U pip --timeout 1000
-
-      - name: Updating pip (Linux & MacOS)
-        if: runner.os != 'Windows'
-        run: |
-          source .venv/bin/activate
-          python -m pip install -U pip --timeout 1000
-
-      - name: Install dependencies
-        run: |
           python -m pip install -r requirements.txt --timeout 1000
-
-      - name: Build shared library(s) (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
           python -m pip install -e . --timeout 1000
+          pytest tests/ -v --disable-warnings
         env:
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
           CMAKE_ARGS: "-DCMAKE_PREFIX_PATH=${{ env.VCPKG_ROOT }}/installed/x64-windows"
 
-      - name: Build shared library(s) (Linux & MacOS)
+      - name: Installing `jetdl` & running pytest (Linux & MacOS)
         if: runner.os != 'Windows'
         run: |
+          source .venv/bin/activate
+          python -m pip install -U pip --timeout 1000
+          python -m pip install -r requirements.txt --timeout 1000
           python -m pip install -e . --timeout 1000
-
-      - name: Run tests
-        run: | 
           pytest tests/ -v --disable-warnings
