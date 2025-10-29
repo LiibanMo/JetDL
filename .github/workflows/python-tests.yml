@@ -137,7 +137,6 @@ jobs:
         run: |
           source .venv/Scripts/activate
           python -m pip install -r requirements.txt --timeout 1000
-          export CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
           python -m pip install -e . --timeout 1000
           pytest -v --disable-warnings
         env:
