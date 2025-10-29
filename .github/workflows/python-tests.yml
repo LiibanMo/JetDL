@@ -131,26 +131,23 @@ jobs:
           source .venv/bin/activate
           python -m pip install -U pip --timeout 1000
   
-      - name: Install dependencies
-        run: |
-          python -m pip install -r requirements.txt --timeout 1000
-      
-      - name: Build shared library(s) (Windows)
+      - name: Install, Build and Test (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          # Pass the toolchain file to scikit-build-core/CMake
+          source .venv/Scripts/activate
+          python -m pip install -r requirements.txt --timeout 1000
           export CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
           python -m pip install -e . --timeout 1000
+          pytest -v --disable-warnings
         env:
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
           VCPKG_TARGET_TRIPLET: x64-windows
-        
-      - name: Build shared library(s) (Linux & MacOS)
+
+      - name: Install, Build and Test (Linux & MacOS)
         if: runner.os != 'Windows'
         run: |
+          source .venv/bin/activate
+          python -m pip install -r requirements.txt --timeout 1000
           python -m pip install -e . --timeout 1000
-          
-      - name: Run tests
-        run: | 
           pytest -v --disable-warnings
