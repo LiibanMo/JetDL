@@ -96,6 +96,18 @@ jobs:
           # Use the full path from the previous step, ensuring the correct triplet
           $VCPKG_ROOT/vcpkg install openblas:x64-windows
 
+      - name: Verify vcpkg installation
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          ls -R "$VCPKG_ROOT/installed/x64-windows"
+
+      - name: Add vcpkg DLLs to PATH
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "$VCPKG_ROOT/installed/x64-windows/bin" >> $GITHUB_PATH
+
       - name: Install build dependencies (Windows)
         if: runner.os == 'Windows'
         shell: bash
@@ -111,7 +123,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          source .venv/bin/activate
+          source .venv/Scripts/activate
           python -m pip install -U pip --timeout 1000
 
       - name: Updating pip (Linux & MacOS)
