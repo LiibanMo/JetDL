@@ -89,12 +89,13 @@ jobs:
           fi
           echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
 
-      - name: Install OpenBLAS via vcpkg (Windows)
+      - name: Install dependencies via vcpkg (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
           # Use the full path from the previous step, ensuring the correct triplet
           $VCPKG_ROOT/vcpkg install openblas:x64-windows
+          $VCPKG_ROOT/vcpkg install pybind11:x64-windows
 
       - name: Verify vcpkg installation
         if: runner.os == 'Windows'
