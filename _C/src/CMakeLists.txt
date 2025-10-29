@@ -11,6 +11,8 @@ find_package(pybind11 CONFIG REQUIRED)
 
 file(GLOB_RECURSE C_FILES "*.cc")
 
+message(STATUS "C_FILES: ${C_FILES}")
+
 pybind11_add_module(_C ${C_FILES})
 
 set_target_properties(_C PROPERTIES LIBRARY_OUTPUT_DIRECTORY
