@@ -119,22 +119,18 @@ jobs:
         run: |
           python -m venv .venv
 
-      - name: Installing `jetdl` & running pytest (Windows)
+      - name: Installing `jetdl` & running pytest (Windows) with Clang
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          # 1. Path Conversion & setup
+          # ... (1. Path Conversion & setup - Keep this the same) ...
           VCPKG_ROOT_WIN="${{ env.VCPKG_ROOT }}" 
           VCPKG_ROOT_BASH=$(echo "$VCPKG_ROOT_WIN" | sed -e 's/\\/\//g' -e 's|^\([A-Za-z]\):|/\L\1|')
           VCPKG_DLL_DIR_BASH="$VCPKG_ROOT_BASH/installed/x64-windows/bin"
-          
-          # Convert BASH DLL path to a Windows path for the PATH environment variable
-          # Example: /d/a/JetDL/JetDL/vcpkg/installed/x64-windows/bin -> D:\a\JetDL\JetDL\vcpkg\installed\x64-windows\bin
           VCPKG_DLL_DIR_WIN=$(echo "$VCPKG_DLL_DIR_BASH" | sed -e 's/^\/\([a-z]\)/\U\1:/' -e 's/\//\\/g')
 
-          # 2. **CRITICAL: Prepend DLL directory to PATH**
+          # 2. Add DLL path to PATH (Keep this for robustness)
           echo "Prepending $VCPKG_DLL_DIR_WIN to PATH for runtime linking."
-          # Use GITHUB_PATH to permanently set the path for subsequent steps
           echo "$VCPKG_DLL_DIR_WIN" >> $GITHUB_PATH
           
           # 3. Set Environment Variables for CMake/vcpkg
@@ -146,11 +142,23 @@ jobs:
           python -m pip install -U pip --timeout 1000
           python -m pip install -r requirements.txt --timeout 1000
 
-          # 5. Install the package (re-run this just in case the DLL copy interferes)
-          echo "--- Installing editable package with CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE ---"
-          python -m pip install -e . --timeout 1000 -v
+          # 5. CRITICAL: Force Clang as the Compiler for scikit-build/CMake
+          # GitHub Actions runners typically have Clang installed via the MSVC tools.
+          # We export the CLANG compiler executable paths.
+          # Note: On CI, 'clang-cl' is often found in the PATH already, but explicit pathing is safer.
+          CLANG_BIN_PATH="/c/Program Files/LLVM/bin" # Common LLVM install path on Windows
           
-          # 6. Run Pytest
+          export CC="$CLANG_BIN_PATH/clang-cl.exe"
+          export CXX="$CLANG_BIN_PATH/clang-cl.exe"
+          
+          echo "--- Forcing compilation with Clang-cl (CC=$CC, CXX=$CXX) ---"
+          
+          # 6. Install the package
+          echo "--- Installing editable package ---"
+          # scikit-build should now detect clang-cl based on the CC/CXX environment variables
+          python -m pip install -e . --timeout 1000 -v 
+          
+          # 7. Run Pytest
           pytest tests/ -v --disable-warnings
         env:
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
