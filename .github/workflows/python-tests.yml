@@ -123,46 +123,36 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          # 1. Path Conversion & setup (use BASH local variables)
-          # Get the VCPKG_ROOT from the GitHub Actions environment variable
+          # 1. Path Conversion & setup
           VCPKG_ROOT_WIN="${{ env.VCPKG_ROOT }}" 
-
-          # Convert VCPKG_ROOT (Windows path) to a Bash path. This MUST be the first thing done.
-          # Note: We use the local variable VCPKG_ROOT_BASH internally.
           VCPKG_ROOT_BASH=$(echo "$VCPKG_ROOT_WIN" | sed -e 's/\\/\//g' -e 's|^\([A-Za-z]\):|/\L\1|')
-          VCPKG_DLL_DIR="$VCPKG_ROOT_BASH/installed/x64-windows/bin"
-          VENV_SITE_PACKAGES="./.venv/Lib/site-packages"
+          VCPKG_DLL_DIR_BASH="$VCPKG_ROOT_BASH/installed/x64-windows/bin"
+          
+          # Convert BASH DLL path to a Windows path for the PATH environment variable
+          # Example: /d/a/JetDL/JetDL/vcpkg/installed/x64-windows/bin -> D:\a\JetDL\JetDL\vcpkg\installed\x64-windows\bin
+          VCPKG_DLL_DIR_WIN=$(echo "$VCPKG_DLL_DIR_BASH" | sed -e 's/^\/\([a-z]\)/\U\1:/' -e 's/\//\\/g')
 
-          # 2. Set Environment Variables for CMake/vcpkg (using the BASH variable)
+          # 2. **CRITICAL: Prepend DLL directory to PATH**
+          echo "Prepending $VCPKG_DLL_DIR_WIN to PATH for runtime linking."
+          # Use GITHUB_PATH to permanently set the path for subsequent steps
+          echo "$VCPKG_DLL_DIR_WIN" >> $GITHUB_PATH
+          
+          # 3. Set Environment Variables for CMake/vcpkg
           export VCPKG_DEFAULT_TRIPLET=x64-windows
           export CMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT_BASH/scripts/buildsystems/vcpkg.cmake"
           
-          # 3. Activate Venv and Install Dependencies (necessary for the next steps)
+          # 4. Activate Venv and Install Dependencies
           source .venv/Scripts/activate 
           python -m pip install -U pip --timeout 1000
           python -m pip install -r requirements.txt --timeout 1000
 
-          # 4. CRITICAL FIX: Copy OpenBLAS DLL BEFORE installation/import
-          echo "--- Copying openblas.dll to $VENV_SITE_PACKAGES BEFORE install ---"
-          echo "Looking in directory: $VCPKG_DLL_DIR"
-          
-          if [ -f "$VCPKG_DLL_DIR/openblas.dll" ]; then
-            cp "$VCPKG_DLL_DIR/openblas.dll" "$VENV_SITE_PACKAGES/"
-            echo "Successfully copied openblas.dll."
-          else
-            echo "FATAL ERROR: openblas.dll not found in $VCPKG_DLL_DIR"
-            # Explicitly fail the run if the critical DLL is missing
-            exit 1 
-          fi
-          
-          # 5. Install the package
+          # 5. Install the package (re-run this just in case the DLL copy interferes)
           echo "--- Installing editable package with CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE ---"
-          python -m pip install -e . --timeout 1000 -v 
+          python -m pip install -e . --timeout 1000 -v
           
           # 6. Run Pytest
           pytest tests/ -v --disable-warnings
         env:
-          # Ensure VCPKG_ROOT is passed from the previous 'Bootstrap vcpkg' step's output
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
           
       - name: Installing `jetdl` & running pytest (Linux & MacOS)
