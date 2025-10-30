@@ -119,42 +119,20 @@ jobs:
         run: |
           python -m venv .venv
 
-      - name: Installing `jetdl` & running pytest (Windows) with Compiler Override
+      - name: Installing `jetdl` & running pytest (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          # 1. Path Conversion & setup
-          VCPKG_ROOT_WIN="${{ env.VCPKG_ROOT }}" 
-          VCPKG_ROOT_BASH=$(echo "$VCPKG_ROOT_WIN" | sed -e 's/\\/\//g' -e 's|^\([A-Za-z]\):|/\L\1|')
-          VCPKG_DLL_DIR_WIN=$(echo "$VCPKG_DLL_DIR_BASH" | sed -e 's/^\/\([a-z]\)/\U\1:/' -e 's/\//\\/g')
-          
-          # Clang path on Windows CI runners
-          CLANG_PATH_WIN="C:\\Program Files\\LLVM\\bin\\clang-cl.exe" 
-          CLANG_PATH_BASH="/c/Program Files/LLVM/bin/clang-cl.exe"
-
-          # 2. Setup VCPKG paths
-          export VCPKG_DEFAULT_TRIPLET=x64-windows
-          VCPKG_TOOLCHAIN_FILE="$VCPKG_ROOT_BASH/scripts/buildsystems/vcpkg.cmake"
-          
-          # 3. Create a temporary CMake toolchain fragment to force Clang
-          echo "set(CMAKE_CXX_COMPILER \"$CLANG_PATH_WIN\" CACHE FILEPATH \"Clang Compiler\")" > ClangCompiler.cmake
-          echo "set(CMAKE_C_COMPILER \"$CLANG_PATH_WIN\" CACHE FILEPATH \"Clang Compiler\")" >> ClangCompiler.cmake
-          
-          echo "--- Created ClangCompiler.cmake to force Clang-cl ---"
-
-          # 4. Activate Venv and Install Dependencies
-          source .venv/Scripts/activate 
+          source .venv/Scripts/activate
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $GITHUB_ENV
+          echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" >> $GITHUB_ENV
           python -m pip install -U pip --timeout 1000
           python -m pip install -r requirements.txt --timeout 1000
-          
-          # 5. Install the package
-          echo "--- Installing editable package using toolchain files ---"
-          python -m pip install -e . --timeout 1000 -v \
-            --config-settings=cmake.toolchain.file="${VCPKG_TOOLCHAIN_FILE},./ClangCompiler.cmake"
-
-          # 6. Run Pytest
+          python -m pip install -e . --timeout 1000 -v
           pytest tests/ -v --disable-warnings
+          
         env:
+          # Ensure VCPKG_ROOT is passed from the previous 'Bootstrap vcpkg' step's output
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
           
       - name: Installing `jetdl` & running pytest (Linux & MacOS)
