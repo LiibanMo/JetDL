@@ -30,11 +30,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }} (Linux & MacOS)
+        if: runner.os != 'Windows'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+
+      - name: Set up Python ${{ matrix.python-version }} (Windows) (x64)
+        if: runner.os == 'Windows'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          architecture: 'x64'
 
       - name: Cache apt packages
         if: runner.os == 'Linux'
