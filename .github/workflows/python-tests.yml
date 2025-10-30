@@ -107,7 +107,6 @@ jobs:
         run: |
           # Note: vcpkg.exe is the executable on Windows, not .sh
           $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
-          $VCPKG_ROOT/vcpkg.exe install pybind11:x64-windows
 
       - name: Verify vcpkg installation
         if: runner.os == 'Windows'
