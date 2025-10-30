@@ -50,7 +50,7 @@ else()
 
   if (BLAS_FOUND)
       target_link_libraries(_C PRIVATE BLAS::BLAS)
-      message(STATUS "Found BLAS libraries: ${BLAS::BLAS}")
+      message(STATUS "Found BLAS libraries: ${BLAS_LIBRARIES}")
   else()
       message(FATAL_ERROR "BLAS libraries not found.")
   endif()
