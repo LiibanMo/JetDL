@@ -143,13 +143,23 @@ jobs:
           source .venv/Scripts/activate # Correct path for Windows Venvs
           python -m pip install -U pip --timeout 1000
           python -m pip install -r requirements.txt --timeout 1000
+
+          # 4. CRITICAL: Copy OpenBLAS DLL BEFORE installation/import
+          echo "--- Copying openblas.dll to $VENV_SITE_PACKAGES BEFORE install ---"
+          if [ -f "$VCPKG_DLL_DIR/openblas.dll" ]; then
+            cp "$VCPKG_DLL_DIR/openblas.dll" "$VENV_SITE_PACKAGES/"
+            echo "Successfully copied openblas.dll."
+          else
+            echo "Error: openblas.dll not found in $VCPKG_DLL_DIR"
+            exit 1
+          fi
           
-          # 4. Install the package
-          # pip/setuptools-cmake will automatically pick up the CMAKE_TOOLCHAIN_FILE env var
+          # 5. Install the package
           echo "--- Installing editable package with CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE ---"
+          # pip/setuptools-cmake will automatically pick up the CMAKE_TOOLCHAIN_FILE env var
           python -m pip install -e . --timeout 1000 -v
 
-          # 5. CRITICAL: DLL Vendoring for Runtime
+          # 6. CRITICAL: DLL Vendoring for Runtime
           # Your original logic here is correct and necessary for pytest to find the DLL.
           VCPKG_DLL_DIR="$VCPKG_ROOT_BASH/installed/x64-windows/bin"
           VENV_SITE_PACKAGES="./.venv/Lib/site-packages"
@@ -163,7 +173,7 @@ jobs:
             exit 1
           fi
           
-          # 6. Run Pytest
+          # 7. Run Pytest
           pytest tests/ -v --disable-warnings
         env:
           # Pass the VCPKG_ROOT from the previous step
