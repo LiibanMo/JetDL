@@ -119,46 +119,40 @@ jobs:
         run: |
           python -m venv .venv
 
-      - name: Installing `jetdl` & running pytest (Windows) with Clang
+      - name: Installing `jetdl` & running pytest (Windows) with Compiler Override
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          # ... (1. Path Conversion & setup - Keep this the same) ...
+          # 1. Path Conversion & setup
           VCPKG_ROOT_WIN="${{ env.VCPKG_ROOT }}" 
           VCPKG_ROOT_BASH=$(echo "$VCPKG_ROOT_WIN" | sed -e 's/\\/\//g' -e 's|^\([A-Za-z]\):|/\L\1|')
-          VCPKG_DLL_DIR_BASH="$VCPKG_ROOT_BASH/installed/x64-windows/bin"
           VCPKG_DLL_DIR_WIN=$(echo "$VCPKG_DLL_DIR_BASH" | sed -e 's/^\/\([a-z]\)/\U\1:/' -e 's/\//\\/g')
+          
+          # Clang path on Windows CI runners
+          CLANG_PATH_WIN="C:\\Program Files\\LLVM\\bin\\clang-cl.exe" 
+          CLANG_PATH_BASH="/c/Program Files/LLVM/bin/clang-cl.exe"
 
-          # 2. Add DLL path to PATH (Keep this for robustness)
-          echo "Prepending $VCPKG_DLL_DIR_WIN to PATH for runtime linking."
-          echo "$VCPKG_DLL_DIR_WIN" >> $GITHUB_PATH
-          
-          # 3. Set Environment Variables for CMake/vcpkg
+          # 2. Setup VCPKG paths
           export VCPKG_DEFAULT_TRIPLET=x64-windows
-          export CMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT_BASH/scripts/buildsystems/vcpkg.cmake"
+          VCPKG_TOOLCHAIN_FILE="$VCPKG_ROOT_BASH/scripts/buildsystems/vcpkg.cmake"
           
+          # 3. Create a temporary CMake toolchain fragment to force Clang
+          echo "set(CMAKE_CXX_COMPILER \"$CLANG_PATH_WIN\" CACHE FILEPATH \"Clang Compiler\")" > ClangCompiler.cmake
+          echo "set(CMAKE_C_COMPILER \"$CLANG_PATH_WIN\" CACHE FILEPATH \"Clang Compiler\")" >> ClangCompiler.cmake
+          
+          echo "--- Created ClangCompiler.cmake to force Clang-cl ---"
+
           # 4. Activate Venv and Install Dependencies
           source .venv/Scripts/activate 
           python -m pip install -U pip --timeout 1000
           python -m pip install -r requirements.txt --timeout 1000
+          
+          # 5. Install the package
+          echo "--- Installing editable package using toolchain files ---"
+          python -m pip install -e . --timeout 1000 -v \
+            --config-settings=cmake.toolchain.file="${VCPKG_TOOLCHAIN_FILE},./ClangCompiler.cmake"
 
-          # 5. CRITICAL: Force Clang as the Compiler for scikit-build/CMake
-          # GitHub Actions runners typically have Clang installed via the MSVC tools.
-          # We export the CLANG compiler executable paths.
-          # Note: On CI, 'clang-cl' is often found in the PATH already, but explicit pathing is safer.
-          CLANG_BIN_PATH="/c/Program Files/LLVM/bin" # Common LLVM install path on Windows
-          
-          export CC="$CLANG_BIN_PATH/clang-cl.exe"
-          export CXX="$CLANG_BIN_PATH/clang-cl.exe"
-          
-          echo "--- Forcing compilation with Clang-cl (CC=$CC, CXX=$CXX) ---"
-          
-          # 6. Install the package
-          echo "--- Installing editable package ---"
-          # scikit-build should now detect clang-cl based on the CC/CXX environment variables
-          python -m pip install -e . --timeout 1000 -v 
-          
-          # 7. Run Pytest
+          # 6. Run Pytest
           pytest tests/ -v --disable-warnings
         env:
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
