@@ -137,6 +137,7 @@ jobs:
           # This file is the standard way to make CMake's find_package() 
           # discover vcpkg-installed libraries like OpenBLAS.
           export CMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT_BASH/scripts/buildsystems/vcpkg.cmake"
+          export CMAKE_PREFIX_PATH="$VCPKG_LIB_DIR_BASH"
 
           # 3. Activate Venv and Install Dependencies
           source .venv/Scripts/activate # Correct path for Windows Venvs
@@ -146,7 +147,7 @@ jobs:
           # 4. Install the package
           # pip/setuptools-cmake will automatically pick up the CMAKE_TOOLCHAIN_FILE env var
           echo "--- Installing editable package with CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE ---"
-          python -m pip install -e . --timeout 1000
+          python -m pip install -e . --timeout 1000 -v
 
           # 5. CRITICAL: DLL Vendoring for Runtime
           # Your original logic here is correct and necessary for pytest to find the DLL.
