@@ -81,33 +81,31 @@ jobs:
       - name: Bootstrap vcpkg
         if: runner.os == 'Windows'
         id: vcpkg
-        shell: bash # Use bash/zsh even on Windows for simpler command structure
+        # Ensure we use a shell where 'git clone' and 'bootstrap-vcpkg.sh' work
+        shell: bash
         run: |
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.sh
+            # Use the Windows bootstrap script since we are on a Windows runner
+            ./vcpkg/bootstrap-vcpkg.bat
           fi
+          # Set VCPKG_ROOT env var to the absolute path for the subsequent steps
           echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
 
       - name: Install dependencies via vcpkg (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          # Use the full path from the previous step, ensuring the correct triplet
-          $VCPKG_ROOT/vcpkg install openblas:x64-windows
-          $VCPKG_ROOT/vcpkg install pybind11:x64-windows
+          # Note: vcpkg.exe is the executable on Windows, not .sh
+          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
+          $VCPKG_ROOT/vcpkg.exe install pybind11:x64-windows
 
       - name: Verify vcpkg installation
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          ls -R "$VCPKG_ROOT/installed/x64-windows"
-
-      - name: Add vcpkg DLLs to PATH
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          echo "$VCPKG_ROOT/installed/x64-windows/bin" >> $GITHUB_PATH
+          # Simple check to confirm OpenBLAS is installed
+          ls -R "$VCPKG_ROOT/installed/x64-windows/lib/openblas.lib"
 
       - name: Creating virtual environment for Python
         run: |
@@ -117,15 +115,41 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          source .venv/Scripts/activate
+          # 1. Path Conversion (Windows path to Bash path)
+          # VCPKG_ROOT is likely a Windows path (e.g., C:/a/Repo/vcpkg). 
+          # We convert C:/ to /c/ for Git Bash compatibility.
+          VCPKG_ROOT_BASH=$(echo "$VCPKG_ROOT" | sed 's/\\/\//g' | sed 's/C:/\/c/I')
+          
+          # 2. Set the Toolchain Variable for CMake/scikit-build-core
+          TOOLCHAIN_FILE="$VCPKG_ROOT_BASH/scripts/buildsystems/vcpkg.cmake"
+          export SETUPTOOLS_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE"
+
+          # 3. Activate Venv and Install Dependencies
+          source .venv/Scripts/activate # Correct path for Windows Venvs
           python -m pip install -U pip --timeout 1000
           python -m pip install -r requirements.txt --timeout 1000
+          
+          # 4. Install the package (This is where CMake runs successfully now)
           python -m pip install -e . --timeout 1000
+
+          # 5. CRITICAL: DLL Vendoring for Runtime Recognition
+          # The openblas DLL is in the vcpkg bin folder.
+          VCPKG_DLL_DIR="$VCPKG_ROOT_BASH/installed/x64-windows/bin"
+          
+          # The editable install creates a symlink structure, but the compiled .pyd 
+          # lives in a temporary build folder. For local testing, placing the DLL
+          # into the VENV's site-packages folder is the most reliable way to make it discoverable
+          # when running pytest.
+          VENV_SITE_PACKAGES="./.venv/Lib/site-packages"
+          
+          # Copy openblas.dll into the folder where the compiled module will be found
+          cp "$VCPKG_DLL_DIR/openblas.dll" "$VENV_SITE_PACKAGES/"
+          
+          # 6. Run Pytest
           pytest tests/ -v --disable-warnings
         env:
           VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
-          CMAKE_ARGS: "-DCMAKE_PREFIX_PATH=${{ env.VCPKG_ROOT }}/installed/x64-windows"
-
+          
       - name: Installing `jetdl` & running pytest (Linux & MacOS)
         if: runner.os != 'Windows'
         run: |
