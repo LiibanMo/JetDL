@@ -108,6 +108,6 @@ endif()
 if (WIN32)
 install(TARGETS _C
     # The 'RUNTIME' keyword specifies the .pyd (shared library) file type.
-    RUNTIME DESTINATION "${CMAKE_SOURCE_DIR}/jetdl"
+    MODULE DESTINATION "${CMAKE_SOURCE_DIR}/jetdl"
 )
 endif()
