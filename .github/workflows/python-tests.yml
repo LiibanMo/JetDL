@@ -130,6 +130,25 @@ jobs:
           # Check if the path exists:
           ls "$CMAKE_TOOLCHAIN_FILE"
 
+      - name: Copy OpenBLAS and dependent DLLs
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          VCPKG_ROOT_DIR="${VCPKG_ROOT:-D:/a/JetDL/JetDL/vcpkg}" # Use VCPKG_ROOT if set, otherwise assume project root
+          VCPKG_BIN_PATH="${VCPKG_ROOT_DIR}/installed/x64-windows/debug/bin"
+          TARGET_DIR="D:/a/JetDL/JetDL/jetdl" # The destination where _C.pyd is installed
+          
+          echo "Copying DLLs from $VCPKG_BIN_PATH to $TARGET_DIR"
+          
+          # 1. Copy the OpenBLAS DLL itself (if it's not a fully static link)
+          cp -v "${VCPKG_BIN_PATH}"/openblas*.dll "${TARGET_DIR}" 2>/dev/null || true
+          
+          # 2. Copy the Intel OpenMP DLL, which OpenBLAS often requires
+          cp -v "${VCPKG_BIN_PATH}"/libiomp5md.dll "${TARGET_DIR}" 2>/dev/null || true
+          
+          # 3. Copy the C/C++ Runtime DLLs (MSVC) if necessary (often auto-handled, but good practice)
+          cp -v "${VCPKG_BIN_PATH}"/vcruntime*.dll "${TARGET_DIR}" 2>/dev/null || true
+
       - name: Installing `jetdl` & running pytest (Windows)
         if: runner.os == 'Windows'
         # Keep shell: bash for consistent path handling, but use Windows-style 'source' if needed
