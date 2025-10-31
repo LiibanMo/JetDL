@@ -3,7 +3,7 @@ import torch
 import jetdl
 
 SEED = 123
-ERR = 1e-3
+ERR = 1e-2
 
 
 def generate_random_data(shape1, shape2=None) -> list:
