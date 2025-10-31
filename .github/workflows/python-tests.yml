@@ -90,16 +90,18 @@ jobs:
       - name: Bootstrap vcpkg
         if: runner.os == 'Windows'
         id: vcpkg
-        # Ensure we use a shell where 'git clone' and 'bootstrap-vcpkg.sh' work
         shell: bash
         run: |
+          # The logic to clone and bootstrap...
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/microsoft/vcpkg.git
-            # Use the Windows bootstrap script since we are on a Windows runner
             ./vcpkg/bootstrap-vcpkg.bat
           fi
-          # Set VCPKG_ROOT env var to the absolute path for the subsequent steps
+          # Set VCPKG_ROOT env var for subsequent steps
           echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+          # Set CMAKE_TOOLCHAIN_FILE env var to automatically link vcpkg packages
+          # Use Windows path separator for the CMAKE_TOOLCHAIN_FILE value
+          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
 
       - name: Install dependencies via vcpkg (Windows)
         if: runner.os == 'Windows'
@@ -121,14 +123,16 @@ jobs:
 
       - name: Installing `jetdl` & running pytest (Windows)
         if: runner.os == 'Windows'
+        # Keep shell: bash for consistent path handling, but use Windows-style 'source' if needed
         shell: bash
         run: |
-          source .venv/Scripts/activate
-          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $GITHUB_ENV
-          echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" >> $GITHUB_ENV
+          source .venv/Scripts/activate # Windows venv activation for bash
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $GITHUB_ENV # Set triplet globally for all subsequent CMake calls
+          # CMAKE_TOOLCHAIN_FILE is already set globally in GITHUB_ENV
           python -m pip install -U pip --timeout 1000
           python -m pip install -r requirements.txt --timeout 1000
-          python -m pip install -e . --timeout 1000 -v
+          # This build command will now use the CMAKE_TOOLCHAIN_FILE correctly
+          python -m pip install -e . --timeout 1000 -v 
           pytest tests/ -v --disable-warnings
           
         env:
