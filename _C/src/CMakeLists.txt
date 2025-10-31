@@ -59,12 +59,19 @@ else()
       get_filename_component(BLAS_TRIPLET_ROOT "${BLAS_INSTALL_ROOT}" DIRECTORY)
 
       # Set the correct include path explicitly
-      set(BLAS_INCLUDE_DIRS "${BLAS_TRIPLET_ROOT}/include")
-      
-      message(STATUS "Corrected BLAS include directories: ${BLAS_INCLUDE_DIRS}")
-
-      if (NOT EXISTS "${BLAS_INCLUDE_DIRS}/cblas.h")
-          message(FATAL_ERROR "BLAS header 'cblas.h' not found in derived path: ${BLAS_INCLUDE_DIRS}")
+      set(VCPKG_INCLUDE_BASE "${BLAS_TRIPLET_ROOT}/include")
+    
+      # Test for the correct header location
+      if (EXISTS "${VCPKG_INCLUDE_BASE}/cblas.h")
+          # Headers are directly in the include folder
+          set(BLAS_INCLUDE_DIRS "${VCPKG_INCLUDE_BASE}")
+      elseif (EXISTS "${VCPKG_INCLUDE_BASE}/openblas/cblas.h")
+          # Headers are in a package-specific subdirectory
+          set(BLAS_INCLUDE_DIRS "${VCPKG_INCLUDE_BASE}/openblas")
+      else()
+          # Fallback to the known triplet include folder for the error message
+          set(BLAS_INCLUDE_DIRS "${VCPKG_INCLUDE_BASE}")
+          message(FATAL_ERROR "BLAS header 'cblas.h' not found in derived path: ${BLAS_INCLUDE_DIRS}. Checked both base and /openblas subfolder.")
       endif()
     endif()
     
