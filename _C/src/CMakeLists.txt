@@ -51,8 +51,19 @@ else()
   if (BLAS_FOUND)
       target_link_libraries(_C PRIVATE BLAS::BLAS)
       message(STATUS "Found BLAS libraries: ${BLAS_LIBRARIES}")
-      target_include_directories(_C PRIVATE ${BLAS_INCLUDE_DIRS})
-      message(STATUS "Found BLAS directories: ${BLAS_INCLUDE_DIRS}")
+      if (WIN32)
+          # 1. Manually set the paths to the vcpkg OpenBLAS installation
+          # CMAKE_SOURCE_DIR is the root of your project where 'vcpkg' is cloned
+          set(VCPKG_BASE_PATH "${CMAKE_SOURCE_DIR}/vcpkg/installed/x64-windows")
+
+          # The library is in the 'lib' directory (OpenBLAS is generally static/imported)
+          set(BLAS_LIBRARIES "${VCPKG_BASE_PATH}/lib/openblas.lib")
+
+          # The headers are in the 'include' directory
+          set(BLAS_INCLUDE_DIRS "${VCPKG_BASE_PATH}/include")
+          target_include_directories(_C PRIVATE ${BLAS_INCLUDE_DIRS})
+          message(STATUS "Found BLAS directories: ${BLAS_INCLUDE_DIRS}")
+      endif()
   else()
       message(FATAL_ERROR "BLAS libraries not found.")
   endif()
