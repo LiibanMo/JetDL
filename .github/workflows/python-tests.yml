@@ -120,6 +120,15 @@ jobs:
       - name: Creating virtual environment for Python
         run: |
           python -m venv .venv
+        
+      - name: Debug Environment Variables
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "VCPKG_ROOT: $VCPKG_ROOT"
+          echo "CMAKE_TOOLCHAIN_FILE: $CMAKE_TOOLCHAIN_FILE"
+          # Check if the path exists:
+          ls "$CMAKE_TOOLCHAIN_FILE"
 
       - name: Installing `jetdl` & running pytest (Windows)
         if: runner.os == 'Windows'
