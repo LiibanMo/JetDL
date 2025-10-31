@@ -15,8 +15,13 @@ message(STATUS "C_FILES: ${C_FILES}")
 
 pybind11_add_module(_C ${C_FILES})
 
-set_target_properties(_C PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+if (WIN32)
+  set_target_properties(_C PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                     ${CMAKE_SOURCE_DIR}/jetdl)
+else()
+  set_target_properties(_C PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+                                    ${CMAKE_SOURCE_DIR}/jetdl)
+endif()
 
 option(ENABLE_DEBUG OFF)
 if(ENABLE_DEBUG)
