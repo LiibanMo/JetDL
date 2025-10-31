@@ -88,7 +88,8 @@ else()
       else()
           # Fallback to the known triplet include folder for the error message
           set(BLAS_INCLUDE_DIRS "${VCPKG_INCLUDE_BASE}")
-          message(FATAL_ERROR "BLAS header 'cblas.h' not found in derived path: ${BLAS_INCLUDE_DIRS}. Checked both base and /openblas subfolder.")
+          message(FATAL_ERROR "BLAS header 'cblas.h' not found in derived path: 
+              ${BLAS_INCLUDE_DIRS}. Checked both base and /openblas subfolder.")
       endif()
     endif()
     
@@ -99,4 +100,14 @@ else()
   else()
     message(FATAL_ERROR "BLAS libraries not found.")
   endif()
+endif()
+
+# -------------------------------------------------------------
+# FINAL STEP for Windows: Use the install() command to force copy the module
+# -------------------------------------------------------------
+if (WIN32)
+install(TARGETS _C
+    # The 'RUNTIME' keyword specifies the .pyd (shared library) file type.
+    RUNTIME DESTINATION "${CMAKE_SOURCE_DIR}/jetdl"
+)
 endif()
