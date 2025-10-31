@@ -23,6 +23,18 @@ else()
                                     ${CMAKE_SOURCE_DIR}/jetdl)
 endif()
 
+# ---------------- DEBUGGING STEP -----------------
+get_target_property(OUTPUT_DIR _C RUNTIME_OUTPUT_DIRECTORY)
+if (NOT OUTPUT_DIR)
+    # Check the default property if RUNTIME_OUTPUT_DIRECTORY wasn't set successfully
+    get_target_property(OUTPUT_DIR _C LIBRARY_OUTPUT_DIRECTORY)
+endif()
+
+message(STATUS "DEBUG: CMAKE_SOURCE_DIR is: ${CMAKE_SOURCE_DIR}")
+message(STATUS "DEBUG: Target output property is set to: ${OUTPUT_DIR}")
+message(STATUS "DEBUG: Expected full output path prefix: ${OUTPUT_DIR}/_C.pyd")
+# -------------------------------------------------
+
 option(ENABLE_DEBUG OFF)
 if(ENABLE_DEBUG)
   target_compile_options(_C PRIVATE -O0 -g -no-omit-frame-pointer
