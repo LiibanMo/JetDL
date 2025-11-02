@@ -95,11 +95,11 @@ jobs:
             git clone https://github.com/microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.bat
           }
-          # Set VCPKG_ROOT env var for subsequent steps
-          $VcpkgRoot = (Resolve-Path "vcpkg").Path
+          # Set VCPKG_ROOT env var for subsequent steps, using forward slashes
+          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\', '/'
           echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
-          # Set CMAKE_TOOLCHAIN_FILE env var to automatically link vcpkg packages
-          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path
+          # Set CMAKE_TOOLCHAIN_FILE env var, using forward slashes
+          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\', '/'
           echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Install dependencies via vcpkg (Windows)
@@ -261,11 +261,11 @@ jobs:
             git clone https://github.com/microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.bat
           }
-          # Set VCPKG_ROOT env var for subsequent steps
-          $VcpkgRoot = (Resolve-Path "vcpkg").Path
+          # Set VCPKG_ROOT env var for subsequent steps, using forward slashes
+          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\', '/'
           echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
-          # Set CMAKE_TOOLCHAIN_FILE env var to automatically link vcpkg packages
-          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path
+          # Set CMAKE_TOOLCHAIN_FILE env var, using forward slashes
+          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\', '/'
           echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Install dependencies via vcpkg (Windows)
@@ -293,15 +293,19 @@ jobs:
           CIBW_BUILD: "cp311-* cp312-* cp313-*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_BEFORE_BUILD_LINUX: "yum install -y python3-devel libffi-devel"
+          CIBW_BEFORE_BUILD_LINUX: >
+            set -o pipefail &&
+            PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')") &&
+            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel
           CIBW_ENVIRONMENT_LINUX: >
-            CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
           CIBW_ENVIRONMENT_MACOS: >
-            CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
             LDFLAGS="-L$(brew --prefix openblas)/lib"
             CPPFLAGS="-I$(brew --prefix openblas)/include"
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
           CIBW_ENVIRONMENT_WINDOWS: >
+            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
             CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
             VCPKG_ROOT=${{ env.VCPKG_ROOT }}
             VCPKG_DEFAULT_TRIPLET=x64-windows
