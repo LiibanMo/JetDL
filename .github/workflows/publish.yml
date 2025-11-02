@@ -278,7 +278,7 @@ jobs:
         run: python -m pip install cibuildwheel
 
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse -v
+        run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-*"
           CIBW_ENVIRONMENT_LINUX: >
