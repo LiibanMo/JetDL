@@ -88,18 +88,19 @@ jobs:
       - name: Bootstrap vcpkg
         if: runner.os == 'Windows'
         id: vcpkg
-        shell: bash
+        shell: pwsh
         run: |
           # The logic to clone and bootstrap...
-          if [ ! -d "vcpkg" ]; then
+          if (-not (Test-Path vcpkg)) {
             git clone https://github.com/microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.bat
-          fi
+          }
           # Set VCPKG_ROOT env var for subsequent steps
-          echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+          $VcpkgRoot = (Resolve-Path "vcpkg").Path
+          echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
           # Set CMAKE_TOOLCHAIN_FILE env var to automatically link vcpkg packages
-          # Use Windows path separator for the CMAKE_TOOLCHAIN_FILE value
-          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path
+          echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Install dependencies via vcpkg (Windows)
         if: runner.os == 'Windows'
@@ -253,18 +254,19 @@ jobs:
       - name: Bootstrap vcpkg
         if: runner.os == 'Windows'
         id: vcpkg
-        shell: bash
+        shell: pwsh
         run: |
           # The logic to clone and bootstrap...
-          if [ ! -d "vcpkg" ]; then
+          if (-not (Test-Path vcpkg)) {
             git clone https://github.com/microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.bat
-          fi
+          }
           # Set VCPKG_ROOT env var for subsequent steps
-          echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+          $VcpkgRoot = (Resolve-Path "vcpkg").Path
+          echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
           # Set CMAKE_TOOLCHAIN_FILE env var to automatically link vcpkg packages
-          # Use Windows path separator for the CMAKE_TOOLCHAIN_FILE value
-          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path
+          echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Install dependencies via vcpkg (Windows)
         if: runner.os == 'Windows'
@@ -289,6 +291,9 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-*"
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_BEFORE_BUILD_LINUX: "yum install -y python3-devel libffi-devel"
           CIBW_ENVIRONMENT_LINUX: >
             CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
           CIBW_ENVIRONMENT_MACOS: >
