@@ -192,10 +192,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
+      - name: Set up Python (Linux & MacOS)
+        if: runner.os != 'Windows'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Set up Python (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
 
       # ... (All your dependency/cache steps, same as the 'test' job) ...
       # MUST repeat the cache and dependency setup here
