@@ -96,10 +96,10 @@ jobs:
             ./vcpkg/bootstrap-vcpkg.bat
           }
           # Set VCPKG_ROOT env var for subsequent steps, using forward slashes
-          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\', '/'
+          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\\', '/'
           echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
           # Set CMAKE_TOOLCHAIN_FILE env var, using forward slashes
-          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\', '/'
+          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\\', '/'
           echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Install dependencies via vcpkg (Windows)
