@@ -1,0 +1,243 @@
+name: Test, Build, and Publish to PyPI
+
+on:
+  # This workflow runs when a new GitHub Release is "published".
+  release:
+    types: [published]
+
+jobs:
+  ############################################################
+  # JOB 1: RUN ALL TESTS (Copied from your test workflow)
+  ############################################################
+  test:
+    name: Test on ${{ matrix.runner }} with Python ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false # Don't cancel all jobs if one test fails
+      matrix:
+        runner:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        python-version:
+          - 3.11
+          - 3.12
+          - 3.13
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          architecture: ${{ runner.os == 'Windows' && 'x64' || '' }} # Set x64 only for Windows
+
+      # ... (All your cache steps: apt, brew, vcpkg) ...
+      - name: Cache apt packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-cache-1
+
+      - name: Cache Homebrew packages
+        if: runner.os == 'MacOS'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ runner.os }}-brew-cache-1
+
+      - name: Cache vcpkg
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-vcpkg-cache-1
+          
+      # ... (All your dependency install steps: apt, brew, vcpkg) ...
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libopenblas-dev pybind11-dev
+
+      - name: Install build dependencies (MacOS)
+        if: runner.os == 'MacOS'
+        run: |
+          brew install openblas cmake
+
+      - name: Bootstrap vcpkg (Windows)
+        if: runner.os == 'Windows'
+        id: vcpkg
+        shell: bash
+        run: |
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.bat
+          fi
+          echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+
+      - name: Install dependencies via vcpkg (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
+
+      - name: Creating virtual environment for Python
+        run: python -m venv .venv
+            
+      - name: Installing `jetdl` & running pytest (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          source .venv/Scripts/activate
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $GITHUB_ENV
+          python -m pip install -U pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e . -v
+          pytest tests/ -v --disable-warnings
+        env:
+          VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
+          CMAKE_TOOLCHAIN_FILE: ${{ env.CMAKE_TOOLCHAIN_FILE }}
+          
+      - name: Installing `jetdl` & running pytest (Linux & MacOS)
+        if: runner.os != 'Windows'
+        run: |
+          source .venv/bin/activate
+          python -m pip install -U pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
+          pytest tests/ -v --disable-warnings
+
+  ############################################################
+  # JOB 2: BUILD WHEELS (Runs *after* test job)
+  ############################################################
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    # THIS IS THE KEY:
+    needs: test # <-- This job will not start unless the 'test' job matrix above succeeds.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # ... (All your dependency/cache steps, same as the 'test' job) ...
+      # You MUST repeat the cache and dependency setup here
+      # because this is a new job running on a fresh machine.
+      - name: Cache apt packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-cache-1
+
+      - name: Cache Homebrew packages
+        if: runner.os == 'MacOS'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ runner.os }}-brew-cache-1
+
+      - name: Cache vcpkg
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-vcpkg-cache-1
+
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libopenblas-dev pybind11-dev
+
+      - name: Install build dependencies (MacOS)
+        if: runner.os == 'MacOS'
+        run: |
+          brew install openblas cmake
+
+      - name: Bootstrap vcpkg (Windows)
+        if: runner.os == 'Windows'
+        id: vcpkg
+        shell: bash
+        run: |
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.bat
+          fi
+          echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+
+      - name: Install dependencies via vcpkg (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
+      
+      # ... (End of repeated setup) ...
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: "cp311-* cp312-* cp313-*"
+          CIBW_ENVIRONMENT_LINUX: >
+            CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+          CIBW_ENVIRONMENT_MACOS: >
+            CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+            LDFLAGS="-L$(brew --prefix openblas)/lib"
+            CPPFLAGS="-I$(brew --prefix openblas)/include"
+            PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
+          CIBW_ENVIRONMENT_WINDOWS: >
+            CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
+            VCPKG_ROOT=${{ env.VCPKG_ROOT }}
+            VCPKG_DEFAULT_TRIPLET=x64-windows
+
+      - name: Upload built wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  ############################################################
+  # JOB 3: PUBLISH (Runs *after* build job)
+  ############################################################
+  publish_wheels:
+    name: Publish wheels to PyPI
+    needs: build_wheels # <-- This job waits for all 'build_wheels' jobs
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for Trusted Publishing
+
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+      
+      - name: List downloaded files (for debugging)
+        run: ls -R dist
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
