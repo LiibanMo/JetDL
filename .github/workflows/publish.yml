@@ -195,10 +195,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       # ... (All your dependency/cache steps, same as the 'test' job) ...
-      # You MUST repeat the cache and dependency setup here
+      # MUST repeat the cache and dependency setup here
       # because this is a new job running on a fresh machine.
       - name: Cache apt packages
         if: runner.os == 'Linux'
@@ -206,6 +206,8 @@ jobs:
         with:
           path: /var/cache/apt/archives
           key: ${{ runner.os }}-apt-cache-1
+          restore-keys: |
+            ${{ runner.os }}-apt-cache-
 
       - name: Cache Homebrew packages
         if: runner.os == 'MacOS'
@@ -213,6 +215,8 @@ jobs:
         with:
           path: ~/Library/Caches/Homebrew
           key: ${{ runner.os }}-brew-cache-1
+          restore-keys: |
+            ${{ runner.os }}-brew-cache-
 
       - name: Cache vcpkg
         if: runner.os == 'Windows'
@@ -220,35 +224,53 @@ jobs:
         with:
           path: vcpkg
           key: ${{ runner.os }}-vcpkg-cache-1
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-cache-
 
       - name: Install build dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libopenblas-dev pybind11-dev
+          sudo apt-get install -y clang llvm gdb
+          sudo apt-get install -y build-essential cmake
+          sudo apt-get install -y libopenblas-dev
+          sudo apt-get install pybind11-dev
 
       - name: Install build dependencies (MacOS)
         if: runner.os == 'MacOS'
         run: |
-          brew install openblas cmake
+          brew uninstall cmake
+          brew install llvm openblas cmake
 
-      - name: Bootstrap vcpkg (Windows)
+      - name: Bootstrap vcpkg
         if: runner.os == 'Windows'
         id: vcpkg
         shell: bash
         run: |
+          # The logic to clone and bootstrap...
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.bat
           fi
+          # Set VCPKG_ROOT env var for subsequent steps
           echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+          # Set CMAKE_TOOLCHAIN_FILE env var to automatically link vcpkg packages
+          # Use Windows path separator for the CMAKE_TOOLCHAIN_FILE value
           echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
 
       - name: Install dependencies via vcpkg (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
+          # Note: vcpkg.exe is the executable on Windows, not .sh
           $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
+
+      - name: Verify vcpkg installation
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # Simple check to confirm OpenBLAS is installed
+          ls -R "$VCPKG_ROOT/installed/x64-windows/lib/openblas.lib"
       
       # ... (End of repeated setup) ...
 
@@ -256,7 +278,7 @@ jobs:
         run: python -m pip install cibuildwheel
 
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
+        run: python -m cibuildwheel --output-dir wheelhouse -v
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-*"
           CIBW_ENVIRONMENT_LINUX: >
