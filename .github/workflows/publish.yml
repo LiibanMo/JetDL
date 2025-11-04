@@ -7,179 +7,10 @@ on:
 
 jobs:
   ############################################################
-  # JOB 1: RUN ALL TESTS (Copied from your test workflow)
-  ############################################################
-  test:
-    name: Test on ${{ matrix.runner }} with Python ${{ matrix.python-version }}
-    strategy:
-      matrix:
-        runner:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-        python-version:
-          - 3.11
-          - 3.12
-          - 3.13
-
-    runs-on: ${{ matrix.runner }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }} (Linux & MacOS)
-        if: runner.os != 'Windows'
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-
-      - name: Set up Python ${{ matrix.python-version }} (Windows) (x64)
-        if: runner.os == 'Windows'
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          architecture: 'x64'
-
-      - name: Cache apt packages
-        if: runner.os == 'Linux'
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-cache-1
-          restore-keys: |
-            ${{ runner.os }}-apt-cache-
-
-      - name: Cache Homebrew packages
-        if: runner.os == 'MacOS'
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Caches/Homebrew
-          key: ${{ runner.os }}-brew-cache-1
-          restore-keys: |
-            ${{ runner.os }}-brew-cache-
-
-      - name: Cache vcpkg
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: vcpkg
-          key: ${{ runner.os }}-vcpkg-cache-1
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-cache-
-
-      - name: Install build dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang llvm gdb
-          sudo apt-get install -y build-essential cmake
-          sudo apt-get install -y libopenblas-dev
-          sudo apt-get install pybind11-dev
-
-      - name: Install build dependencies (MacOS)
-        if: runner.os == 'MacOS'
-        run: |
-          brew uninstall cmake
-          brew install llvm openblas cmake
-
-      - name: Bootstrap vcpkg
-        if: runner.os == 'Windows'
-        id: vcpkg
-        shell: pwsh
-        run: |
-          # The logic to clone and bootstrap...
-          if (-not (Test-Path vcpkg)) {
-            git clone https://github.com/microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.bat
-          }
-          # Set VCPKG_ROOT env var for subsequent steps, using forward slashes
-          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\\', '/'
-          echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
-          # Set CMAKE_TOOLCHAIN_FILE env var, using forward slashes
-          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\\', '/'
-          echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Install dependencies via vcpkg (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          # Note: vcpkg.exe is the executable on Windows, not .sh
-          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
-
-      - name: Verify vcpkg installation
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          # Simple check to confirm OpenBLAS is installed
-          ls -R "$VCPKG_ROOT/installed/x64-windows/lib/openblas.lib"
-
-      - name: Creating virtual environment for Python
-        run: |
-          python -m venv .venv
-        
-      - name: Debug Environment Variables
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          echo "VCPKG_ROOT: $VCPKG_ROOT"
-          echo "CMAKE_TOOLCHAIN_FILE: $CMAKE_TOOLCHAIN_FILE"
-          # Check if the path exists:
-          ls "$CMAKE_TOOLCHAIN_FILE"
-
-      - name: Copy OpenBLAS and dependent DLLs
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          VCPKG_ROOT_DIR="${VCPKG_ROOT:-D:/a/JetDL/JetDL/vcpkg}" # Use VCPKG_ROOT if set, otherwise assume project root
-          VCPKG_BIN_PATH="${VCPKG_ROOT_DIR}/installed/x64-windows/debug/bin"
-          TARGET_DIR="D:/a/JetDL/JetDL/jetdl" # The destination where _C.pyd is installed
-          
-          echo "Copying DLLs from $VCPKG_BIN_PATH to $TARGET_DIR"
-          
-          # 1. Copy the OpenBLAS DLL itself (if it's not a fully static link)
-          cp -v "${VCPKG_BIN_PATH}"/openblas*.dll "${TARGET_DIR}" 2>/dev/null || true
-          
-          # 2. Copy the Intel OpenMP DLL, which OpenBLAS often requires
-          cp -v "${VCPKG_BIN_PATH}"/libiomp5md.dll "${TARGET_DIR}" 2>/dev/null || true
-          
-          # 3. Copy the C/C++ Runtime DLLs (MSVC) if necessary (often auto-handled, but good practice)
-          cp -v "${VCPKG_BIN_PATH}"/vcruntime*.dll "${TARGET_DIR}" 2>/dev/null || true
-
-      - name: Installing `jetdl` & running pytest (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          source .venv/Scripts/activate # Windows venv activation for bash
-          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $GITHUB_ENV # Set triplet globally for all subsequent CMake calls
-          # CMAKE_TOOLCHAIN_FILE is already set globally in GITHUB_ENV
-          python -m pip install -U pip --timeout 1000
-          python -m pip install -r requirements.txt --timeout 1000
-          # This build command will now use the CMAKE_TOOLCHAIN_FILE correctly
-          python -m pip install -e . --timeout 1000 -v 
-          pytest tests/ -v --disable-warnings
-          
-        env:
-          # Ensure VCPKG_ROOT is passed from the previous 'Bootstrap vcpkg' step's output
-          VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
-          
-      - name: Installing `jetdl` & running pytest (Linux & MacOS)
-        if: runner.os != 'Windows'
-        run: |
-          source .venv/bin/activate
-          python -m pip install -U pip --timeout 1000
-          python -m pip install -r requirements.txt --timeout 1000
-          python -m pip install -e . --timeout 1000
-          pytest tests/ -v --disable-warnings
-
-  ############################################################
   # JOB 2: BUILD WHEELS (Runs *after* test job)
   ############################################################
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
-    needs: test # <-- This job will not start unless the 'test' job matrix above succeeds.
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -205,39 +36,6 @@ jobs:
           python-version: '3.11'
           architecture: 'x64'
 
-      - name: Cache vcpkg
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: vcpkg
-          key: ${{ runner.os }}-vcpkg-cache-1
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-cache-
-
-      - name: Bootstrap vcpkg
-        if: runner.os == 'Windows'
-        id: vcpkg
-        shell: pwsh
-        run: |
-          # The logic to clone and bootstrap...
-          if (-not (Test-Path vcpkg)) {
-            git clone https://github.com/microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.bat
-          }
-          # Set VCPKG_ROOT env var for subsequent steps, using forward slashes
-          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\\', '/'
-          echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
-          # Set CMAKE_TOOLCHAIN_FILE env var, using forward slashes
-          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\\', '/'
-          echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Install dependencies via vcpkg (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          # Note: vcpkg.exe is the executable on Windows, not .sh
-          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
-
       - name: Install cibuildwheel via pipx
         run: |
           python -m pip install --upgrade pip
@@ -253,11 +51,9 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: >
             set -o pipefail &&
             PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')") &&
-            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel openblas-devel pkgconf
+            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel openblas-devel
           CIBW_ENVIRONMENT_LINUX: >
             SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
-            LDFLAGS="$(pkg-config --libs openblas)"
-            CPPFLAGS="$(pkg-config --cflags openblas)"
           CIBW_ENVIRONMENT_MACOS: >
             SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
             LDFLAGS="-L$(brew --prefix openblas)/lib"
