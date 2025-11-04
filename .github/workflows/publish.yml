@@ -36,6 +36,39 @@ jobs:
           python-version: '3.11'
           architecture: 'x64'
 
+      - name: Cache vcpkg
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-vcpkg-cache-1
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-cache-
+
+      - name: Bootstrap vcpkg
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # The logic to clone and bootstrap...
+          if (-not (Test-Path vcpkg)) {
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.bat
+          }
+          # Set VCPKG_ROOT env var for subsequent steps, using forward slashes
+          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\\', '/'
+          echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          # Set CMAKE_TOOLCHAIN_FILE env var, using forward slashes
+          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\\', '/'
+          echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Install dependencies via vcpkg (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # Note: vcpkg.exe is the executable on Windows, not .sh
+          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
+          $VCPKG_ROOT/vcpkg.exe install openblas:x86-windows
+
       - name: Install cibuildwheel via pipx
         run: |
           python -m pip install --upgrade pip
@@ -51,9 +84,12 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: >
             set -o pipefail &&
             PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')") &&
-            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel openblas-devel
+            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel openblas-devel blas-devel lapack-devel && \
+            # make sure cblas.h is available at a standard include path
+            if [ -f /usr/include/openblas/cblas.h ]; then ln -sf /usr/include/openblas/cblas.h /usr/include/cblas.h; fi && \
+            if [ -f /usr/include/atlas/cblas.h ]; then ln -sf /usr/include/atlas/cblas.h /usr/include/cblas.h; fi
           CIBW_ENVIRONMENT_LINUX: >
-            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/usr/lib64/libopenblas.so -DBLAS_INCLUDE_DIR=/usr/include/openblas"
           CIBW_ENVIRONMENT_MACOS: >
             SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
             LDFLAGS="-L$(brew --prefix openblas)/lib"
