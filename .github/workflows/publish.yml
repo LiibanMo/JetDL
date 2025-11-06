@@ -1,14 +1,11 @@
-name: Test, Build, and Publish to PyPI
+name: Build and Publish Wheels
 
 on:
-  # This workflow runs when a new GitHub Release is "published".
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
-  ############################################################
-  # JOB 2: BUILD WHEELS (Runs *after* test job)
-  ############################################################
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -18,116 +15,79 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Python (Linux & MacOS)
-        if: runner.os != 'Windows'
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Set up Python (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          architecture: 'x64'
+      - name: Install OpenBLAS (macOS)
+        if: runner.os == 'macOS'
+        run: brew install openblas
 
-      - name: Cache vcpkg
+      - name: Bootstrap vcpkg (Windows)
         if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: vcpkg
-          key: ${{ runner.os }}-vcpkg-cache-1
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-cache-
-
-      - name: Bootstrap vcpkg
-        if: runner.os == 'Windows'
-        shell: pwsh
         run: |
-          # The logic to clone and bootstrap...
-          if (-not (Test-Path vcpkg)) {
-            git clone https://github.com/microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.bat
-          }
-          # Set VCPKG_ROOT env var for subsequent steps, using forward slashes
-          $VcpkgRoot = (Resolve-Path "vcpkg").Path -replace '\\', '/'
-          echo "VCPKG_ROOT=$VcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
-          # Set CMAKE_TOOLCHAIN_FILE env var, using forward slashes
-          $ToolchainFile = (Resolve-Path "vcpkg/scripts/buildsystems/vcpkg.cmake").Path -replace '\\', '/'
-          echo "CMAKE_TOOLCHAIN_FILE=$ToolchainFile" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Install dependencies via vcpkg (Windows)
-        if: runner.os == 'Windows'
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
         shell: bash
-        run: |
-          # Note: vcpkg.exe is the executable on Windows, not .sh
-          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
-          $VCPKG_ROOT/vcpkg.exe install openblas:x86-windows
 
-      - name: Install cibuildwheel via pipx
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pipx
-          pipx install cibuildwheel
+      - name: Install OpenBLAS (Windows)
+        if: runner.os == 'Windows'
+        run: ./vcpkg/vcpkg install openblas:x64-windows
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel
 
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-*"
+          CIBW_SKIP: "*-musllinux_*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
-            PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel openblas-devel blas-devel lapack-devel
-            # make sure cblas.h is available at a standard include path
-            if [ -f /usr/include/openblas/cblas.h ]; then ln -sf /usr/include/openblas/cblas.h /usr/include/cblas.h; fi
-            if [ -f /usr/include/atlas/cblas.h ]; then ln -sf /usr/include/atlas/cblas.h /usr/include/cblas.h; fi
-          CIBW_ENVIRONMENT_LINUX: >
-            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/usr/lib64/libopenblas.so -DBLAS_INCLUDE_DIR=/usr/include/openblas"
-          CIBW_ENVIRONMENT_MACOS: >
-            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
+            yum install -y openblas-devel
+            # Create symlink for compatibility if needed
+            if [ -f /usr/include/openblas/cblas.h ]; then
+              ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
+            fi
+
+          CIBW_ENVIRONMENT_MACOS: >-
             LDFLAGS="-L$(brew --prefix openblas)/lib"
             CPPFLAGS="-I$(brew --prefix openblas)/include"
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
-          CIBW_ENVIRONMENT_WINDOWS: >
-            SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
-            CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
-            VCPKG_ROOT=${{ env.VCPKG_ROOT }}
-            VCPKG_DEFAULT_TRIPLET=x64-windows
-            PATH="${{ env.VCPKG_ROOT }}/installed/x64-windows/bin;${PATH}"
+            SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
 
-      - name: Upload built wheels
+          CIBW_ENVIRONMENT_WINDOWS: >-
+            SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
+            CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Store artifacts
         uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
-  ############################################################
-  # JOB 3: PUBLISH (Runs *after* build job)
-  ############################################################
-  publish_wheels:
-    name: Publish wheels to PyPI
-    needs: build_wheels # <-- This job waits for all 'build_wheels' jobs
+  publish:
+    name: Publish to PyPI
+    needs: build_wheels
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # Required for Trusted Publishing
-
+      id-token: write
     steps:
       - name: Download all wheels
         uses: actions/download-artifact@v4
         with:
           pattern: wheels-*
+          path: dist
           merge-multiple: true
-          path: dist/
-      
-      - name: List downloaded files (for debugging)
-        run: ls -R dist
 
-      - name: Publish package to PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
