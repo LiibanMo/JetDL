@@ -81,12 +81,12 @@ jobs:
           CIBW_BUILD: "cp311-* cp312-* cp313-*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_BEFORE_BUILD_LINUX: >
-            set -o pipefail &&
-            PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')") &&
-            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel openblas-devel blas-devel lapack-devel && \
+          CIBW_BEFORE_BUILD_LINUX: |
+            set -ex
+            PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+            yum install -y "python${PY_MAJ_MIN}-devel" libffi-devel openblas-devel blas-devel lapack-devel
             # make sure cblas.h is available at a standard include path
-            if [ -f /usr/include/openblas/cblas.h ]; then ln -sf /usr/include/openblas/cblas.h /usr/include/cblas.h; fi && \
+            if [ -f /usr/include/openblas/cblas.h ]; then ln -sf /usr/include/openblas/cblas.h /usr/include/cblas.h; fi
             if [ -f /usr/include/atlas/cblas.h ]; then ln -sf /usr/include/atlas/cblas.h /usr/include/cblas.h; fi
           CIBW_ENVIRONMENT_LINUX: >
             SKBUILD_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/usr/lib64/libopenblas.so -DBLAS_INCLUDE_DIR=/usr/include/openblas"
