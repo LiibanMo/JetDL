@@ -53,7 +53,9 @@ jobs:
 
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
-            yum install -y openblas-devel
+            # Needed for Linux system to find an installation of Python
+            PY_MAJ_MIN=$({python} -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
+            yum install -y python${PY_MAJ_MIN}-devel openblas-devel
             # Create symlink for compatibility if needed
             if [ -f /usr/include/openblas/cblas.h ]; then
               ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
