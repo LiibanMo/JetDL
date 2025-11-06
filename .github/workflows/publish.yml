@@ -54,7 +54,7 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
             # Needed for Linux system to find an installation of Python
-            PY_MAJ_MIN=$({python} -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
+            PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
             yum install -y python${PY_MAJ_MIN}-devel openblas-devel
             # Create symlink for compatibility if needed
             if [ -f /usr/include/openblas/cblas.h ]; then
@@ -67,9 +67,9 @@ jobs:
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
             SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
 
-          CIBW_ENVIRONMENT_WINDOWS: >-
-            SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
-            CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+          CIBW_ENVIRONMENT_WINDOWS: |
+            set SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
+            set CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
 
       - name: Store artifacts
         uses: actions/upload-artifact@v4
