@@ -50,6 +50,7 @@ jobs:
           CIBW_SKIP: "*-musllinux_*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_CMAKE_VERSION: "3.18"
 
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
@@ -67,12 +68,10 @@ jobs:
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
             SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
 
-          CIBW_BEFORE_BUILD_WINDOWS: |
-            copy ${{ github.workspace }}\vcpkg\installed\x64-windows\bin\libopenblas.dll jetdl\
-
           CIBW_ENVIRONMENT_WINDOWS: >-
             SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
             CMAKE_TOOLCHAIN_FILE="${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake"
+            PATH="${{ github.workspace }}\vcpkg\installed\x64-windows\bin;%PATH%"
 
       - name: Store artifacts
         uses: actions/upload-artifact@v4
