@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -25,54 +25,88 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install OpenBLAS (macOS)
-        if: runner.os == 'macOS'
-        run: brew install openblas
+      # --- All your dependency/cache steps remain the same ---
+      - name: Cache apt packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-cache-1
+
+      - name: Cache Homebrew packages
+        if: runner.os == 'MacOS'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ runner.os }}-brew-cache-1
+
+      - name: Cache vcpkg
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-vcpkg-cache-1
+
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libopenblas-dev pybind11-dev
+
+      - name: Install build dependencies (MacOS)
+        if: runner.os == 'MacOS'
+        run: |
+          brew install openblas cmake
 
       - name: Bootstrap vcpkg (Windows)
         if: runner.os == 'Windows'
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          ./vcpkg/bootstrap-vcpkg.bat
+        id: vcpkg
         shell: bash
+        run: |
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.bat
+          fi
+          echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
 
-      - name: Install OpenBLAS (Windows)
+      - name: Install dependencies via vcpkg (Windows)
         if: runner.os == 'Windows'
-        run: ./vcpkg/vcpkg install openblas:x64-windows
-
+        shell: bash
+        run: |
+          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
+      
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel
 
       - name: Build wheels
-        run: cibuildwheel --output-dir wheelhouse
+        run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-*"
-          CIBW_SKIP: "*-musllinux_*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_CMAKE_VERSION: "3.18"
+          CIBW_BUILD: "cp311-* cp312-* cp313-*"
+          
+          # === FOR LINUX ===
+          # Runs *inside* the manylinux container to install deps.
+          # Tries both yum (for older images) and apt (for newer images).
+          CIBW_BEFORE_ALL_LINUX: >
+            yum install -y libopenblas-devel pybind11-devel || \
+            (apt-get update && apt-get install -y libopenblas-dev pybind11-dev)
 
-          CIBW_BEFORE_BUILD_LINUX: |
-            set -ex
-            # Needed for Linux system to find an installation of Python
-            yum install -y openblas-devel
-            # Create symlink for compatibility if needed
-            if [ -f /usr/include/openblas/cblas.h ]; then
-              ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
-            fi
-
-          CIBW_ENVIRONMENT_MACOS: >-
+          # === FOR WINDOWS ===
+          # Tells cibuildwheel to *only* build 64-bit (AMD64) wheels.
+          CIBW_ARCHS_WINDOWS: AMD64
+          
+          # --- env vars ---
+          CIBW_ENVIRONMENT_MACOS: >
+            CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
             LDFLAGS="-L$(brew --prefix openblas)/lib"
             CPPFLAGS="-I$(brew --prefix openblas)/include"
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
-            SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
+          CIBW_ENVIRONMENT_WINDOWS: >
+            CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
+            VCPKG_ROOT=${{ env.VCPKG_ROOT }}
+            VCPKG_DEFAULT_TRIPLET=x64-windows
 
-          CIBW_ENVIRONMENT_WINDOWS: >-
-            SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
-            CMAKE_TOOLCHAIN_FILE="${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake"
-            PATH="${{ github.workspace }}\vcpkg\installed\x64-windows\bin;{env:PATH}"
-
-      - name: Store artifacts
+      - name: Upload built wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
