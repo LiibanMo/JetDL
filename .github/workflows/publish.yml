@@ -55,7 +55,7 @@ jobs:
             set -ex
             # Needed for Linux system to find an installation of Python
             PY_MAJ_MIN=$(python -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
-            yum install -y python${PY_MAJ_MIN}-devel openblas-devel
+            yum install -y python3-devel openblas-devel
             # Create symlink for compatibility if needed
             if [ -f /usr/include/openblas/cblas.h ]; then
               ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
@@ -66,6 +66,9 @@ jobs:
             CPPFLAGS="-I$(brew --prefix openblas)/include"
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
             SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
+
+          CIBW_BEFORE_BUILD_WINDOWS: |
+            copy ${{ github.workspace }}\vcpkg\installed\x64-windows\bin\libopenblas.dll jetdl\
 
           CIBW_ENVIRONMENT_WINDOWS: |
             set SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
