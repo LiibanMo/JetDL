@@ -58,24 +58,28 @@ jobs:
         run: |
           brew install openblas cmake
 
-      - name: Bootstrap vcpkg (Windows)
+      - name: Setup vcpkg and Install OpenBLAS (Windows)
         if: runner.os == 'Windows'
-        id: vcpkg
-        shell: bash
+        shell: pwsh
         run: |
-          if [ ! -d "vcpkg" ]; then
-            git clone https://github.com/microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.bat
-          fi
-          echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
-          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+          if (-not (Test-Path "vcpkg")) {
+            git clone --depth=1 https://github.com/microsoft/vcpkg vcpkg
+          }
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg.exe install openblas:x64-windows
 
-      - name: Install dependencies via vcpkg (Windows)
+      - name: Set CMake args with absolute path (Windows)
         if: runner.os == 'Windows'
-        shell: bash
+        shell: pwsh
         run: |
-          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
-      
+          # Use $PWD (PowerShell absolute path) to construct the path reliably
+          $toolchainPath = Join-Path -Path $PWD -ChildPath "vcpkg\scripts\buildsystems\vcpkg.cmake"
+          $vcpkgArgs = "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath -DVCPKG_TARGET_TRIPLET=x64-windows"
+          echo "CIBW_CMAKE_ARGS=$vcpkgArgs" >> $env:GITHUB_ENV
+          
+          # This clears the old, problematic environment variable
+          echo "CIBW_ENVIRONMENT_WINDOWS=" >> $env:GITHUB_ENV 
+
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel
 
@@ -90,16 +94,12 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
             # Try yum for RPM-based, or fall back to apt for Debian-based
-            yum install -y openblas-devel pybind11-devel || ( apt-get update && apt-get install -y libopenblas-dev pybind11-dev )
+            yum install -y openblas-devel || (apt-get update && apt-get install -y libopenblas-dev)
             # Create symlink for compatibility if needed
             if [ -f /usr/include/openblas/cblas.h ]; then
               ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
             fi
 
-          # === FOR WINDOWS ===
-          # Tells cibuildwheel to *only* build 64-bit (AMD64) wheels.
-          CIBW_ARCHS_WINDOWS: AMD64
-          
           # --- env vars ---
           CIBW_ENVIRONMENT_MACOS: |
             CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
@@ -107,10 +107,13 @@ jobs:
             CPPFLAGS="-I$(brew --prefix openblas)/include"
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
 
-          CIBW_ENVIRONMENT_WINDOWS: |
-            SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
-            CMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-            PATH="${{ github.workspace }}\vcpkg\installed\x64-windows\bin;{env:PATH}"
+          # === FOR WINDOWS ===
+          # Tells cibuildwheel to *only* build 64-bit (AMD64) wheels.
+          CIBW_ARCHS_WINDOWS: AMD64
+          # Consumes correct argument
+          CIBW_CMAKE_ARGS: ${{ env.CIBW_CMAKE_ARGS }}
+          # This consumes the empty variable set above, removing the old bad path
+          CIBW_ENVIRONMENT_WINDOWS: ${{ env.CIBW_ENVIRONMENT_WINDOWS }}
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v4
