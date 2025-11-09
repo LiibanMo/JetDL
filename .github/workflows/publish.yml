@@ -94,7 +94,7 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
             # Try yum for RPM-based, or fall back to apt for Debian-based
-            yum install -y openblas-devel || (apt-get update && apt-get install -y libopenblas-dev)
+            yum install -y openblas-devel python3.11-devel || (apt-get update && apt-get install -y libopenblas-dev python3.11-dev)
             # Create symlink for compatibility if needed
             if [ -f /usr/include/openblas/cblas.h ]; then
               ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
