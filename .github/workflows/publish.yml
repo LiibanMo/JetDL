@@ -25,7 +25,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      # --- All your dependency/cache steps remain the same ---
       - name: Cache apt packages
         if: runner.os == 'Linux'
         uses: actions/cache@v4
@@ -72,30 +71,30 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # 1. Define all necessary paths from the vcpkg installation
+          # Define all necessary paths from the vcpkg installation
           $vcpkgRoot = Join-Path -Path $PWD -ChildPath "vcpkg\installed\x64-windows"
           $toolchainPath = Join-Path -Path $PWD -ChildPath "vcpkg\scripts\buildsystems\vcpkg.cmake"
           $vcpkgBinPath = Join-Path -Path $PWD -ChildPath "vcpkg\installed\x64-windows\bin"
           
-          # 2. Hard-code the paths directly into CMAKE_ARGS
+          # Build CMAKE_ARGS string
           $vcpkgArgs = @(
             "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath"
             "-DVCPKG_TARGET_TRIPLET=x64-windows"
-            # Hard-code paths for headers and libraries
             "-DOpenBLAS_INCLUDE_DIR=$vcpkgRoot\include" 
             "-DOpenBLAS_LIBRARY=$vcpkgRoot\lib\openblas.lib" 
             "-DBLA_VENDOR=OpenBLAS"
           ) -join ' '
           
-          # 3. Set CMAKE_ARGS for the build step
-          echo "CIBW_CMAKE_ARGS=$vcpkgArgs" >> $env:GITHUB_ENV
+          # Set CMAKE_ARGS for the build step
+          "CIBW_CMAKE_ARGS=$vcpkgArgs" | Out-File -FilePath $env:GITHUB_ENV -Append
           
-          # 4. CRITICAL: Add the DLL path to the system PATH for the build step.
-          #    This is the GitHub Actions standard, reliable way to modify PATH.
-          echo "$vcpkgBinPath" >> $env:PATH
+          # FIXED: Properly append to PATH using PowerShell syntax
+          $currentPath = $env:PATH
+          $newPath = "$vcpkgBinPath;$currentPath"
+          "PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Append
           
-          # 5. Clear the old, problematic variable to prevent the syntax error
-          echo "CIBW_ENVIRONMENT_WINDOWS=" >> $env:GITHUB_ENV
+          # Clear the old environment variable
+          "CIBW_ENVIRONMENT_WINDOWS=" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel
@@ -106,25 +105,26 @@ jobs:
           CIBW_BUILD: "cp311-* cp312-* cp313-*"
           
           # === FOR LINUX ===
-          # Runs *inside* the manylinux container to install deps.
-          # Tries both yum (for older images) and apt (for newer images).
+          # FIXED: Install python-devel packages for ALL Python versions being built
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
             # Try yum for RPM-based, or fall back to apt for Debian-based
-            yum install -y openblas-devel python3.11-devel || (apt-get update && apt-get install -y libopenblas-dev python3.11-dev)
+            yum install -y openblas-devel python3.11-devel python3.12-devel python3.13-devel || \
+              (apt-get update && apt-get install -y libopenblas-dev python3.11-dev python3.12-dev python3.13-dev)
+            
             # Create symlink for compatibility if needed
             if [ -f /usr/include/openblas/cblas.h ]; then
-              ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
+              ln -sf /usr/include/openblas/cblas.h /usr/include/cblas.h
             fi
-            # === DEBUG ECHO: Find OpenBLAS Headers and Library ===
+            
+            # Debug: Find OpenBLAS Headers and Library
             echo "--- DEBUG: OpenBLAS Paths in Container ---"
-            find /usr -name "cblas.h"
-            find /usr -name "libopenblas.*"
-            # ----------------------------------------------------
+            find /usr -name "cblas.h" 2>/dev/null || true
+            find /usr -name "libopenblas.*" 2>/dev/null || true
           
           CIBW_ENVIRONMENT_LINUX: 'CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS -DOpenBLAS_INCLUDE_DIR=/usr/include/openblas"'
 
-          # --- env vars ---
+          # === FOR MACOS ===
           CIBW_ENVIRONMENT_MACOS: |
             CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
             LDFLAGS="-L$(brew --prefix openblas)/lib"
@@ -132,11 +132,8 @@ jobs:
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
 
           # === FOR WINDOWS ===
-          # Tells cibuildwheel to *only* build 64-bit (AMD64) wheels.
           CIBW_ARCHS_WINDOWS: AMD64
-          # Consumes correct argument
           CIBW_CMAKE_ARGS: ${{ env.CIBW_CMAKE_ARGS }}
-          # This consumes the empty variable set above, removing the old bad path
           CIBW_ENVIRONMENT_WINDOWS: ${{ env.CIBW_ENVIRONMENT_WINDOWS }}
 
       - name: Upload built wheels
