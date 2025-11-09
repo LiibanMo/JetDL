@@ -72,13 +72,33 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # Use $PWD (PowerShell absolute path) to construct the path reliably
+          # VCPKG_ROOT is likely D:/a/JetDL/JetDL/vcpkg
+          $vcpkgRoot = Join-Path -Path $PWD -ChildPath "vcpkg\installed\x64-windows"
           $toolchainPath = Join-Path -Path $PWD -ChildPath "vcpkg\scripts\buildsystems\vcpkg.cmake"
-          $vcpkgArgs = "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath -DVCPKG_TARGET_TRIPLET=x64-windows -DBLA_VENDOR=OpenBLAS"
+          
+          $vcpkgArgs = @(
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath"
+            "-DVCPKG_TARGET_TRIPLET=x64-windows"
+            # Explicitly tell CMake where to look for headers
+            "-DOpenBLAS_INCLUDE_DIR=$vcpkgRoot\include" 
+            # Explicitly tell CMake where to look for libraries
+            "-DOpenBLAS_LIBRARY=$vcpkgRoot\lib\openblas.lib" 
+            "-DBLA_VENDOR=OpenBLAS"
+          ) -join ' '
+
+          # === DEBUG ECHO: VCPKG Paths Being Set ===
+          echo "--- DEBUG: VCPKG Paths (Windows) ---"
+          echo "VCPKG Root (Target Triplet): $vcpkgRoot"
+          echo "Toolchain File: $toolchainPath"
+          echo "OpenBLAS Library Path: $vcpkgRoot\lib\openblas.lib"
+          echo "-------------------------------------"
+          
+          # Set the CMAKE_ARGS
           echo "CIBW_CMAKE_ARGS=$vcpkgArgs" >> $env:GITHUB_ENV
           
-          # This clears the old, problematic environment variable
-          echo "CIBW_ENVIRONMENT_WINDOWS=" >> $env:GITHUB_ENV 
+          # Set the PATH for the runtime environment (still good practice)
+          $vcpkgBinPath = Join-Path -Path $PWD -ChildPath "vcpkg\installed\x64-windows\bin"
+          echo "CIBW_ENVIRONMENT_WINDOWS=PATH=$vcpkgBinPath;{env:PATH}" >> $env:GITHUB_ENV
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel
@@ -99,6 +119,13 @@ jobs:
             if [ -f /usr/include/openblas/cblas.h ]; then
               ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
             fi
+            # === DEBUG ECHO: Find OpenBLAS Headers and Library ===
+            echo "--- DEBUG: OpenBLAS Paths in Container ---"
+            find /usr -name "cblas.h"
+            find /usr -name "libopenblas.*"
+            # ----------------------------------------------------
+          
+          CIBW_ENVIRONMENT_LINUX: 'CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS -DCMAKE_CXX_FLAGS=-isystem /usr/include/openblas"'
 
           # --- env vars ---
           CIBW_ENVIRONMENT_MACOS: |
