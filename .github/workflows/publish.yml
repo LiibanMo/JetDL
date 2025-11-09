@@ -71,30 +71,37 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # Define all necessary paths from the vcpkg installation
-          $vcpkgRoot = Join-Path -Path $PWD -ChildPath "vcpkg\installed\x64-windows"
-          $toolchainPath = Join-Path -Path $PWD -ChildPath "vcpkg\scripts\buildsystems\vcpkg.cmake"
-          $vcpkgBinPath = Join-Path -Path $PWD -ChildPath "vcpkg\installed\x64-windows\bin"
+          # Define paths
+          $vcpkgRoot = Resolve-Path "vcpkg\installed\x64-windows"
+          $toolchainPath = Resolve-Path "vcpkg\scripts\buildsystems\vcpkg.cmake"
+          $vcpkgBinPath = Join-Path $vcpkgRoot "bin"
+          $vcpkgLibPath = Join-Path $vcpkgRoot "lib"
+          $vcpkgIncludePath = Join-Path $vcpkgRoot "include"
           
-          # Build CMAKE_ARGS string
-          $vcpkgArgs = @(
-            "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath"
-            "-DVCPKG_TARGET_TRIPLET=x64-windows"
-            "-DOpenBLAS_INCLUDE_DIR=$vcpkgRoot\include" 
-            "-DOpenBLAS_LIBRARY=$vcpkgRoot\lib\openblas.lib" 
-            "-DBLA_VENDOR=OpenBLAS"
-          ) -join ' '
+          # Verify OpenBLAS files exist
+          $openblasLib = Join-Path $vcpkgLibPath "openblas.lib"
+          $openblasHeader = Join-Path $vcpkgIncludePath "cblas.h"
           
-          # Set CMAKE_ARGS for the build step
-          "CIBW_CMAKE_ARGS=$vcpkgArgs" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Checking for OpenBLAS files..."
+          Write-Host "Library: $openblasLib - Exists: $(Test-Path $openblasLib)"
+          Write-Host "Header: $openblasHeader - Exists: $(Test-Path $openblasHeader)"
+          Write-Host "Bin directory contents:"
+          Get-ChildItem $vcpkgBinPath | Select-Object Name
           
-          # FIXED: Properly append to PATH using PowerShell syntax
-          $currentPath = $env:PATH
-          $newPath = "$vcpkgBinPath;$currentPath"
-          "PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          # Build CMAKE_ARGS with explicit paths
+          $cmakeArgs = "-DCMAKE_TOOLCHAIN_FILE=`"$toolchainPath`" " +
+                       "-DVCPKG_TARGET_TRIPLET=x64-windows " +
+                       "-DBLA_VENDOR=OpenBLAS " +
+                       "-DBLAS_LIBRARIES=`"$openblasLib`" " +
+                       "-DOpenBLAS_INCLUDE_DIR=`"$vcpkgIncludePath`" " +
+                       "-DBLAS_INCLUDE_DIRS=`"$vcpkgIncludePath`""
           
-          # Clear the old environment variable
-          "CIBW_ENVIRONMENT_WINDOWS=" | Out-File -FilePath $env:GITHUB_ENV -Append
+          # Write to GITHUB_ENV
+          Add-Content -Path $env:GITHUB_ENV -Value "CIBW_CMAKE_ARGS=$cmakeArgs"
+          
+          # Add bin path to PATH
+          $newPath = "$vcpkgBinPath;$env:PATH"
+          Add-Content -Path $env:GITHUB_ENV -Value "PATH=$newPath"
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel
@@ -102,25 +109,39 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp311-* cp312-* cp313-*"
+          # Build only Python 3.11 and 3.12 (skip 3.13 for now)
+          CIBW_BUILD: "cp311-* cp312-*"
           
           # === FOR LINUX ===
-          # FIXED: Install python-devel packages for ALL Python versions being built
+          # AlmaLinux 8 repos don't have python3.13-devel yet, so we skip it
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
-            # Try yum for RPM-based, or fall back to apt for Debian-based
-            yum install -y openblas-devel python3.11-devel python3.12-devel python3.13-devel || \
-              (apt-get update && apt-get install -y libopenblas-dev python3.11-dev python3.12-dev python3.13-dev)
             
-            # Create symlink for compatibility if needed
-            if [ -f /usr/include/openblas/cblas.h ]; then
-              ln -sf /usr/include/openblas/cblas.h /usr/include/cblas.h
+            # Install dependencies based on distro
+            if command -v yum &> /dev/null; then
+              # For RPM-based (AlmaLinux/CentOS/RHEL)
+              echo "Using yum/dnf package manager"
+              yum install -y openblas-devel python3.11-devel python3.12-devel || \
+                dnf install -y openblas-devel python3.11-devel python3.12-devel
+            elif command -v apt-get &> /dev/null; then
+              # For Debian-based
+              echo "Using apt package manager"
+              apt-get update
+              apt-get install -y libopenblas-dev python3.11-dev python3.12-dev
             fi
             
-            # Debug: Find OpenBLAS Headers and Library
-            echo "--- DEBUG: OpenBLAS Paths in Container ---"
-            find /usr -name "cblas.h" 2>/dev/null || true
-            find /usr -name "libopenblas.*" 2>/dev/null || true
+            # Create symlink for compatibility
+            if [ -f /usr/include/openblas/cblas.h ] && [ ! -f /usr/include/cblas.h ]; then
+              ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h
+            fi
+            
+            # Debug output
+            echo "=== OpenBLAS Installation Check ==="
+            find /usr -name "cblas.h" 2>/dev/null || echo "cblas.h not found"
+            find /usr -name "libopenblas.so*" 2>/dev/null || echo "libopenblas.so not found"
+            echo "=== Python Version ==="
+            python --version
+            echo "==================================="
           
           CIBW_ENVIRONMENT_LINUX: 'CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS -DOpenBLAS_INCLUDE_DIR=/usr/include/openblas"'
 
@@ -133,8 +154,6 @@ jobs:
 
           # === FOR WINDOWS ===
           CIBW_ARCHS_WINDOWS: AMD64
-          CIBW_CMAKE_ARGS: ${{ env.CIBW_CMAKE_ARGS }}
-          CIBW_ENVIRONMENT_WINDOWS: ${{ env.CIBW_ENVIRONMENT_WINDOWS }}
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v4
