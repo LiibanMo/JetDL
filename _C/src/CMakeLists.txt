@@ -91,6 +91,8 @@ else()
           message(FATAL_ERROR "BLAS header 'cblas.h' not found in derived path: 
               ${BLAS_INCLUDE_DIRS}. Checked both base and /openblas subfolder.")
       endif()
+    else()
+      include_directories(${OpenBLAS_INCLUDE_DIR})
     endif()
     
     target_link_libraries(_C PRIVATE ${BLAS_LIBRARIES})
