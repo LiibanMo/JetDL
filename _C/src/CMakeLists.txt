@@ -4,7 +4,6 @@ project(JetDL)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(
-  Python 3.11
   COMPONENTS Interpreter Development
   REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)

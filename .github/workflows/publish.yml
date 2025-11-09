@@ -74,7 +74,7 @@ jobs:
         run: |
           # Use $PWD (PowerShell absolute path) to construct the path reliably
           $toolchainPath = Join-Path -Path $PWD -ChildPath "vcpkg\scripts\buildsystems\vcpkg.cmake"
-          $vcpkgArgs = "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath -DVCPKG_TARGET_TRIPLET=x64-windows"
+          $vcpkgArgs = "-DCMAKE_TOOLCHAIN_FILE=$toolchainPath -DVCPKG_TARGET_TRIPLET=x64-windows -DBLA_VENDOR=OpenBLAS"
           echo "CIBW_CMAKE_ARGS=$vcpkgArgs" >> $env:GITHUB_ENV
           
           # This clears the old, problematic environment variable
