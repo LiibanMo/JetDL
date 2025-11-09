@@ -87,24 +87,30 @@ jobs:
           # === FOR LINUX ===
           # Runs *inside* the manylinux container to install deps.
           # Tries both yum (for older images) and apt (for newer images).
-          CIBW_BEFORE_ALL_LINUX: >
-            yum install -y libopenblas-devel pybind11-devel || \
-            (apt-get update && apt-get install -y libopenblas-dev pybind11-dev)
+          CIBW_BEFORE_BUILD_LINUX: |
+            set -ex
+            # Try yum for RPM-based, or fall back to apt for Debian-based
+            yum install -y openblas-devel pybind11-devel || ( apt-get update && apt-get install -y libopenblas-dev pybind11-dev )
+            # Create symlink for compatibility if needed
+            if [ -f /usr/include/openblas/cblas.h ]; then
+              ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h || true
+            fi
 
           # === FOR WINDOWS ===
           # Tells cibuildwheel to *only* build 64-bit (AMD64) wheels.
           CIBW_ARCHS_WINDOWS: AMD64
           
           # --- env vars ---
-          CIBW_ENVIRONMENT_MACOS: >
+          CIBW_ENVIRONMENT_MACOS: |
             CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
             LDFLAGS="-L$(brew --prefix openblas)/lib"
             CPPFLAGS="-I$(brew --prefix openblas)/include"
             PKG_CONFIG_PATH="$(brew --prefix openblas)/lib/pkgconfig"
-          CIBW_ENVIRONMENT_WINDOWS: >
-            CMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE }}
-            VCPKG_ROOT=${{ env.VCPKG_ROOT }}
-            VCPKG_DEFAULT_TRIPLET=x64-windows
+
+          CIBW_ENVIRONMENT_WINDOWS: |
+            SKBUILD_CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"
+            CMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            PATH="${{ github.workspace }}\vcpkg\installed\x64-windows\bin;{env:PATH}"
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v4
