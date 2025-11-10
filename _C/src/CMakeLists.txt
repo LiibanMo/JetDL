@@ -66,30 +66,47 @@ else()
   find_package(BLAS REQUIRED)
 
   if (BLAS_FOUND)
-      # --------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------
     # FIX: Manually derive and set the include directory path from the found library path
     # --------------------------------------------------------------------------------
     if (WIN32)
       # Use CMake path manipulation to derive the include path from the library path
       get_filename_component(BLAS_LIB_DIR "${BLAS_LIBRARIES}" DIRECTORY)
       get_filename_component(BLAS_INSTALL_ROOT "${BLAS_LIB_DIR}" DIRECTORY)
-      get_filename_component(BLAS_TRIPLET_ROOT "${BLAS_INSTALL_ROOT}" DIRECTORY)
-
-      # Set the correct include path explicitly
-      set(VCPKG_INCLUDE_BASE "${BLAS_TRIPLET_ROOT}/include")
-    
+      
+      # FIXED: Don't go up another directory - BLAS_INSTALL_ROOT is already correct
+      # It should be: vcpkg/installed/x64-windows (not vcpkg/installed)
+      set(VCPKG_INCLUDE_BASE "${BLAS_INSTALL_ROOT}/include")
+      
+      message(STATUS "Windows BLAS Detection:")
+      message(STATUS "  BLAS_LIBRARIES: ${BLAS_LIBRARIES}")
+      message(STATUS "  BLAS_LIB_DIR: ${BLAS_LIB_DIR}")
+      message(STATUS "  BLAS_INSTALL_ROOT: ${BLAS_INSTALL_ROOT}")
+      message(STATUS "  VCPKG_INCLUDE_BASE: ${VCPKG_INCLUDE_BASE}")
+      
       # Test for the correct header location
       if (EXISTS "${VCPKG_INCLUDE_BASE}/cblas.h")
           # Headers are directly in the include folder
           set(BLAS_INCLUDE_DIRS "${VCPKG_INCLUDE_BASE}")
+          message(STATUS "  Found cblas.h at: ${VCPKG_INCLUDE_BASE}/cblas.h")
       elseif (EXISTS "${VCPKG_INCLUDE_BASE}/openblas/cblas.h")
           # Headers are in a package-specific subdirectory
           set(BLAS_INCLUDE_DIRS "${VCPKG_INCLUDE_BASE}/openblas")
+          message(STATUS "  Found cblas.h at: ${VCPKG_INCLUDE_BASE}/openblas/cblas.h")
       else()
-          # Fallback to the known triplet include folder for the error message
-          set(BLAS_INCLUDE_DIRS "${VCPKG_INCLUDE_BASE}")
-          message(FATAL_ERROR "BLAS header 'cblas.h' not found in derived path: 
-              ${BLAS_INCLUDE_DIRS}. Checked both base and /openblas subfolder.")
+          # Detailed error with file listing
+          message(STATUS "  ERROR: cblas.h not found. Checking directory contents:")
+          file(GLOB INCLUDE_FILES "${VCPKG_INCLUDE_BASE}/*")
+          foreach(FILE ${INCLUDE_FILES})
+            get_filename_component(FILENAME ${FILE} NAME)
+            message(STATUS "    - ${FILENAME}")
+          endforeach()
+          
+          message(FATAL_ERROR "BLAS header 'cblas.h' not found in: ${VCPKG_INCLUDE_BASE}\n"
+                              "Checked:\n"
+                              "  - ${VCPKG_INCLUDE_BASE}/cblas.h\n"
+                              "  - ${VCPKG_INCLUDE_BASE}/openblas/cblas.h\n"
+                              "Please verify vcpkg OpenBLAS installation is complete.")
       endif()
     endif()
     
