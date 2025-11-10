@@ -133,36 +133,43 @@ jobs:
           CIBW_BUILD: "cp311-* cp312-*"
           
           # === FOR LINUX (manylinux - RPM-based) ===
-          CIBW_BEFORE_BUILD_LINUX: |
+          CIBW_BEFORE_BUILD: |
             set -ex
             
-            # Determine Python version
             PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
             echo "Building for Python $PYTHON_VERSION"
             
-            # Install OpenBLAS and Python development headers
-            if command -v yum &> /dev/null; then
-              echo "Using yum (RPM-based distro)"
+            # Detect package manager and install dependencies
+            if command -v apk &> /dev/null; then
+              echo "Detected Alpine Linux (musllinux) - using apk"
+              apk add --no-cache \
+                openblas-dev \
+                python3-dev \
+                linux-headers \
+                gfortran
+            elif command -v yum &> /dev/null; then
+              echo "Detected RPM-based Linux - using yum"
               yum install -y openblas-devel python${PYTHON_VERSION}-devel || \
                 yum install -y openblas-devel python3-devel
             elif command -v apt-get &> /dev/null; then
-              echo "Using apt (Debian-based distro)"
+              echo "Detected Debian-based Linux - using apt"
               apt-get update
               apt-get install -y libopenblas-dev python${PYTHON_VERSION}-dev || \
                 apt-get install -y libopenblas-dev python3-dev
+            else
+              echo "ERROR: No supported package manager found!"
+              exit 1
             fi
             
-            # Create symlink for cblas.h if needed
+            # Create symlink for cblas.h if needed (not needed on Alpine)
             if [ -f /usr/include/openblas/cblas.h ] && [ ! -f /usr/include/cblas.h ]; then
               ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h
             fi
             
-            # Debug output
-            echo "=== Dependency Check ==="
-            find /usr -name "cblas.h" 2>/dev/null | head -5
-            find /usr -name "libopenblas.so*" 2>/dev/null | head -5
-            echo "Python: $(python --version)"
-            echo "======================="
+            echo "=== Dependencies installed ==="
+            find /usr -name "cblas.h" 2>/dev/null | head -3
+            find /usr -name "libopenblas.so*" 2>/dev/null | head -3
+            python --version
           
           CIBW_ENVIRONMENT_LINUX: 'CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS -DOpenBLAS_INCLUDE_DIR=/usr/include/openblas"'
           
