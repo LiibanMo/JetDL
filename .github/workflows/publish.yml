@@ -67,13 +67,12 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg.exe install openblas:x64-windows
 
-      - name: Set CMake args and PATH (Windows)
+      - name: Set OpenBLAS paths for Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # Get absolute paths
+          # Get absolute paths to OpenBLAS installation
           $vcpkgRoot = Resolve-Path "vcpkg\installed\x64-windows"
-          $toolchainPath = Resolve-Path "vcpkg\scripts\buildsystems\vcpkg.cmake"
           $vcpkgBinPath = Join-Path $vcpkgRoot "bin"
           $vcpkgLibPath = Join-Path $vcpkgRoot "lib"
           $vcpkgIncludePath = Join-Path $vcpkgRoot "include"
@@ -81,49 +80,49 @@ jobs:
           # Verify OpenBLAS installation
           Write-Host "=== Verifying OpenBLAS Installation ==="
           Write-Host "vcpkg root: $vcpkgRoot"
-          Write-Host "Lib path: $vcpkgLibPath"
-          Write-Host "Include path: $vcpkgIncludePath"
           
-          Write-Host "`nLibrary files in lib directory:"
-          Get-ChildItem $vcpkgLibPath -Filter "openblas*" | ForEach-Object { Write-Host "  - $($_.Name)" }
+          Write-Host "`nLibrary files:"
+          Get-ChildItem $vcpkgLibPath -Filter "*openblas*" | ForEach-Object { 
+            Write-Host "  - $($_.FullName)" 
+          }
           
-          Write-Host "`nHeader files in include directory:"
-          Get-ChildItem $vcpkgIncludePath -Filter "*blas*" | ForEach-Object { Write-Host "  - $($_.Name)" }
+          Write-Host "`nHeader files:"
+          Get-ChildItem $vcpkgIncludePath -Filter "*blas*" | ForEach-Object { 
+            Write-Host "  - $($_.FullName)" 
+          }
           
-          Write-Host "`nDLL files in bin directory:"
-          Get-ChildItem $vcpkgBinPath -Filter "*.dll" | ForEach-Object { Write-Host "  - $($_.Name)" }
+          Write-Host "`nDLL files:"
+          Get-ChildItem $vcpkgBinPath -Filter "*.dll" | ForEach-Object { 
+            Write-Host "  - $($_.FullName)" 
+          }
           
-          # Check for specific files
-          $openblasLib = Join-Path $vcpkgLibPath "openblas.lib"
-          $cblasHeader = Join-Path $vcpkgIncludePath "cblas.h"
-          Write-Host "`nFile existence check:"
-          Write-Host "  openblas.lib exists: $(Test-Path $openblasLib)"
-          Write-Host "  cblas.h exists: $(Test-Path $cblasHeader)"
+          # Build paths with forward slashes for CMake
+          $openblasLib = (Join-Path $vcpkgLibPath "openblas.lib") -replace '\\', '/'
+          $includePath = $vcpkgIncludePath -replace '\\', '/'
           
-          # Build CMAKE_ARGS (use forward slashes for CMake compatibility)
-          $toolchainPathUnix = $toolchainPath -replace '\\', '/'
-          $vcpkgRootUnix = $vcpkgRoot -replace '\\', '/'
-          $openblasLibUnix = $openblasLib -replace '\\', '/'
-          $vcpkgIncludePathUnix = $vcpkgIncludePath -replace '\\', '/'
+          # Check files exist
+          Write-Host "`n=== File Existence Check ==="
+          Write-Host "openblas.lib: $(Test-Path ($openblasLib -replace '/', '\'))"
+          Write-Host "cblas.h: $(Test-Path (Join-Path $vcpkgIncludePath 'cblas.h'))"
           
-          $cmakeArgs = "-DCMAKE_TOOLCHAIN_FILE=$toolchainPathUnix " +
-                       "-DVCPKG_TARGET_TRIPLET=x64-windows " +
-                       "-DCMAKE_PREFIX_PATH=$vcpkgRootUnix " +
-                       "-DBLA_VENDOR=OpenBLAS " +
-                       "-DBLAS_LIBRARIES=$openblasLibUnix " +
-                       "-DBLAS_INCLUDE_DIRS=$vcpkgIncludePathUnix"
+          # Create CMAKE_ARGS - NO TOOLCHAIN FILE
+          # We specify BLAS directly so CMake doesn't search
+          $cmakeArgs = "-DBLA_VENDOR=OpenBLAS " +
+                       "-DBLAS_LIBRARIES=`"$openblasLib`" " +
+                       "-DBLAS_INCLUDE_DIRS=`"$includePath`" " +
+                       "-DOpenBLAS_INCLUDE_DIR=`"$includePath`""
           
-          Write-Host "`nCMAKE_ARGS to be set:"
+          Write-Host "`n=== CMAKE_ARGS ==="
           Write-Host $cmakeArgs
           
-          # Write to GITHUB_ENV
+          # Save to environment
           "WIN_CMAKE_ARGS=$cmakeArgs" | Out-File -FilePath $env:GITHUB_ENV -Append
           
-          # Add DLL path to PATH
+          # Add DLL directory to PATH
           $newPath = "$vcpkgBinPath;$env:PATH"
           "PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Append
           
-          Write-Host "`nEnvironment variables set successfully"
+          Write-Host "`n✓ Environment configured successfully"
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel
@@ -133,42 +132,60 @@ jobs:
         env:
           CIBW_BUILD: "cp311-* cp312-*"
           
-          # === FOR LINUX ===
+          # === FOR LINUX (manylinux - RPM-based) ===
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
             
-            # Determine Python version being built
+            # Determine Python version
             PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
             echo "Building for Python $PYTHON_VERSION"
             
-            # Install dependencies based on distro
+            # Install OpenBLAS and Python development headers
             if command -v yum &> /dev/null; then
-              echo "Using yum package manager"
+              echo "Using yum (RPM-based distro)"
               yum install -y openblas-devel python${PYTHON_VERSION}-devel || \
                 yum install -y openblas-devel python3-devel
             elif command -v apt-get &> /dev/null; then
-              echo "Using apt package manager"
+              echo "Using apt (Debian-based distro)"
               apt-get update
               apt-get install -y libopenblas-dev python${PYTHON_VERSION}-dev || \
                 apt-get install -y libopenblas-dev python3-dev
             fi
             
-            # Create symlink for compatibility
+            # Create symlink for cblas.h if needed
             if [ -f /usr/include/openblas/cblas.h ] && [ ! -f /usr/include/cblas.h ]; then
               ln -s /usr/include/openblas/cblas.h /usr/include/cblas.h
             fi
             
             # Debug output
-            echo "=== OpenBLAS Installation Check ==="
-            find /usr -name "cblas.h" 2>/dev/null || echo "cblas.h not found"
-            find /usr -name "libopenblas.so*" 2>/dev/null || echo "libopenblas.so not found"
-            echo "=== Python Info ==="
-            which python
-            python --version
-            python -c "import sysconfig; print('Python library:', sysconfig.get_config_var('LIBDIR'))"
-            echo "==================================="
+            echo "=== Dependency Check ==="
+            find /usr -name "cblas.h" 2>/dev/null | head -5
+            find /usr -name "libopenblas.so*" 2>/dev/null | head -5
+            echo "Python: $(python --version)"
+            echo "======================="
           
           CIBW_ENVIRONMENT_LINUX: 'CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS -DOpenBLAS_INCLUDE_DIR=/usr/include/openblas"'
+          
+          # === FOR LINUX (musllinux - Alpine) ===
+          CIBW_BEFORE_BUILD_MUSLLINUX: |
+            set -ex
+            
+            echo "Installing dependencies for musllinux (Alpine)..."
+            
+            # Alpine uses apk package manager
+            apk add --no-cache \
+              openblas-dev \
+              python3-dev \
+              linux-headers
+            
+            # Debug output
+            echo "=== Dependency Check ==="
+            find /usr -name "cblas.h" 2>/dev/null | head -5
+            find /usr -name "libopenblas.so*" 2>/dev/null | head -5
+            echo "Python: $(python --version)"
+            echo "======================="
+          
+          CIBW_ENVIRONMENT_MUSLLINUX: 'CMAKE_ARGS="-DBLA_VENDOR=OpenBLAS"'
 
           # === FOR MACOS ===
           CIBW_ENVIRONMENT_MACOS: |
@@ -179,7 +196,6 @@ jobs:
 
           # === FOR WINDOWS ===
           CIBW_ARCHS_WINDOWS: AMD64
-          # Pass the CMAKE_ARGS from the environment variable set earlier
           CIBW_ENVIRONMENT_WINDOWS: CMAKE_ARGS="${{ env.WIN_CMAKE_ARGS }}"
 
       - name: Upload built wheels
