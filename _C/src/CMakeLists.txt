@@ -119,8 +119,14 @@ else()
       endif()
       
       # Verify the final include directory exists and has cblas.h
-      if (NOT EXISTS "${BLAS_INCLUDE_DIRS}/cblas.h")
-        message(FATAL_ERROR "BLAS_INCLUDE_DIRS is set to '${BLAS_INCLUDE_DIRS}' but cblas.h not found there!")
+      if (EXISTS "${BLAS_INCLUDE_DIRS}/cblas.h")
+        message(STATUS "  Verified cblas.h at: ${BLAS_INCLUDE_DIRS}/cblas.h")
+      elseif (EXISTS "${BLAS_INCLUDE_DIRS}/openblas/cblas.h")
+        message(STATUS "  Verified cblas.h at: ${BLAS_INCLUDE_DIRS}/openblas/cblas.h")
+      else()
+        message(FATAL_ERROR "BLAS_INCLUDE_DIRS is set to '${BLAS_INCLUDE_DIRS}' but cblas.h not found at:\n"
+                            "  ${BLAS_INCLUDE_DIRS}/cblas.h\n"
+                            "  ${BLAS_INCLUDE_DIRS}/openblas/cblas.h")
       endif()
     endif()
     
