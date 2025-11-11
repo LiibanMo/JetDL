@@ -75,7 +75,8 @@ jobs:
           $vcpkgRoot = Resolve-Path "vcpkg\installed\x64-windows"
           $vcpkgBinPath = Join-Path $vcpkgRoot "bin"
           $vcpkgLibPath = Join-Path $vcpkgRoot "lib"
-          $vcpkgIncludePath = Join-Path $vcpkgRoot "include"
+          # The include path must point to the 'openblas' subdirectory
+          $vcpkgIncludePath = Join-Path $vcpkgRoot "include\openblas"
           
           # Verify OpenBLAS installation
           Write-Host "=== Verifying OpenBLAS Installation ==="
@@ -144,6 +145,7 @@ jobs:
               echo "Detected Alpine Linux (musllinux) - using apk"
               apk add --no-cache \
                 openblas-dev \
+                python${CPYTHON_VERSION}-dev \
                 linux-headers \
                 gfortran
             elif command -v yum &> /dev/null; then
