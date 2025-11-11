@@ -137,7 +137,7 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: |
             set -ex
             
-            echo "Building for Python $CPYTHON_VERSION"
+            echo "Building for Python $PYTHON_VERSION"
             
             # Detect package manager and install dependencies
             if command -v apk &> /dev/null; then
@@ -149,12 +149,12 @@ jobs:
                 gfortran
             elif command -v yum &> /dev/null; then
               echo "Detected RPM-based Linux - using yum"
-              yum install -y openblas-devel python${CPYTHON_VERSION}-devel || \
+              yum install -y openblas-devel python${PYTHON_VERSION}-devel || \
                 yum install -y openblas-devel python3-devel
             elif command -v apt-get &> /dev/null; then
               echo "Detected Debian-based Linux - using apt"
               apt-get update
-              apt-get install -y libopenblas-dev python${CPYTHON_VERSION}-dev || \
+              apt-get install -y libopenblas-dev python${PYTHON_VERSION}-dev || \
                 apt-get install -y libopenblas-dev python3-dev
             else
               echo "ERROR: No supported package manager found!"
