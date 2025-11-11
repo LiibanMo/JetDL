@@ -145,7 +145,7 @@ jobs:
               echo "Detected Alpine Linux (musllinux) - using apk"
               apk add --no-cache \
                 openblas-dev \
-                python${CPYTHON_VERSION}-dev \
+                python${PYTHON_VERSION}-dev \
                 linux-headers \
                 gfortran
             elif command -v yum &> /dev/null; then
