@@ -133,7 +133,7 @@ jobs:
           CIBW_BUILD: "cp311-* cp312-*"
           
           # === FOR LINUX (manylinux - RPM-based) ===
-          CIBW_BEFORE_BUILD: |
+          CIBW_BEFORE_BUILD_LINUX: |
             set -ex
             
             PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
