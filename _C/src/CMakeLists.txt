@@ -3,10 +3,6 @@ project(JetDL)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# For pybind11 modules, we don't need Python_LIBRARIES
-# Set this BEFORE find_package(Python) to avoid the musllinux issue
-set(Python_FIND_LIBRARY FALSE)
-
 find_package(
   Python 3.11
   COMPONENTS Interpreter Development
