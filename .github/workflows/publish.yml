@@ -131,6 +131,8 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
+          CIBW_SKIP: "*-musllinux_*"
+          
           CIBW_BUILD: "cp311-* cp312-*"
           
           # === FOR LINUX (manylinux - RPM-based) ===
