@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "jetdl"
-version = "0.9.0"
+version = "0.1.0"
 description = "A lightweight deep learning framework"
 readme = "README.md"
 license = { text = "MIT" }
