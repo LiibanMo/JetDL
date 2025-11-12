@@ -133,7 +133,7 @@ jobs:
         env:
           CIBW_SKIP: "*-musllinux_*"
 
-          CIBW_BUILD: "cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp311-* cp312-*"
           
           # === FOR LINUX (manylinux - RPM-based) ===
           CIBW_BEFORE_BUILD_LINUX: |
