@@ -10,10 +10,44 @@ find_package(
 find_package(pybind11 CONFIG REQUIRED)
 
 file(GLOB_RECURSE C_FILES "*.cc")
+file(GLOB_RECURSE CU_FILES "*.cu")
 
 message(STATUS "C_FILES: ${C_FILES}")
+message(STATUS "CU FILES: ${CU_FILES}")
 
-pybind11_add_module(_C ${C_FILES})
+pybind11_add_module(_C ${C_FILES} ${CU_FILES})
+
+set_target_properties(_C PROPERTIES
+  CXX_STANDARD 20
+  CXX_STANDARD_REQUIRED ON
+)
+
+set_target_properties(_C PROPERTIES
+  CUDA_STANDARD 17
+  CUDA_STANDARD_REQUIRED ON
+)
+
+# --- CUDA SETUP START ---
+
+find_package(CUDAToolkit QUIET)
+
+if (CUDAToolkit_FOUND)
+  enable_language(CUDA)
+  message(STATUS "CUDA Toolkit found and enabled.")
+
+  target_link_libraries(_C PRIVATE 
+    CUDA::cudart
+    CUDA::cublas
+  )
+else()
+    message(STATUS "CUDA Toolkit not found. Building CPU fallback only.")
+    set_source_files_properties(${CU_FILES} 
+      PROPERTIES
+      LANGUAGE CXX
+    )
+endif()
+
+# --- CUDA SETUP END ---
 
 if (WIN32)
   set_target_properties(_C PROPERTIES RUNTIME_OUTPUT_DIRECTORY

@@ -6,12 +6,8 @@
 
 #include <cstddef>
 
-void gemm_packed_kernel(const float* a, const float* b, float* c,
-                        const size_t m_block, const size_t k_block,
-                        const size_t n_block, const size_t N_orig);
-
-void matmul_cpu(const float* a, const float* b, float* c, const size_t M,
-                const size_t K, const size_t N, const size_t lda,
-                const size_t ldb, const size_t ldc);
+void matmul_kernel(const float* a, const float* b, float* c, const size_t M,
+                   const size_t K, const size_t N, const size_t lda,
+                   const size_t ldb, const size_t ldc);
 
 #endif

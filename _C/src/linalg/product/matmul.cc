@@ -88,8 +88,8 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
     const size_t result_size = M * N;
     auto result_data = std::shared_ptr<float[]>(new float[result_size]());
 
-    matmul_cpu(tensor1->_data.get(), tensor2->_data.get(), result_data.get(), M,
-               K, N, K, N, N);
+    matmul_kernel(tensor1->_data.get(), tensor2->_data.get(), result_data.get(),
+                  M, K, N, K, N, N);
 
     auto result_tensor = std::make_shared<Tensor>(
         result_data, shape, tensor1->requires_grad || tensor2->requires_grad);
@@ -132,7 +132,7 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
       float* ptr1_b = ptr1 + idxs1[b];
       float* ptr2_b = ptr2 + idxs2[b];
       float* result_ptr_b = result_ptr + b * M * N;
-      matmul_cpu(ptr1_b, ptr2_b, result_ptr_b, M, K, N, K, N, N);
+      matmul_kernel(ptr1_b, ptr2_b, result_ptr_b, M, K, N, K, N, N);
     }
   };
 
