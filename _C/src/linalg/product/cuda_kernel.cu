@@ -1,22 +1,15 @@
+#include <cublas_v2.h>
+#include <cuda_runtime.h>
+#include <stdio.h>
+
 #include <cstddef>
 
 #include "jetdl/linalg/kernel.h"
 
-#if defined(__CUDACC__)
-#include <cublas_v2.h>
-#include <cuda_runtime.h>
-#include <stdio.h>
-#elif defined(__APPLE__)
-#include <Accelerate/Accelerate.h>
-#else
-#include <cblas.h>
-#endif
-
-void matmul_kernel(const float* a, const float* b, float* c, const size_t M,
-                   const size_t K, const size_t N, const size_t lda,
-                   const size_t ldb, const size_t ldc) {
+void matmul_kernel_cuda(const float* a, const float* b, float* c,
+                        const size_t M, const size_t K, const size_t N,
+                        const size_t lda, const size_t ldb, const size_t ldc) {
   // (M, K) @ (K, N) = (M , N)
-#if defined(__CUDACC__)
   cublasHandle_t handle;
   cublasStatus_t status;
 
@@ -54,9 +47,4 @@ void matmul_kernel(const float* a, const float* b, float* c, const size_t M,
   cudaFree(d_c);
 
   cublasDestroy(handle);
-
-#else
-  cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, (int)M, (int)N, (int)K,
-              1.0f, a, (int)lda, b, (int)ldb, 0.0f, c, (int)ldc);
-#endif
 }

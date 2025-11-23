@@ -15,36 +15,34 @@ file(GLOB_RECURSE CU_FILES "*.cu")
 message(STATUS "C_FILES: ${C_FILES}")
 message(STATUS "CU FILES: ${CU_FILES}")
 
-pybind11_add_module(_C ${C_FILES} ${CU_FILES})
+set(_C_SOURCES ${C_FILES}) # Start with only C++ files
+
+if(_USE_CUDA_BUILD)
+    list(APPEND _C_SOURCES ${CU_FILES})
+endif()
+
+pybind11_add_module(_C ${_C_SOURCES}) # <--- Single call with all sources
 
 set_target_properties(_C PROPERTIES
   CXX_STANDARD 20
   CXX_STANDARD_REQUIRED ON
 )
 
-set_target_properties(_C PROPERTIES
-  CUDA_STANDARD 17
-  CUDA_STANDARD_REQUIRED ON
-)
+if (_USE_CUDA_BUILD)
+  # Define macro for conditional compilation in C++ code
+  target_compile_definitions(_C PRIVATE JETDL_WITH_CUDA)
 
-# --- CUDA SETUP START ---
-
-find_package(CUDAToolkit QUIET)
-
-if (CUDAToolkit_FOUND)
-  enable_language(CUDA)
-  message(STATUS "CUDA Toolkit found and enabled.")
-
-  target_link_libraries(_C PRIVATE 
+  # Link CUDA libraries
+  target_link_libraries(_C PRIVATE
     CUDA::cudart
     CUDA::cublas
   )
-else()
-    message(STATUS "CUDA Toolkit not found. Building CPU fallback only.")
-    set_source_files_properties(${CU_FILES} 
-      PROPERTIES
-      LANGUAGE CXX
-    )
+
+  # Set CUDA standard for .cu files
+  set_target_properties(_C PROPERTIES
+    CUDA_STANDARD 17
+    CUDA_STANDARD_REQUIRED ON
+  )
 endif()
 
 # --- CUDA SETUP END ---
