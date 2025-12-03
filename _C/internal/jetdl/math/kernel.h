@@ -3,6 +3,8 @@
 
 #include <cstddef>
 
+// kernels
+
 void c_add_kernel(const float* a, const float* b, float* c, const size_t N);
 
 void c_add_a_scalar_kernel(const float* a, const float* b, float* c,
