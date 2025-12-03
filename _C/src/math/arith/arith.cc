@@ -36,19 +36,19 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
   void (*kernel_b_scalar)(const float*, const float*, float*, const size_t);
 
   if (arith_type == ArithType::ADD) {
-    kernel = c_add_cpu;
+    kernel = c_add_kernel;
     kernel_a_scalar = c_add_a_scalar_cpu;
     kernel_b_scalar = c_add_b_scalar_cpu;
   } else if (arith_type == ArithType::SUB) {
-    kernel = c_sub_cpu;
+    kernel = c_sub_kernel;
     kernel_a_scalar = c_sub_a_scalar_cpu;
     kernel_b_scalar = c_sub_b_scalar_cpu;
   } else if (arith_type == ArithType::MUL) {
-    kernel = c_mul_cpu;
+    kernel = c_mul_kernel;
     kernel_a_scalar = c_mul_a_scalar_cpu;
     kernel_b_scalar = c_mul_b_scalar_cpu;
   } else if (arith_type == ArithType::DIV) {
-    kernel = c_div_cpu;
+    kernel = c_div_kernel;
     kernel_a_scalar = c_div_a_scalar_cpu;
     kernel_b_scalar = c_div_b_scalar_cpu;
   } else {
