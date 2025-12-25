@@ -1,6 +1,7 @@
 #include "jetdl/random.h"
 
 #include <cstddef>
+#include <stdexcept>
 #include <memory>
 #include <vector>
 

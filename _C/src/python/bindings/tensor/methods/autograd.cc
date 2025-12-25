@@ -2,6 +2,7 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include <stdexcept>
 
 #include "jetdl/autograd/graph.h"
 #include "jetdl/python/tensor/methods.h"

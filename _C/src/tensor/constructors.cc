@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include "jetdl/autograd.h"
