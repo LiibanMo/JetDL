@@ -17,6 +17,7 @@ class Linear(Module):
         out_features: int,
         init_type: str = "he",
         seed: int = 123,
+        device: str = "cpu",
     ) -> None:
         """Initializes the Linear layer.
 
@@ -25,11 +26,12 @@ class Linear(Module):
             out_features (int): size of each output sample.
             init_type (str, optional): Initialization type for the weight matrix. Defaults to "he".
             seed (int, optional): Random seed for weight initialization. Defaults to 123.
+            device (str, optional): The device to create parameters on. Defaults to "cpu".
         """
         super().__init__()
 
-        self.weight = Parameter([out_features, in_features], init_type, seed)
-        self.bias = Parameter([out_features], "zero", seed)
+        self.weight = Parameter([out_features, in_features], init_type, seed, device)
+        self.bias = Parameter([out_features], "zero", seed, device)
 
     def forward(self, input: Tensor) -> Tensor:
         """Defines the forward pass of the Linear layer.

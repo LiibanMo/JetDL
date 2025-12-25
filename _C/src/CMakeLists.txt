@@ -36,6 +36,7 @@ if (_USE_CUDA_BUILD)
   target_link_libraries(_C PRIVATE
     CUDA::cudart
     CUDA::cublas
+    CUDA::curand
   )
 
   # Set CUDA standard for .cu files

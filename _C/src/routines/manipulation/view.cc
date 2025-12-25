@@ -10,12 +10,19 @@
 namespace jetdl {
 std::shared_ptr<Tensor> _view(std::shared_ptr<Tensor>& input,
                               const std::vector<size_t>& shape) {
-  auto result_tensor =
-      std::make_shared<Tensor>(input->_data, shape, input->requires_grad);
-
   const size_t size = utils::get_size(shape);
   if (size != input->size) {
     throw std::runtime_error("shape incompatible for creating view_tensor->\n");
+  }
+
+  // Create tensor that shares data with input, preserving device
+  auto result_tensor = std::make_shared<Tensor>(input->_data, shape,
+                                                input->requires_grad,
+                                                input->device);
+
+  // For CUDA tensors, also share the CUDA data pointer
+  if (input->device.is_cuda()) {
+    result_tensor->_cuda_data = input->_cuda_data;
   }
 
   result_tensor->shape = shape;

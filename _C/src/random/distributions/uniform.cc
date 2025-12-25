@@ -1,27 +1,52 @@
 #include <memory>
 #include <random>
+#include <stdexcept>
 #include <vector>
 
 #include "jetdl/random/distributions.h"
 #include "jetdl/utils/metadata.h"
 
+#ifdef JETDL_WITH_CUDA
+#include "jetdl/cuda/allocator.h"
+#endif
+
 namespace jetdl {
 
 std::shared_ptr<Tensor> _random_uniform(const float low, const float high,
                                         const std::vector<size_t>& shape,
-                                        const size_t seed) {
-  auto generator = std::mt19937(seed);
-
-  auto uniform_dist = std::uniform_real_distribution<float>(low, high);
-
+                                        const size_t seed,
+                                        const Device& device) {
   const size_t size = utils::get_size(shape);
-  auto result_data = std::shared_ptr<float[]>(new float[size]());
+  const bool on_cuda = device.is_cuda();
 
-  for (size_t i = 0; i < size; i++) {
-    result_data[i] = uniform_dist(generator);
+  std::shared_ptr<Tensor> result_tensor;
+
+  if (on_cuda) {
+#ifdef JETDL_WITH_CUDA
+    if (!cuda_is_available()) {
+      throw std::runtime_error(
+          "CUDA is not available. Cannot create tensor on device '" +
+          device.str() + "'.");
+    }
+    float* result_cuda = cuda::CUDAAllocator::allocate(size);
+    c_random_uniform_cuda(result_cuda, low, high, size, seed);
+    result_tensor = std::make_shared<Tensor>(result_cuda, shape, false, device);
+#else
+    throw std::runtime_error(
+        "JetDL was compiled without CUDA support. "
+        "Cannot create tensor on device '" + device.str() + "'.");
+#endif
+  } else {
+    auto generator = std::mt19937(seed);
+    auto uniform_dist = std::uniform_real_distribution<float>(low, high);
+
+    auto result_data = std::shared_ptr<float[]>(new float[size]());
+    for (size_t i = 0; i < size; i++) {
+      result_data[i] = uniform_dist(generator);
+    }
+
+    result_tensor = std::make_shared<Tensor>(result_data, shape);
   }
-
-  auto result_tensor = std::make_shared<Tensor>(result_data, shape);
 
   return result_tensor;
 }

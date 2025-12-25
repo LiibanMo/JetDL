@@ -5,7 +5,12 @@ from ._C.random import c_normal, c_uniform
 
 
 def uniform(
-    low: float, high: float, shape: Union[list, tuple] = [], seed: int = 123
+    low: float,
+    high: float,
+    shape: Union[list, tuple] = [],
+    seed: int = 123,
+    *,
+    device: str = "cpu",
 ) -> Tensor:
     """Creates a tensor with values from a uniform distribution.
 
@@ -14,12 +19,18 @@ def uniform(
         high (float): The upper bound of the distribution.
         shape (Union[list, tuple]): The shape of the output tensor.
         seed (int): The seed for the random number generator.
+        device (str): The device to create the tensor on ('cpu' or 'cuda').
     """
-    return c_uniform(low, high, shape, seed)
+    return c_uniform(low, high, shape, seed, device)
 
 
 def normal(
-    mean: float, std: float, shape: Union[list, tuple] = [], seed: int = 123
+    mean: float,
+    std: float,
+    shape: Union[list, tuple] = [],
+    seed: int = 123,
+    *,
+    device: str = "cpu",
 ) -> Tensor:
     """Creates a tensor with values from a normal distribution.
 
@@ -28,15 +39,17 @@ def normal(
         std (float): The standard deviation of the distribution.
         shape (Union[list, tuple]): The shape of the output tensor.
         seed (int): The seed for the random number generator.
+        device (str): The device to create the tensor on ('cpu' or 'cuda').
     """
-    return c_normal(mean, std, shape, seed)
+    return c_normal(mean, std, shape, seed, device)
 
 
-def rand(*shape: Union[int, list, tuple], seed: int = 123) -> Tensor:
+def rand(*shape: Union[int, list, tuple], seed: int = 123, device: str = "cpu") -> Tensor:
     """Creates a tensor with values from a uniform distribution between 0 and 1.
 
     Args:
         shape (Union[int, list, tuple]): The shape of the output tensor.
         seed (int): The seed for the random number generator.
+        device (str): The device to create the tensor on ('cpu' or 'cuda').
     """
-    return c_uniform(0, 1, shape, seed)
+    return c_uniform(0, 1, shape, seed, device)

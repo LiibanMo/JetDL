@@ -3,47 +3,8 @@
 
 #include <cstddef>
 
-// kernels
-
-void c_add_kernel(const float* a, const float* b, float* c, const size_t N);
-
-void c_add_a_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_add_b_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_add_scalars_kernel(const float* a, const float* b, float* c);
-
-void c_sub_kernel(const float* a, const float* b, float* c, const size_t N);
-
-void c_sub_a_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_sub_b_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_sub_scalars_kernel(const float* a, const float* b, float* c);
-
-void c_mul_kernel(const float* a, const float* b, float* c, const size_t N);
-
-void c_mul_a_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_mul_b_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_mul_scalars_kernel(const float* a, const float* b, float* c);
-
-void c_div_kernel(const float* a, const float* b, float* c, const size_t N);
-
-void c_div_a_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_div_b_scalar_kernel(const float* a, const float* b, float* c,
-                           const size_t N);
-
-void c_div_scalars_kernel(const float* a, const float* b, float* c);
+// NOTE: Device-aware dispatch is handled in arith.cc directly.
+// Call c_*_cpu for CPU tensors, c_*_cuda for CUDA tensors.
 
 void c_pow_kernel(float* dest, const float src, const int k);
 
@@ -159,13 +120,18 @@ void c_pow_cuda(float* dest, const float src, const int k);
 
 void c_total_sum_cuda(float* dest, const float* src, const size_t N);
 
+// NOTE: dest_idxs for these CUDA functions should be HOST pointers.
+// The functions handle cudaMalloc/cudaMemcpy/cudaMemset internally.
 void c_sum_over_axes_cuda(float* dest, const float* src,
-                          const size_t* dest_idxs, const size_t N);
+                          const size_t* h_dest_idxs, const size_t result_size,
+                          const size_t N);
 
 void c_total_mean_cuda(float* dest, const float* src, const size_t N);
 
+// NOTE: dest_idxs for these CUDA functions should be HOST pointers.
+// The functions handle cudaMalloc/cudaMemcpy/cudaMemset internally.
 void c_mean_over_axes_cuda(float* dest, const float* src,
-                           const size_t* dest_idxs, const size_t divisor,
-                           const size_t N);
+                           const size_t* h_dest_idxs, const size_t result_size,
+                           const size_t divisor, const size_t N);
 
 #endif

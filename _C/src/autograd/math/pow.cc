@@ -25,8 +25,9 @@ std::vector<std::shared_ptr<Tensor>> PowBackward::apply(
   if (tensorA->requires_grad) {
     std::shared_ptr<Tensor> dC_dA_partial =
         math::pow(tensorA, this->exponent - 1);
-    std::shared_ptr<Tensor> exponent_tensor =
-        std::make_shared<Tensor>(this->exponent);
+    // Create scalar tensor on the same device as the parent tensor
+    std::shared_ptr<Tensor> exponent_tensor = std::make_shared<Tensor>(
+        static_cast<float>(this->exponent), false, tensorA->device);
     std::shared_ptr<Tensor> dC_dA = math::mul(exponent_tensor, dC_dA_partial);
     std::shared_ptr<Tensor> gradA = math::mul(dC_dA, grad_tensor);
     grads[0] = gradA;

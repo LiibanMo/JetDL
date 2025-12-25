@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "jetdl/device.h"
 #include "jetdl/tensor.h"
 
 namespace jetdl {
@@ -11,14 +12,17 @@ namespace jetdl {
 std::shared_ptr<Tensor> copy(std::shared_ptr<Tensor>& input);
 
 std::shared_ptr<Tensor> zeros(const std::vector<size_t>& shape,
-                              const bool requires_grad);
+                              const bool requires_grad = false,
+                              const Device& device = Device::cpu());
 
 std::shared_ptr<Tensor> ones(const std::vector<size_t>& shape,
-                             const bool requires_grad);
+                             const bool requires_grad = false,
+                             const Device& device = Device::cpu());
 
 std::shared_ptr<Tensor> fill(const std::vector<size_t>& shape,
                              const float scalar,
-                             const bool requires_grad = false);
+                             const bool requires_grad = false,
+                             const Device& device = Device::cpu());
 
 std::shared_ptr<Tensor> reshape(std::shared_ptr<Tensor>& tensor,
                                 const std::vector<int>& shape);

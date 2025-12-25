@@ -1,4 +1,5 @@
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include "jetdl/autograd/math.h"
@@ -8,15 +9,33 @@
 #include "jetdl/utils/metadata.h"
 #include "jetdl/utils/reduction.h"
 
+#ifdef JETDL_WITH_CUDA
+#include "jetdl/cuda/allocator.h"
+#endif
+
 namespace jetdl {
 
 std::shared_ptr<Tensor> _math_total_mean(std::shared_ptr<Tensor>& a) {
-  auto result_data = std::shared_ptr<float[]>(new float[1]());
+  const Device& device = a->device;
+  const bool on_cuda = device.is_cuda();
 
-  c_total_mean_cpu(result_data.get(), a->_data.get(), a->size);
+  std::shared_ptr<Tensor> result_tensor;
 
-  auto result_tensor = std::make_shared<Tensor>(
-      result_data, std::vector<size_t>{}, a->requires_grad);
+  if (on_cuda) {
+#ifdef JETDL_WITH_CUDA
+    float* result_cuda = cuda::CUDAAllocator::allocate(1);
+    c_total_mean_cuda(result_cuda, a->get(), a->size);
+    result_tensor = std::make_shared<Tensor>(result_cuda, std::vector<size_t>{},
+                                              a->requires_grad, device);
+#else
+    throw std::runtime_error("JetDL compiled without CUDA support");
+#endif
+  } else {
+    auto result_data = std::shared_ptr<float[]>(new float[1]());
+    c_total_mean_cpu(result_data.get(), a->_data.get(), a->size);
+    result_tensor = std::make_shared<Tensor>(
+        result_data, std::vector<size_t>{}, a->requires_grad);
+  }
 
   if (result_tensor->requires_grad) {
     result_tensor->grad_fn = std::make_shared<MeanBackward>(a, result_tensor);
@@ -27,17 +46,15 @@ std::shared_ptr<Tensor> _math_total_mean(std::shared_ptr<Tensor>& a) {
 
 std::shared_ptr<Tensor> _math_mean_over_axes(std::shared_ptr<Tensor>& a,
                                              const std::vector<size_t>& axes) {
-  const std::vector<size_t>& result_shape = utils::get_shape(a->shape, axes);
+  const Device& device = a->device;
+  const bool on_cuda = device.is_cuda();
 
+  const std::vector<size_t>& result_shape = utils::get_shape(a->shape, axes);
   const size_t result_size = utils::get_size(result_shape);
 
-  auto result_data = std::shared_ptr<float[]>(new float[result_size]());
-
   const std::vector<size_t>& result_strides = utils::get_strides(result_shape);
-
   const std::vector<size_t>& dest_strides =
       utils::get_dest_strides(a->shape, result_strides, axes);
-
   const std::vector<size_t>& dest_idxs_vec = utils::populate_linear_idxs(
       a->shape, dest_strides, utils::OpType::REDUCTION);
 
@@ -45,11 +62,26 @@ std::shared_ptr<Tensor> _math_mean_over_axes(std::shared_ptr<Tensor>& a,
   for (const auto& axis : axes) {
     divisor *= a->shape[axis];
   }
-  c_mean_over_axes_cpu(result_data.get(), a->_data.get(), dest_idxs_vec.data(),
-                       divisor, a->size);
 
-  auto result_tensor =
-      std::make_shared<Tensor>(result_data, result_shape, a->requires_grad);
+  std::shared_ptr<Tensor> result_tensor;
+
+  if (on_cuda) {
+#ifdef JETDL_WITH_CUDA
+    float* result_cuda = cuda::CUDAAllocator::allocate(result_size);
+    c_mean_over_axes_cuda(result_cuda, a->get(), dest_idxs_vec.data(),
+                          result_size, divisor, a->size);
+    result_tensor =
+        std::make_shared<Tensor>(result_cuda, result_shape, a->requires_grad, device);
+#else
+    throw std::runtime_error("JetDL compiled without CUDA support");
+#endif
+  } else {
+    auto result_data = std::shared_ptr<float[]>(new float[result_size]());
+    c_mean_over_axes_cpu(result_data.get(), a->_data.get(), dest_idxs_vec.data(),
+                         divisor, a->size);
+    result_tensor =
+        std::make_shared<Tensor>(result_data, result_shape, a->requires_grad);
+  }
 
   return result_tensor;
 }

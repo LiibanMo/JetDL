@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include "jetdl/routines/creation.h"
@@ -10,6 +11,10 @@
 #include "jetdl/utils/check.h"
 #include "jetdl/utils/metadata.h"
 
+#ifdef JETDL_WITH_CUDA
+#include "jetdl/cuda/allocator.h"
+#endif
+
 namespace jetdl {
 
 std::shared_ptr<Tensor> copy(std::shared_ptr<Tensor>& input) {
@@ -17,22 +22,52 @@ std::shared_ptr<Tensor> copy(std::shared_ptr<Tensor>& input) {
 }
 
 std::shared_ptr<Tensor> zeros(const std::vector<size_t>& shape,
-                              const bool requires_grad) {
-  return fill(shape, 0.0f, requires_grad);
+                              const bool requires_grad,
+                              const Device& device) {
+  return fill(shape, 0.0f, requires_grad, device);
 }
 
 std::shared_ptr<Tensor> ones(const std::vector<size_t>& shape,
-                             const bool requires_grad) {
-  return fill(shape, 1.0f, requires_grad);
+                             const bool requires_grad,
+                             const Device& device) {
+  return fill(shape, 1.0f, requires_grad, device);
 }
 
 std::shared_ptr<Tensor> fill(const std::vector<size_t>& shape,
-                             const float value, const bool requires_grad) {
+                             const float value, const bool requires_grad,
+                             const Device& device) {
   const size_t size = utils::get_size(shape);
-  auto result_data = std::shared_ptr<float[]>(new float[size]());
-  std::fill(result_data.get(), result_data.get() + size, value);
-  auto result_tensor =
-      std::make_shared<Tensor>(result_data, shape, requires_grad);
+  const bool on_cuda = device.is_cuda();
+
+  std::shared_ptr<Tensor> result_tensor;
+
+  if (on_cuda) {
+#ifdef JETDL_WITH_CUDA
+    if (!cuda_is_available()) {
+      throw std::runtime_error(
+          "CUDA is not available. Cannot create tensor on device '" +
+          device.str() + "'.");
+    }
+    float* result_cuda = cuda::CUDAAllocator::allocate(size);
+    if (value == 0.0f) {
+      c_zeros_cuda(result_cuda, size);
+    } else {
+      c_fill_cuda(result_cuda, value, size);
+    }
+    result_tensor =
+        std::make_shared<Tensor>(result_cuda, shape, requires_grad, device);
+#else
+    throw std::runtime_error(
+        "JetDL was compiled without CUDA support. "
+        "Cannot create tensor on device '" + device.str() + "'.");
+#endif
+  } else {
+    auto result_data = std::shared_ptr<float[]>(new float[size]());
+    std::fill(result_data.get(), result_data.get() + size, value);
+    result_tensor =
+        std::make_shared<Tensor>(result_data, shape, requires_grad);
+  }
+
   return result_tensor;
 }
 

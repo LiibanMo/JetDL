@@ -5,8 +5,10 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
+#include "jetdl/device.h"
 #include "jetdl/python/routines/bindings.h"
 #include "jetdl/utils/check.h"
 
@@ -16,9 +18,34 @@ namespace jetdl {
 
 void bind_routines_submodule(py::module_& m) {
   py::module_ routines = m.def_submodule("routines");
-  routines.def("c_zeros", &jetdl::zeros);
-  routines.def("c_ones", &jetdl::ones);
-  routines.def("c_fill", &jetdl::fill);
+
+  routines.def(
+      "c_zeros",
+      [](const std::vector<size_t>& shape, const bool requires_grad,
+         const std::string& device_str) {
+        return jetdl::zeros(shape, requires_grad, Device::parse(device_str));
+      },
+      py::arg("shape"), py::arg("requires_grad") = false,
+      py::arg("device") = "cpu");
+
+  routines.def(
+      "c_ones",
+      [](const std::vector<size_t>& shape, const bool requires_grad,
+         const std::string& device_str) {
+        return jetdl::ones(shape, requires_grad, Device::parse(device_str));
+      },
+      py::arg("shape"), py::arg("requires_grad") = false,
+      py::arg("device") = "cpu");
+
+  routines.def(
+      "c_fill",
+      [](const std::vector<size_t>& shape, const float value,
+         const bool requires_grad, const std::string& device_str) {
+        return jetdl::fill(shape, value, requires_grad,
+                           Device::parse(device_str));
+      },
+      py::arg("shape"), py::arg("value"), py::arg("requires_grad") = false,
+      py::arg("device") = "cpu");
   routines.def("c_reshape", [](std::shared_ptr<Tensor>& tensor,
                                const py::object& shape) {
     if (!py::isinstance<py::list>(shape) && !py::isinstance<py::tuple>(shape)) {

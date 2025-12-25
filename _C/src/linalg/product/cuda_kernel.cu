@@ -6,7 +6,8 @@
 
 #include "jetdl/linalg/kernel.h"
 
-void matmul_kernel_cuda(const float* a, const float* b, float* c,
+// Device-pointer kernel: all pointers (d_a, d_b, d_c) must already be on GPU
+void matmul_kernel_cuda(const float* d_a, const float* d_b, float* d_c,
                         const size_t M, const size_t K, const size_t N,
                         const size_t lda, const size_t ldb, const size_t ldc) {
   // (M, K) @ (K, N) = (M , N)
@@ -19,15 +20,6 @@ void matmul_kernel_cuda(const float* a, const float* b, float* c,
     return;
   }
 
-  float *d_a, *d_b, *d_c;
-  cudaMalloc(&d_a, M * K * sizeof(float));
-  cudaMalloc(&d_b, K * N * sizeof(float));
-  cudaMalloc(&d_c, M * N * sizeof(float));
-
-  cudaMemcpy(d_a, a, M * K * sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_b, b, K * N * sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_c, c, M * N * sizeof(float), cudaMemcpyHostToDevice);
-
   const float alpha = 1.0f, beta = 0.0f;
 
   /*
@@ -39,12 +31,6 @@ void matmul_kernel_cuda(const float* a, const float* b, float* c,
   */
   cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, (int)N, (int)M, (int)K, &alpha,
               d_b, (int)ldb, d_a, (int)lda, &beta, d_c, (int)ldc);
-
-  cudaMemcpy(c, d_c, M * N * sizeof(float), cudaMemcpyDeviceToHost);
-
-  cudaFree(d_a);
-  cudaFree(d_b);
-  cudaFree(d_c);
 
   cublasDestroy(handle);
 }
