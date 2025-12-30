@@ -9,6 +9,45 @@ find_package(
   REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
+# --- OpenMP Configuration ---
+# macOS: Help CMake find Homebrew's libomp if available
+if(APPLE)
+    execute_process(
+        COMMAND brew --prefix libomp
+        OUTPUT_VARIABLE HOMEBREW_LIBOMP_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(HOMEBREW_LIBOMP_PREFIX)
+        set(OpenMP_ROOT ${HOMEBREW_LIBOMP_PREFIX})
+        set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I${HOMEBREW_LIBOMP_PREFIX}/include")
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${HOMEBREW_LIBOMP_PREFIX}/include")
+        set(OpenMP_C_LIB_NAMES "omp")
+        set(OpenMP_CXX_LIB_NAMES "omp")
+        set(OpenMP_omp_LIBRARY "${HOMEBREW_LIBOMP_PREFIX}/lib/libomp.dylib")
+    endif()
+endif()
+
+# Windows: Help CMake find vcpkg's OpenMP if available
+if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
+    set(VCPKG_INSTALLED_DIR "$ENV{VCPKG_ROOT}/installed/x64-windows")
+    if(EXISTS "${VCPKG_INSTALLED_DIR}/include/omp.h")
+        message(STATUS "Found vcpkg OpenMP at: ${VCPKG_INSTALLED_DIR}")
+        set(OpenMP_CXX_FLAGS "/openmp")
+        set(OpenMP_C_FLAGS "/openmp")
+        # Add vcpkg include/lib paths for OpenMP
+        include_directories("${VCPKG_INSTALLED_DIR}/include")
+        link_directories("${VCPKG_INSTALLED_DIR}/lib")
+    endif()
+endif()
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    message(STATUS "OpenMP found: ${OpenMP_CXX_VERSION}")
+else()
+    message(STATUS "OpenMP not found. Parallel loops will run single-threaded.")
+endif()
+
 file(GLOB_RECURSE C_FILES "*.cc")
 file(GLOB_RECURSE CU_FILES "*.cu")
 
@@ -171,6 +210,12 @@ else()
   else()
     message(FATAL_ERROR "BLAS libraries not found.")
   endif()
+endif()
+
+# --- OpenMP Linking ---
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(_C PRIVATE OpenMP::OpenMP_CXX)
+    target_compile_definitions(_C PRIVATE JETDL_WITH_OPENMP)
 endif()
 
 # -------------------------------------------------------------

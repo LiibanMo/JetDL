@@ -1,10 +1,12 @@
-#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
-#include <thread>
 #include <vector>
+
+#ifdef JETDL_WITH_OPENMP
+#include <omp.h>
+#endif
 
 #include "jetdl/autograd/linalg.h"
 #include "jetdl/linalg/kernel.h"
@@ -197,44 +199,20 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
     throw std::runtime_error("JetDL compiled without CUDA support");
 #endif
   } else {
-    // CPU path: multi-threaded
+    // CPU path: parallel with OpenMP
     auto result_data = std::shared_ptr<float[]>(new float[result_size]());
     float* ptr1 = tensor1->_data.get();
     float* ptr2 = tensor2->_data.get();
     float* result_ptr = result_data.get();
 
-    auto worker = [&](size_t start_b, size_t end_b) {
-      for (size_t b = start_b; b < end_b; b++) {
-        float* ptr1_b = ptr1 + idxs1[b];
-        float* ptr2_b = ptr2 + idxs2[b];
-        float* result_ptr_b = result_ptr + b * M * N;
-        matmul_kernel_cpu(ptr1_b, ptr2_b, result_ptr_b, M, K, N, K, N, N);
-      }
-    };
-
-    if (B > 0) {
-      unsigned int num_threads = std::thread::hardware_concurrency();
-      if (B < num_threads) {
-        num_threads = B;
-      }
-
-      if (num_threads > 1) {
-        std::vector<std::thread> threads;
-        threads.reserve(num_threads);
-        size_t chunk_size = (B + num_threads - 1) / num_threads;
-        for (unsigned int i = 0; i < num_threads; ++i) {
-          size_t start_b = i * chunk_size;
-          size_t end_b = std::min(start_b + chunk_size, B);
-          if (start_b < end_b) {
-            threads.emplace_back(worker, start_b, end_b);
-          }
-        }
-        for (auto& t : threads) {
-          t.join();
-        }
-      } else {
-        worker(0, B);
-      }
+#ifdef JETDL_WITH_OPENMP
+#pragma omp parallel for schedule(dynamic)
+#endif
+    for (size_t b = 0; b < B; b++) {
+      float* ptr1_b = ptr1 + idxs1[b];
+      float* ptr2_b = ptr2 + idxs2[b];
+      float* result_ptr_b = result_ptr + b * M * N;
+      matmul_kernel_cpu(ptr1_b, ptr2_b, result_ptr_b, M, K, N, K, N, N);
     }
 
     result_tensor = std::make_shared<Tensor>(result_data, shape, requires_grad);

@@ -5,6 +5,10 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef JETDL_WITH_OPENMP
+#include <omp.h>
+#endif
+
 #include "jetdl/autograd/math.h"
 #include "jetdl/math/kernel.h"
 #include "jetdl/tensor.h"
@@ -158,27 +162,28 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
     result_tensor = std::make_shared<Tensor>(result_cuda, shape, requires_grad, device);
 #endif
   } else {
-    // CPU path: allocate and multi-thread
+    // CPU path: allocate and parallelize with OpenMP
     auto result_data = std::shared_ptr<float[]>(new float[result_size]());
     float* result_ptr = result_data.get();
 
-    const size_t num_threads = std::thread::hardware_concurrency();
-    auto threads = std::vector<std::thread>();
-
-    std::vector<size_t> back_strides;
-    if (ndim > 1) {
-      back_strides.resize(ndim - 1);
-      back_strides.back() = 1;
-      for (int i = ndim - 3; i >= 0; --i) {
-        back_strides[i] = back_strides[i + 1] * shape[i + 1];
+    // Fast path: contiguous tensors with same shape
+    if (a->shape == b->shape && a->is_contiguous && b->is_contiguous) {
+      kernel(a->_data.get(), b->_data.get(), result_ptr, result_size);
+    } else {
+      // Broadcast path: row-by-row with parallelization
+      std::vector<size_t> back_strides;
+      if (ndim > 1) {
+        back_strides.resize(ndim - 1);
+        back_strides.back() = 1;
+        for (int i = ndim - 3; i >= 0; --i) {
+          back_strides[i] = back_strides[i + 1] * shape[i + 1];
+        }
       }
-    }
 
-    auto worker = [&](size_t thread_id) {
-      if (a->shape == b->shape && a->is_contiguous && b->is_contiguous) {
-        kernel(a->_data.get(), b->_data.get(), result_ptr, N);
-      }
-      for (size_t row = thread_id; row < total_num_rows; row += num_threads) {
+#ifdef JETDL_WITH_OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+      for (size_t row = 0; row < total_num_rows; row++) {
         size_t idx_a = 0;
         size_t idx_b = 0;
         if (ndim > 1) {
@@ -206,14 +211,6 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
           kernel(ptr_a, ptr_b, ptr_c, N);
         }
       }
-    };
-
-    for (size_t thread = 0; thread < num_threads; thread++) {
-      threads.emplace_back(worker, thread);
-    }
-
-    for (auto& t : threads) {
-      if (t.joinable()) t.join();
     }
 
     result_tensor = std::make_shared<Tensor>(result_data, shape, requires_grad);
