@@ -28,18 +28,8 @@ if(APPLE)
     endif()
 endif()
 
-# Windows: Help CMake find vcpkg's OpenMP if available
-if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
-    set(VCPKG_INSTALLED_DIR "$ENV{VCPKG_ROOT}/installed/x64-windows")
-    if(EXISTS "${VCPKG_INSTALLED_DIR}/include/omp.h")
-        message(STATUS "Found vcpkg OpenMP at: ${VCPKG_INSTALLED_DIR}")
-        set(OpenMP_CXX_FLAGS "/openmp")
-        set(OpenMP_C_FLAGS "/openmp")
-        # Add vcpkg include/lib paths for OpenMP
-        include_directories("${VCPKG_INSTALLED_DIR}/include")
-        link_directories("${VCPKG_INSTALLED_DIR}/lib")
-    endif()
-endif()
+# Windows: MSVC has built-in OpenMP support, no special configuration needed
+# find_package(OpenMP) will detect it automatically
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

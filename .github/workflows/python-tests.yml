@@ -68,7 +68,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vcpkg
-          key: ${{ runner.os }}-vcpkg-cache-2
+          key: ${{ runner.os }}-vcpkg-cache-1
           restore-keys: |
             ${{ runner.os }}-vcpkg-cache-
 
@@ -109,15 +109,15 @@ jobs:
         shell: bash
         run: |
           # Note: vcpkg.exe is the executable on Windows, not .sh
-          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows llvm-openmp:x64-windows
+          # OpenMP is built into MSVC compiler, no need to install separately
+          $VCPKG_ROOT/vcpkg.exe install openblas:x64-windows
 
       - name: Verify vcpkg installation
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          # Simple check to confirm OpenBLAS and OpenMP are installed
+          # Simple check to confirm OpenBLAS is installed
           ls -R "$VCPKG_ROOT/installed/x64-windows/lib/openblas.lib"
-          ls -R "$VCPKG_ROOT/installed/x64-windows/lib/omp.lib" || ls -R "$VCPKG_ROOT/installed/x64-windows/lib/libomp.lib" || true
 
       - name: Creating virtual environment for Python
         run: |
@@ -132,13 +132,12 @@ jobs:
           # Check if the path exists:
           ls "$CMAKE_TOOLCHAIN_FILE"
 
-      - name: Copy OpenBLAS, OpenMP and dependent DLLs
+      - name: Copy OpenBLAS and dependent DLLs
         if: runner.os == 'Windows'
         shell: bash
         run: |
           VCPKG_ROOT_DIR="${VCPKG_ROOT:-D:/a/JetDL/JetDL/vcpkg}" # Use VCPKG_ROOT if set, otherwise assume project root
           VCPKG_BIN_PATH="${VCPKG_ROOT_DIR}/installed/x64-windows/debug/bin"
-          VCPKG_RELEASE_BIN_PATH="${VCPKG_ROOT_DIR}/installed/x64-windows/bin"
           TARGET_DIR="D:/a/JetDL/JetDL/jetdl" # The destination where _C.pyd is installed
 
           echo "Copying DLLs from $VCPKG_BIN_PATH to $TARGET_DIR"
@@ -149,13 +148,7 @@ jobs:
           # 2. Copy the Intel OpenMP DLL, which OpenBLAS often requires
           cp -v "${VCPKG_BIN_PATH}"/libiomp5md.dll "${TARGET_DIR}" 2>/dev/null || true
 
-          # 3. Copy LLVM OpenMP runtime DLLs (libomp.dll or omp.dll)
-          cp -v "${VCPKG_BIN_PATH}"/libomp*.dll "${TARGET_DIR}" 2>/dev/null || true
-          cp -v "${VCPKG_BIN_PATH}"/omp*.dll "${TARGET_DIR}" 2>/dev/null || true
-          cp -v "${VCPKG_RELEASE_BIN_PATH}"/libomp*.dll "${TARGET_DIR}" 2>/dev/null || true
-          cp -v "${VCPKG_RELEASE_BIN_PATH}"/omp*.dll "${TARGET_DIR}" 2>/dev/null || true
-
-          # 4. Copy the C/C++ Runtime DLLs (MSVC) if necessary (often auto-handled, but good practice)
+          # 3. Copy the C/C++ Runtime DLLs (MSVC) if necessary (often auto-handled, but good practice)
           cp -v "${VCPKG_BIN_PATH}"/vcruntime*.dll "${TARGET_DIR}" 2>/dev/null || true
 
       - name: Installing `jetdl` & running pytest (Windows)
