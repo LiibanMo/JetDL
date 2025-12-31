@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -205,10 +206,11 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
     float* ptr2 = tensor2->_data.get();
     float* result_ptr = result_data.get();
 
+    const ptrdiff_t batch_count = static_cast<ptrdiff_t>(B);
 #ifdef JETDL_WITH_OPENMP
 #pragma omp parallel for schedule(dynamic)
 #endif
-    for (size_t b = 0; b < B; b++) {
+    for (ptrdiff_t b = 0; b < batch_count; b++) {
       float* ptr1_b = ptr1 + idxs1[b];
       float* ptr2_b = ptr2 + idxs2[b];
       float* result_ptr_b = result_ptr + b * M * N;

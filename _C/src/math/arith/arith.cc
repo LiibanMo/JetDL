@@ -1,5 +1,6 @@
 #include "jetdl/math/arith.h"
 
+#include <cstddef>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
@@ -180,10 +181,11 @@ std::shared_ptr<Tensor> _math_ops(std::shared_ptr<Tensor>& a,
         }
       }
 
+      const ptrdiff_t num_rows = static_cast<ptrdiff_t>(total_num_rows);
 #ifdef JETDL_WITH_OPENMP
 #pragma omp parallel for schedule(static)
 #endif
-      for (size_t row = 0; row < total_num_rows; row++) {
+      for (ptrdiff_t row = 0; row < num_rows; row++) {
         size_t idx_a = 0;
         size_t idx_b = 0;
         if (ndim > 1) {
