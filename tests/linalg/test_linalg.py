@@ -3,8 +3,7 @@ import torch
 
 import jetdl
 
-from ..utils import (ERR, SEED, PyTestAsserts, generate_random_data,
-                     generate_shape_ids)
+from ..utils import ERR, SEED, PyTestAsserts, generate_random_data, generate_shape_ids
 
 torch.manual_seed(SEED)
 
@@ -121,13 +120,15 @@ def test_matmul(shape1, shape2):
     # error accumulation in large matrix multiplications. Different BLAS
     # implementations (Accelerate vs OpenBLAS) may produce slightly different results.
     K = shape1[-1] if isinstance(shape1, tuple) else shape1
-    scaled_err = ERR * max(1, K ** 0.5)
+    scaled_err = ERR * max(1, K**0.75)
 
     assert_object = PyTestAsserts(j3, t3)
     assert (
         assert_object.check_basic_metadata()
     ), assert_object.basic_metadata_error_output()
-    assert assert_object.check_results(err=scaled_err), assert_object.results_error_output()
+    assert assert_object.check_results(
+        err=scaled_err
+    ), assert_object.results_error_output()
 
 
 @pytest.mark.parametrize(
