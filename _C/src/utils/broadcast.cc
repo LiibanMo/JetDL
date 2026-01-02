@@ -33,8 +33,10 @@ std::pair<std::vector<size_t>, std::vector<size_t>> get_strides(
     const size_t dimA = (idxA < 0) ? 1 : shapeA[idxA];
     const size_t dimB = (idxB < 0) ? 1 : shapeB[idxB];
 
-    broadcasted_stridesA[i] = (dimA == 1 && dimA < dimB) ? 0 : stridesA[idxA];
-    broadcasted_stridesB[i] = (dimB == 1 && dimB < dimA) ? 0 : stridesB[idxB];
+    broadcasted_stridesA[i] =
+        (idxA < 0 || (dimA == 1 && dimA < dimB)) ? 0 : stridesA[idxA];
+    broadcasted_stridesB[i] =
+        (idxB < 0 || (dimB == 1 && dimB < dimA)) ? 0 : stridesB[idxB];
   }
 
   return {broadcasted_stridesA, broadcasted_stridesB};
