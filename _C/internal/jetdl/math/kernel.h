@@ -23,6 +23,8 @@ void c_mean_over_axes_kernel(float* dest, const float* src,
 
 void c_add_cpu(const float* a, const float* b, float* c, const size_t N);
 
+void c_add_inplace_cpu(float* a, const float* b, const size_t N);
+
 void c_add_a_scalar_cpu(const float* a, const float* b, float* c,
                         const size_t N);
 
@@ -61,6 +63,11 @@ void c_div_b_scalar_cpu(const float* a, const float* b, float* c,
 
 void c_div_scalars_cpu(const float* a, const float* b, float* c);
 
+// Fused backward for division: result = -a * grad / (b * b)
+// Eliminates 4 intermediate tensor allocations in DivBackward
+void c_div_backward_b_cpu(const float* a, const float* b, const float* grad,
+                          float* result, const size_t N);
+
 void c_pow_cpu(float* dest, const float src, const int k);
 
 void c_total_sum_cpu(float* dest, const float* src, const size_t N);
@@ -77,6 +84,8 @@ void c_mean_over_axes_cpu(float* dest, const float* src,
 // CUDA
 
 void c_add_cuda(const float* a, const float* b, float* c, const size_t N);
+
+void c_add_inplace_cuda(float* a, const float* b, const size_t N);
 
 void c_add_a_scalar_cuda(const float* a, const float* b, float* c,
                          const size_t N);
@@ -115,6 +124,11 @@ void c_div_b_scalar_cuda(const float* a, const float* b, float* c,
                          const size_t N);
 
 void c_div_scalars_cuda(const float* a, const float* b, float* c);
+
+// Fused backward for division: result = -a * grad / (b * b)
+// Eliminates 4 intermediate tensor allocations in DivBackward
+void c_div_backward_b_cuda(const float* a, const float* b, const float* grad,
+                           float* result, const size_t N);
 
 void c_pow_cuda(float* dest, const float src, const int k);
 

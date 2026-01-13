@@ -1,9 +1,11 @@
 #include "jetdl/math.h"
 
 #include <memory>
+#include <stdexcept>
 
 #include "jetdl/math/arith.h"
 #include "jetdl/math/function.h"
+#include "jetdl/math/kernel.h"
 #include "jetdl/tensor.h"
 #include "jetdl/utils/check.h"
 
@@ -21,6 +23,27 @@ std::shared_ptr<Tensor> add(std::shared_ptr<Tensor>& a,
     return _math_ops_b_scalar(a, b, utils::ArithType::ADD);
   } else {
     return _math_ops_scalars(a, b, utils::ArithType::ADD);
+  }
+}
+
+void add_inplace(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b) {
+  if (a->shape != b->shape) {
+    throw std::runtime_error(
+        "add_inplace requires tensors with identical shapes");
+  }
+  if (a->device != b->device) {
+    throw std::runtime_error(
+        "add_inplace requires tensors on the same device");
+  }
+
+  if (a->device.is_cuda()) {
+#ifdef JETDL_WITH_CUDA
+    c_add_inplace_cuda(a->_cuda_data, b->_cuda_data, a->size);
+#else
+    throw std::runtime_error("JetDL compiled without CUDA support");
+#endif
+  } else {
+    c_add_inplace_cpu(a->_data.get(), b->_data.get(), a->size);
   }
 }
 

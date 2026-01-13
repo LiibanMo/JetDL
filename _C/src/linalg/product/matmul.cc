@@ -24,99 +24,15 @@
 
 namespace jetdl {
 
-std::shared_ptr<Tensor> _linalg_dot(std::shared_ptr<Tensor>& a,
-                                    std::shared_ptr<Tensor>& b) {
-  std::vector<size_t> view_shape_a = {1};
-  view_shape_a.push_back(a->shape[0]);
-
-  std::vector<size_t> view_shape_b = b->shape;
-  view_shape_b.push_back(1);
-
-  std::shared_ptr<Tensor> view_tensor_a = view(a, view_shape_a);
-  std::shared_ptr<Tensor> view_tensor_b = view(b, view_shape_b);
-
-  std::shared_ptr<Tensor> view_result_tensor =
-      _linalg_matmul(view_tensor_a, view_tensor_b);
-
-  const Device& device = a->device;
-  const bool requires_grad = a->requires_grad || b->requires_grad;
-  std::shared_ptr<Tensor> result_tensor;
-
-  if (device.is_cuda()) {
-#ifdef JETDL_WITH_CUDA
-    // For CUDA, reshape the (1,1) result to scalar shape
-    // Reuse the existing CUDA data by creating a new tensor with scalar shape
-    result_tensor = std::make_shared<Tensor>();
-    result_tensor->_cuda_data = view_result_tensor->_cuda_data;
-    result_tensor->_data = nullptr;
-    result_tensor->device = device;
-    result_tensor->ndim = 0;
-    result_tensor->shape = {};
-    result_tensor->size = 1;
-    result_tensor->strides = {};
-    result_tensor->is_contiguous = true;
-    result_tensor->requires_grad = requires_grad;
-    // Prevent double-free by nulling out source's cuda_data
-    view_result_tensor->_cuda_data = nullptr;
-#else
-    throw std::runtime_error("JetDL compiled without CUDA support");
-#endif
-  } else {
-    result_tensor = std::make_shared<Tensor>(
-        view_result_tensor->_data[0], requires_grad);
-  }
-
-  if (result_tensor->requires_grad) {
-    result_tensor->grad_fn = std::make_shared<DotBackward>(a, b, result_tensor);
-  }
-
-  return result_tensor;
-}
-
-std::shared_ptr<Tensor> _linalg_matvec(std::shared_ptr<Tensor>& a,
-                                       std::shared_ptr<Tensor>& b) {
-  std::vector<size_t> view_shape_b = b->shape;
-  view_shape_b.push_back(1);
-
-  std::shared_ptr<Tensor> view_tensor_b = view(b, view_shape_b);
-
-  std::shared_ptr<Tensor> view_result_tensor = _linalg_matmul(a, view_tensor_b);
-
-  const std::vector<size_t>& shape =
-      utils::get_result_shape(a->shape, b->shape, utils::OpType::MATMUL);
-
-  std::shared_ptr<Tensor> result_tensor = view(view_result_tensor, shape);
-  result_tensor->requires_grad = a->requires_grad || b->requires_grad;
-
-  return result_tensor;
-}
-
-std::shared_ptr<Tensor> _linalg_vecmat(std::shared_ptr<Tensor>& a,
-                                       std::shared_ptr<Tensor>& b) {
-  std::vector<size_t> view_shape_a = {1};
-  view_shape_a.push_back(a->shape[0]);
-
-  std::shared_ptr<Tensor> view_tensor_a = view(a, view_shape_a);
-
-  std::shared_ptr<Tensor> view_result_tensor = _linalg_matmul(view_tensor_a, b);
-
-  const std::vector<size_t>& shape =
-      utils::get_result_shape(a->shape, b->shape, utils::OpType::MATMUL);
-
-  std::shared_ptr<Tensor> result_tensor = view(view_result_tensor, shape);
-  result_tensor->requires_grad = a->requires_grad || b->requires_grad;
-
-  return result_tensor;
-}
-
 std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
                                        std::shared_ptr<Tensor>& tensor2) {
   // Device validation
   if (tensor1->device != tensor2->device) {
     throw std::runtime_error(
         "Cannot perform matmul between tensors on different devices. "
-        "Tensor 1 is on " + tensor1->device.str() + ", tensor 2 is on " +
-        tensor2->device.str() + ". Use .to(), .cuda(), or .cpu() to move tensors.");
+        "Tensor 1 is on " +
+        tensor1->device.str() + ", tensor 2 is on " + tensor2->device.str() +
+        ". Use .to(), .cuda(), or .cpu() to move tensors.");
   }
 
   const Device& device = tensor1->device;
@@ -137,17 +53,19 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
     if (on_cuda) {
 #ifdef JETDL_WITH_CUDA
       float* result_cuda = cuda::CUDAAllocator::allocate(result_size);
-      matmul_kernel_cuda(tensor1->get(), tensor2->get(), result_cuda,
-                         M, K, N, K, N, N);
-      result_tensor = std::make_shared<Tensor>(result_cuda, shape, requires_grad, device);
+      matmul_kernel_cuda(tensor1->get(), tensor2->get(), result_cuda, M, K, N,
+                         K, N, N);
+      result_tensor =
+          std::make_shared<Tensor>(result_cuda, shape, requires_grad, device);
 #else
       throw std::runtime_error("JetDL compiled without CUDA support");
 #endif
     } else {
       auto result_data = std::shared_ptr<float[]>(new float[result_size]());
-      matmul_kernel_cpu(tensor1->_data.get(), tensor2->_data.get(), result_data.get(),
-                        M, K, N, K, N, N);
-      result_tensor = std::make_shared<Tensor>(result_data, shape, requires_grad);
+      matmul_kernel_cpu(tensor1->_data.get(), tensor2->_data.get(),
+                        result_data.get(), M, K, N, K, N, N);
+      result_tensor =
+          std::make_shared<Tensor>(result_data, shape, requires_grad);
     }
 
     if (result_tensor->requires_grad) {
@@ -195,7 +113,8 @@ std::shared_ptr<Tensor> _linalg_matmul(std::shared_ptr<Tensor>& tensor1,
       matmul_kernel_cuda(ptr1_b, ptr2_b, result_ptr_b, M, K, N, K, N, N);
     }
 
-    result_tensor = std::make_shared<Tensor>(result_cuda, shape, requires_grad, device);
+    result_tensor =
+        std::make_shared<Tensor>(result_cuda, shape, requires_grad, device);
 #else
     throw std::runtime_error("JetDL compiled without CUDA support");
 #endif

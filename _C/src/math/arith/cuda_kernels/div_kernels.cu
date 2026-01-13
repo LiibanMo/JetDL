@@ -63,3 +63,25 @@ void c_div_scalars_cuda(const float* d_a, const float* d_b, float* d_c) {
   // For scalar division, use a single thread
   c_div_cuda_kernel<<<1, 1>>>(d_a, d_b, d_c, 1);
 }
+
+// Fused backward for division: result = -a * grad / (b * b)
+__global__ void c_div_backward_b_cuda_kernel(const float* a, const float* b,
+                                             const float* grad, float* result,
+                                             const size_t N) {
+  const int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+  if (i < N) {
+    const float b_val = b[i];
+    result[i] = -a[i] * grad[i] / (b_val * b_val);
+  }
+}
+
+void c_div_backward_b_cuda(const float* d_a, const float* d_b,
+                           const float* d_grad, float* d_result,
+                           const size_t N) {
+  const int NUM_BLOCKS_PER_GRID =
+      (N + NUM_THREADS_PER_BLOCK - 1) / NUM_THREADS_PER_BLOCK;
+
+  c_div_backward_b_cuda_kernel<<<NUM_BLOCKS_PER_GRID, NUM_THREADS_PER_BLOCK>>>(
+      d_a, d_b, d_grad, d_result, N);
+}

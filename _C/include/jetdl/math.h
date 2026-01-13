@@ -12,6 +12,8 @@ namespace math {
 std::shared_ptr<Tensor> add(std::shared_ptr<Tensor>& a,
                             std::shared_ptr<Tensor>& b);
 
+void add_inplace(std::shared_ptr<Tensor>& a, std::shared_ptr<Tensor>& b);
+
 std::shared_ptr<Tensor> sub(std::shared_ptr<Tensor>& a,
                             std::shared_ptr<Tensor>& b);
 

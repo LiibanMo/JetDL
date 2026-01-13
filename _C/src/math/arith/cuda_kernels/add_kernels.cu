@@ -63,3 +63,20 @@ void c_add_scalars_cuda(const float* d_a, const float* d_b, float* d_c) {
   // For scalar addition, use a single thread
   c_add_cuda_kernel<<<1, 1>>>(d_a, d_b, d_c, 1);
 }
+
+__global__ void c_add_inplace_cuda_kernel(float* a, const float* b,
+                                          const size_t N) {
+  const int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+  if (i < N) {
+    a[i] += b[i];
+  }
+}
+
+void c_add_inplace_cuda(float* d_a, const float* d_b, const size_t N) {
+  const int NUM_BLOCKS_PER_GRID =
+      (N + NUM_THREADS_PER_BLOCK - 1) / NUM_THREADS_PER_BLOCK;
+
+  c_add_inplace_cuda_kernel<<<NUM_BLOCKS_PER_GRID, NUM_THREADS_PER_BLOCK>>>(
+      d_a, d_b, N);
+}
