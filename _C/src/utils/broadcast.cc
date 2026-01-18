@@ -24,11 +24,12 @@ std::pair<std::vector<size_t>, std::vector<size_t>> get_strides(
   const std::vector<size_t>& stridesA = get_strides(shapeA);
   const std::vector<size_t>& stridesB = get_strides(shapeB);
 
-  const size_t offset = (optype == OpType::MATMUL) ? 2 : 0;
+  const int offset = (optype == OpType::MATMUL) ? 2 : 0;
+  const int ndim = static_cast<int>(max_ndim);
 
-  for (int i = max_ndim - offset - 1; i >= 0; i--) {
-    const int idxA = i - max_ndim + shapeA.size();
-    const int idxB = i - max_ndim + shapeB.size();
+  for (int i = ndim - offset - 1; i >= 0; i--) {
+    const int idxA = i - ndim + static_cast<int>(shapeA.size());
+    const int idxB = i - ndim + static_cast<int>(shapeB.size());
 
     const size_t dimA = (idxA < 0) ? 1 : shapeA[idxA];
     const size_t dimB = (idxB < 0) ? 1 : shapeB[idxB];
