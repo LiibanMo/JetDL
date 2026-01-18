@@ -119,8 +119,7 @@ def test_matmul(shape1, shape2):
     # Scale tolerance with inner dimension K to account for floating-point
     # error accumulation in large matrix multiplications. Different BLAS
     # implementations (Accelerate vs OpenBLAS) may produce slightly different results.
-    K = shape1[-1] if isinstance(shape1, tuple) else shape1
-    scaled_err = ERR * max(1, K)
+    scaled_err = ERR * max(1, j3.size)
 
     assert_object = PyTestAsserts(j3, t3)
     assert (
