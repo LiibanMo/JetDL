@@ -99,9 +99,9 @@ class PyTestAsserts:
         elif not self.check_is_contiguous():
             return self.is_contiguous_error_output()
 
-    def check_results(self, err: float = ERR) -> bool:
+    def check_results(self, rtol: float = ERR, atol: float = 1e-5) -> bool:
         j_torch_version = torch.asarray(self.j).reshape(self.j.shape)
-        return torch.allclose(j_torch_version, self.t, err)
+        return torch.allclose(j_torch_version, self.t, rtol=rtol, atol=atol)
 
     def results_error_output(self) -> str:
         return f"Expected tensors to be close: {self.j} vs {self.t}"

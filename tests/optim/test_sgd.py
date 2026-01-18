@@ -73,4 +73,4 @@ def test_sgd_step():
         j_param = j_params[i]
         t_param = t_params[i]
         assert_obj = PyTestAsserts(j_param, t_param)
-        assert assert_obj.check_results(err=1e-5), assert_obj.results_error_output()
+        assert assert_obj.check_results(rtol=1e-5), assert_obj.results_error_output()

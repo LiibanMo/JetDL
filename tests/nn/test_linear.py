@@ -60,4 +60,4 @@ def test_linear_forward(batch_size, in_features, out_features):
     assert (
         assert_object.check_basic_metadata()
     ), assert_object.basic_metadata_error_output()
-    assert assert_object.check_results(err=1e-3), assert_object.results_error_output()
+    assert assert_object.check_results(rtol=1e-3), assert_object.results_error_output()
