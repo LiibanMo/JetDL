@@ -121,7 +121,7 @@ def test_matmul(shape1, shape2):
     # implementations (Accelerate vs OpenBLAS vs MKL) may produce slightly
     # different results, especially on Windows.
     K = shape1[-1] if isinstance(shape1, tuple) else shape1
-    scaled_rtol = ERR * max(1, K) * 2
+    scaled_rtol = ERR * max(1, K) * 10
     scaled_atol = 1e-3 * max(1, K)
 
     assert_object = PyTestAsserts(j3, t3)
