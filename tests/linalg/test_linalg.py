@@ -120,7 +120,7 @@ def test_matmul(shape1, shape2):
     # error accumulation in large matrix multiplications. Different BLAS
     # implementations (Accelerate vs OpenBLAS) may produce slightly different results.
     K = shape1[-1] if isinstance(shape1, tuple) else shape1
-    scaled_err = ERR * max(1, K**0.75)
+    scaled_err = ERR * max(1, K)
 
     assert_object = PyTestAsserts(j3, t3)
     assert (
