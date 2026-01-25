@@ -62,8 +62,8 @@ std::vector<size_t> get_result_shape(const std::vector<size_t>& shapeA,
   }
 
   for (int i = max_ndim - offset - 1; i >= 0; i--) {
-    const int idxA = i - max_ndim + shapeA.size();
-    const int idxB = i - max_ndim + shapeB.size();
+    const int idxA = i - max_ndim + static_cast<int>(shapeA.size());
+    const int idxB = i - max_ndim + static_cast<int>(shapeB.size());
 
     const int dimA = (idxA < 0) ? 1 : shapeA[idxA];
     const int dimB = (idxB < 0) ? 1 : shapeB[idxB];

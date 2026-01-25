@@ -11,7 +11,8 @@ std::vector<size_t> get_strides(const std::vector<size_t>& shape) {
     return {};
   }
   auto strides = std::vector<size_t>(ndim, 1);
-  for (int i = ndim - 2; i >= 0; i--) {
+  const int n = static_cast<int>(ndim);
+  for (int i = n - 2; i >= 0; i--) {
     strides[i] = strides[i + 1] * shape[i + 1];
   }
   return strides;
