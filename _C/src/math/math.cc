@@ -136,5 +136,54 @@ std::shared_ptr<Tensor> heaviside(std::shared_ptr<Tensor>& a,
   return _heaviside_function(a, value);
 }
 
+std::shared_ptr<Tensor> exp(std::shared_ptr<Tensor>& a) {
+  return _exp(a);
+}
+
+std::shared_ptr<Tensor> log(std::shared_ptr<Tensor>& a) {
+  return _log(a);
+}
+
+std::shared_ptr<Tensor> log10(std::shared_ptr<Tensor>& a) {
+  return _log10(a);
+}
+
+std::shared_ptr<Tensor> log2(std::shared_ptr<Tensor>& a) {
+  return _log2(a);
+}
+
+std::shared_ptr<Tensor> sin(std::shared_ptr<Tensor>& a) {
+  return _sin(a);
+}
+
+std::shared_ptr<Tensor> cos(std::shared_ptr<Tensor>& a) {
+  return _cos(a);
+}
+
+std::shared_ptr<Tensor> tanh(std::shared_ptr<Tensor>& a) {
+  return _tanh(a);
+}
+
+std::shared_ptr<Tensor> sinh(std::shared_ptr<Tensor>& a) {
+  return _sinh(a);
+}
+
+std::shared_ptr<Tensor> cosh(std::shared_ptr<Tensor>& a) {
+  return _cosh(a);
+}
+
+std::shared_ptr<Tensor> abs(std::shared_ptr<Tensor>& a) {
+  return _abs(a);
+}
+
+std::shared_ptr<Tensor> sign(std::shared_ptr<Tensor>& a) {
+  return _sign(a);
+}
+
+std::shared_ptr<Tensor> clamp(std::shared_ptr<Tensor>& a, float min_val,
+                               float max_val) {
+  return _clamp(a, min_val, max_val);
+}
+
 }  // namespace math
 }  // namespace jetdl

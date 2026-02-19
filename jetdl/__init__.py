@@ -5,7 +5,9 @@ from ._creation import fill, ones, zeros
 
 from ._manip import contiguous, reshape, squeeze, unsqueeze
 from .linalg import dot, matmul, matrix_transpose, transpose
-from .math import add, div, mean, mul, pow, sqrt, sub, sum, sum_to_shape
+from .math import (abs, add, clamp, cos, cosh, div, exp, log, log2, log10,
+                   mean, mul, pow, sign, sin, sinh, sqrt, sub, sum,
+                   sum_to_shape, tanh)
 from .random import normal, rand, uniform
 
 
@@ -47,6 +49,18 @@ __all__ = [
     "sum",
     "sum_to_shape",
     "mean",
+    "exp",
+    "log",
+    "log10",
+    "log2",
+    "sin",
+    "cos",
+    "tanh",
+    "sinh",
+    "cosh",
+    "abs",
+    "sign",
+    "clamp",
     "dot",
     "matmul",
     "transpose",

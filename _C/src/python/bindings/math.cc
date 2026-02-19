@@ -61,6 +61,19 @@ void bind_math_submodule(py::module_& m) {
     }
   });
 
+  math.def("c_exp", &math::exp, py::call_guard<py::gil_scoped_release>());
+  math.def("c_log", &math::log, py::call_guard<py::gil_scoped_release>());
+  math.def("c_log10", &math::log10, py::call_guard<py::gil_scoped_release>());
+  math.def("c_log2", &math::log2, py::call_guard<py::gil_scoped_release>());
+  math.def("c_sin", &math::sin, py::call_guard<py::gil_scoped_release>());
+  math.def("c_cos", &math::cos, py::call_guard<py::gil_scoped_release>());
+  math.def("c_tanh", &math::tanh, py::call_guard<py::gil_scoped_release>());
+  math.def("c_sinh", &math::sinh, py::call_guard<py::gil_scoped_release>());
+  math.def("c_cosh", &math::cosh, py::call_guard<py::gil_scoped_release>());
+  math.def("c_abs", &math::abs, py::call_guard<py::gil_scoped_release>());
+  math.def("c_sign", &math::sign, py::call_guard<py::gil_scoped_release>());
+  math.def("c_clamp", &math::clamp, py::call_guard<py::gil_scoped_release>());
+
   math.def("c_mean",
            [](std::shared_ptr<Tensor>& tensor, const py::object& axes) {
              if (py::isinstance<py::int_>(axes)) {

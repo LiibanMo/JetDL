@@ -41,6 +41,26 @@ std::shared_ptr<Tensor> mean(std::shared_ptr<Tensor>& a,
 std::shared_ptr<Tensor> heaviside(std::shared_ptr<Tensor>& a,
                                   const float value = 0.0f);
 
+// Transcendental functions
+std::shared_ptr<Tensor> exp(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> log(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> log10(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> log2(std::shared_ptr<Tensor>& a);
+
+// Trigonometric functions
+std::shared_ptr<Tensor> sin(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> cos(std::shared_ptr<Tensor>& a);
+
+// Hyperbolic functions
+std::shared_ptr<Tensor> tanh(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> sinh(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> cosh(std::shared_ptr<Tensor>& a);
+
+// Comparison functions
+std::shared_ptr<Tensor> abs(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> sign(std::shared_ptr<Tensor>& a);
+std::shared_ptr<Tensor> clamp(std::shared_ptr<Tensor>& a, float min_val, float max_val);
+
 }  // namespace math
 }  // namespace jetdl
 

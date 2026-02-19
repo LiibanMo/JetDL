@@ -27,6 +27,28 @@ std::shared_ptr<Tensor> _square_root(std::shared_ptr<Tensor>& input);
 
 std::shared_ptr<Tensor> _heaviside_function(std::shared_ptr<Tensor>& input,
                                             const float value = 0.0f);
+
+// Transcendental functions
+std::shared_ptr<Tensor> _exp(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _log(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _log10(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _log2(std::shared_ptr<Tensor>& input);
+
+// Trigonometric functions
+std::shared_ptr<Tensor> _sin(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _cos(std::shared_ptr<Tensor>& input);
+
+// Hyperbolic functions
+std::shared_ptr<Tensor> _tanh(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _sinh(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _cosh(std::shared_ptr<Tensor>& input);
+
+// Comparison functions
+std::shared_ptr<Tensor> _abs(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _sign(std::shared_ptr<Tensor>& input);
+std::shared_ptr<Tensor> _clamp(std::shared_ptr<Tensor>& input,
+                               float min_val, float max_val);
+
 }  // namespace jetdl
 
 #endif

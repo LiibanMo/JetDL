@@ -1,8 +1,10 @@
 from typing import Optional, Union
 
 from ._C import Tensor
-from ._C.math import (c_add, c_div, c_mean, c_mul, c_pow, c_scalar_sqrt,
-                      c_sqrt, c_sub, c_sum, c_sum_to_shape)
+from ._C.math import (c_abs, c_add, c_clamp, c_cos, c_cosh, c_div, c_exp,
+                      c_log, c_log10, c_log2, c_mean, c_mul, c_pow,
+                      c_scalar_sqrt, c_sign, c_sin, c_sinh, c_sqrt, c_sub,
+                      c_sum, c_sum_to_shape, c_tanh)
 
 
 def add(a: Tensor, b: Tensor) -> Tensor:
@@ -97,6 +99,66 @@ def mean(input: Tensor, axes: Optional[Union[int, list, tuple]] = None) -> Tenso
     return c_mean(input, axes)
 
 
+def exp(input: Tensor) -> Tensor:
+    """Computes the element-wise exponential of a tensor."""
+    return c_exp(input)
+
+
+def log(input: Tensor) -> Tensor:
+    """Computes the element-wise natural logarithm of a tensor."""
+    return c_log(input)
+
+
+def log10(input: Tensor) -> Tensor:
+    """Computes the element-wise base-10 logarithm of a tensor."""
+    return c_log10(input)
+
+
+def log2(input: Tensor) -> Tensor:
+    """Computes the element-wise base-2 logarithm of a tensor."""
+    return c_log2(input)
+
+
+def sin(input: Tensor) -> Tensor:
+    """Computes the element-wise sine of a tensor."""
+    return c_sin(input)
+
+
+def cos(input: Tensor) -> Tensor:
+    """Computes the element-wise cosine of a tensor."""
+    return c_cos(input)
+
+
+def tanh(input: Tensor) -> Tensor:
+    """Computes the element-wise hyperbolic tangent of a tensor."""
+    return c_tanh(input)
+
+
+def sinh(input: Tensor) -> Tensor:
+    """Computes the element-wise hyperbolic sine of a tensor."""
+    return c_sinh(input)
+
+
+def cosh(input: Tensor) -> Tensor:
+    """Computes the element-wise hyperbolic cosine of a tensor."""
+    return c_cosh(input)
+
+
+def abs(input: Tensor) -> Tensor:
+    """Computes the element-wise absolute value of a tensor."""
+    return c_abs(input)
+
+
+def sign(input: Tensor) -> Tensor:
+    """Computes the element-wise sign of a tensor (-1, 0, or 1)."""
+    return c_sign(input)
+
+
+def clamp(input: Tensor, min: float, max: float) -> Tensor:
+    """Clamps all elements in a tensor into the range [min, max]."""
+    return c_clamp(input, min, max)
+
+
 __all__ = [
     "add",
     "sub",
@@ -107,4 +169,16 @@ __all__ = [
     "sum",
     "sum_to_shape",
     "mean",
+    "exp",
+    "log",
+    "log10",
+    "log2",
+    "sin",
+    "cos",
+    "tanh",
+    "sinh",
+    "cosh",
+    "abs",
+    "sign",
+    "clamp",
 ]

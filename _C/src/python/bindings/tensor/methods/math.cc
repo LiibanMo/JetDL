@@ -211,6 +211,27 @@ void bind_tensor_mean_method(
       py::arg("axes") = py::none());
 }
 
+void bind_tensor_transcendental_methods(
+    py::class_<Tensor, std::shared_ptr<Tensor>>& py_tensor) {
+  py_tensor.def("exp", &math::exp);
+  py_tensor.def("log", &math::log);
+  py_tensor.def("log10", &math::log10);
+  py_tensor.def("log2", &math::log2);
+  py_tensor.def("sin", &math::sin);
+  py_tensor.def("cos", &math::cos);
+  py_tensor.def("tanh", &math::tanh);
+  py_tensor.def("sinh", &math::sinh);
+  py_tensor.def("cosh", &math::cosh);
+  py_tensor.def("abs", &math::abs);
+  py_tensor.def("sign", &math::sign);
+  py_tensor.def(
+      "clamp",
+      [](std::shared_ptr<Tensor>& self, float min_val, float max_val) {
+        return math::clamp(self, min_val, max_val);
+      },
+      py::arg("min"), py::arg("max"));
+}
+
 }  // namespace
 
 void bind_tensor_math_methods(
@@ -235,6 +256,8 @@ void bind_tensor_math_methods(
   bind_tensor_sum_to_shape_method(py_tensor);
 
   bind_tensor_mean_method(py_tensor);
+
+  bind_tensor_transcendental_methods(py_tensor);
 }
 
 }  // namespace jetdl

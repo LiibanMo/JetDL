@@ -10,6 +10,16 @@ To install the library and its dependencies, run the following command in your t
 pip install jetdl
 ```
 
+### Optional: OpenMP for CPU Parallelization
+
+JetDL uses OpenMP for parallel CPU operations. On macOS, Apple Clang does not include OpenMP by default. Install it via Homebrew for better performance:
+
+```bash
+brew install libomp
+```
+
+On Linux, OpenMP is typically included with GCC. Without OpenMP, CPU operations run single-threaded.
+
 ## Usage
 
 Here are some examples of how to use JetDL for basic tensor operations and for building and training a simple neural network.
